@@ -145,7 +145,7 @@ class Balancer:
             if downstream_copy.is_input(belt):
                 continue
             ans.balance.append(belt)
-            
+
         ans.update_node_set()
         return ans
 
@@ -189,7 +189,7 @@ class Balancer:
 
     # return True if balance changed
     def calc_balance_iter(self) -> bool:
-        print("calc_balance_iter")
+        # print("calc_balance_iter")
         is_changed = False
         for node in self.nodes:
             # print(f"{node=}")
@@ -202,7 +202,7 @@ class Balancer:
 
     def calc_balance(self) -> None:
 
-        print("calc_balance")
+        # print("calc_balance")
 
         for belt in self.balance:
             belt.supply_balance.clear()
