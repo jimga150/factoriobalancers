@@ -127,6 +127,42 @@ class Balancer:
         ans.postprocess_nodes()
         return ans
 
+    def make_2x2() -> Balancer:
+
+        ans = Balancer()
+
+        node_a = Node()
+        node_b = Node()
+        node_1 = Node()
+        node_o1 = Node()
+        node_o2 = Node()
+
+        ans.balance.append(Belt(node_a, node_1))
+        ans.balance.append(Belt(node_b, node_1))
+        ans.balance.append(Belt(node_1, node_o1))
+        ans.balance.append(Belt(node_1, node_o2))
+
+        ans.postprocess_nodes()
+        return ans
+
+    def make_2x2_pri() -> Balancer:
+
+        ans = Balancer()
+
+        node_a = Node()
+        node_b = Node()
+        node_1 = Node()
+        node_o1 = Node()
+        node_o2 = Node()
+
+        ans.balance.append(Belt(node_a, node_1))
+        ans.balance.append(Belt(node_b, node_1))
+        ans.balance.append(Belt(node_1, node_o1, True))
+        ans.balance.append(Belt(node_1, node_o2))
+
+        ans.postprocess_nodes()
+        return ans
+
     @staticmethod
     def combine_balancers(upstream: Balancer, downstream: Balancer) -> Balancer:
 
@@ -145,6 +181,7 @@ class Balancer:
             input_belt = downstream_input_belts[belt_idx]
 
             output_belt.dest = input_belt.dest
+            output_belt.dest_priority = input_belt.dest_priority
 
         for belt in downstream_copy.balance:
             if downstream_copy.is_input(belt):
@@ -186,7 +223,7 @@ class Balancer:
         for node in self.nodes:
             # print(f"{node=}")
             try:
-                is_changed |= self.get_splitter(node).update_input_demand()
+                is_changed |= self.get_splitter(node).update_check_input_demand()
             except ArgumentError:
                 pass
 
@@ -199,7 +236,7 @@ class Balancer:
         for node in self.nodes:
             # print(f"{node=}")
             try:
-                is_changed |= self.get_splitter(node).update_output_balance()
+                is_changed |= self.get_splitter(node).update_check_output_balance()
             except ArgumentError:
                 pass
 
@@ -211,7 +248,6 @@ class Balancer:
 
         for belt in self.balance:
             belt.supply_balance.clear()
-            belt.leftover_balance.clear()
             belt.demand = 1
 
         iters = 0

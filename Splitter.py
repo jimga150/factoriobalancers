@@ -37,7 +37,7 @@ class Splitter:
         return sum([x.demand for x in self.inputs])
 
     # return True if input demands changed
-    def update_input_demand(self) -> bool:
+    def update_check_input_demand(self) -> bool:
 
         is_changed = False
 
@@ -65,7 +65,8 @@ class Splitter:
 
         return is_changed
 
-    def update_output_balance(self) -> bool:
+    def update_check_output_balance(self) -> bool:
+
         is_changed = False
 
         # record old balances for change detection
@@ -75,102 +76,7 @@ class Splitter:
         if num_enabled_outputs == 0:
             return False
 
-        # print(f"Splitter: {self}")
-
-        input_balances = [x.supply_balance for x in self.inputs if x.enabled]
-
-        if len(self.inputs) == 0:
-            # represents an input, just set it to itself
-            assert len(self.outputs) == 1
-            self.outputs[0].supply_balance[self.node] = self.outputs[0].demand
-            # print(f"No inputs, setting {self.node} to demand ({self.outputs[0].demand})")
-        elif len(input_balances) == 0:
-            # no inputs are enabled, just wipe the record and move on
-            for belt in self.outputs:
-                belt.supply_balance.clear()
-            # print(f"No inputs enabled, clearing balances")
-        else:
-
-            # calculate the sum of the input belt balances as a dict
-            total_supply_balance = dict()
-            for belt in self.inputs:
-                if not belt.enabled:
-                    continue
-                total_supply_balance = {i: total_supply_balance.get(i, 0) + belt.supply_balance.get(i, 0)
-                                        for i in set(total_supply_balance).union(belt.supply_balance)}
-
-            # print("Total supply balance:")
-            # for k, v in total_supply_balance.items():
-            #     print(f"\t{k}: {v}")
-
-            # sum of magnitude of all balances coming into splitter
-            total_supply = sum(total_supply_balance.values())
-            # print(f"Total supply: {total_supply}")
-
-            # minimum of output belt demands--input supply will be split evenly up to this magnitude
-            min_demand = min([x.demand if x.enabled else 0 for x in self.outputs])
-            # print(f"Min demand: {min_demand}")
-            if min_demand * num_enabled_outputs > total_supply:
-                min_demand_scaling_factor = 1.0 / num_enabled_outputs
-                tsb_scale_factor = 0
-            else:
-                min_demand_scaling_factor = min_demand / total_supply
-                new_total_supply = total_supply - (min_demand * num_enabled_outputs)
-                tsb_scale_factor = new_total_supply / total_supply
-
-            # print(f"Min demand scaling factor: {min_demand_scaling_factor}")
-            # print(f"Total Supply Balance scaling factor: {tsb_scale_factor}")
-
-            # fill all outputs with equal amount of supply
-            for belt in self.outputs:
-                if not belt.enabled:
-                    continue
-                belt.supply_balance = {k: v * min_demand_scaling_factor for k, v in total_supply_balance.items()}
-
-            # print(f"After filling belts to min demand: ")
-            # for belt in self.outputs:
-            #     if not belt.enabled:
-            #         continue
-            #     print(belt.get_label())
-
-            # scale total supply down to represent what hasn't yet been moved to output belts
-            total_supply_balance = {k: v * tsb_scale_factor for k, v in total_supply_balance.items()}
-            total_supply *= tsb_scale_factor
-
-            # print("After scaling down supply:")
-            # print("Total supply balance:")
-            # for k, v in total_supply_balance.items():
-            #     print(f"\t{k}: {v}")
-
-            # sum of magnitude of all balances coming into splitter
-            total_supply = sum(total_supply_balance.values())
-            # print(f"Total supply: {total_supply}")
-
-            # if one belt has greater demand, fill that with more supply
-            for belt in self.outputs:
-
-                if not belt.enabled:
-                    continue
-                if belt.demand <= min_demand:
-                    continue
-
-                # print(f"Belt {belt} has higher demand: {belt.demand}")
-                additional_demand = belt.demand - min_demand
-                if total_supply < additional_demand:
-                    # print(f"total_supply ({total_supply}) < additional_demand ({additional_demand})")
-                    as_ratio = 1
-                else:
-                    # print(f"total_supply ({total_supply}) >= additional_demand ({additional_demand})")
-                    as_ratio = additional_demand / total_supply
-
-                # print(f"as_ratio: {as_ratio}")
-
-                belt.supply_balance = {i: total_supply_balance.get(i, 0)*as_ratio + belt.supply_balance.get(i, 0)
-                                        for i in set(total_supply_balance).union(belt.supply_balance)}
-
-                # print("Belt supply balance after adding more:")
-                # for k, v in belt.supply_balance.items():
-                #     print(f"\t{k}: {v}")
+        self.update_output_balance()
 
         # check for any changes in balance
         new_balances = [x.supply_balance for x in self.outputs if x.enabled]
@@ -185,3 +91,121 @@ class Splitter:
                     is_changed = True
 
         return is_changed
+
+    def update_output_balance(self):
+
+        num_enabled_outputs = len([x for x in self.outputs if x.enabled])
+
+        # print(f"Splitter: {self}")
+
+        if len(self.inputs) == 0:
+            # represents an input, just set it to itself
+            assert len(self.outputs) == 1
+            self.outputs[0].supply_balance[self.node] = self.outputs[0].demand
+            # print(f"No inputs, setting {self.node} to demand ({self.outputs[0].demand})")
+            return
+
+        input_balances = [x for x in self.inputs if x.enabled]
+
+        total_supply_balance = self.get_total_supply_balance()
+
+        # print("Total supply balance:")
+        # for k, v in total_supply_balance.items():
+        #     print(f"\t{k}: {v}")
+
+        # sum of magnitude of all balances coming into splitter
+        total_supply = sum(total_supply_balance.values())
+        # print(f"Total supply: {total_supply}")
+
+        if len(input_balances) == 0 or total_supply == 0:
+            # no supply to work with, just wipe the record and move on
+            for belt in self.outputs:
+                belt.supply_balance.clear()
+            # print(f"No supply available, clearing output balances")
+            return
+
+        # print("Balancing inputs:")
+        # for belt in self.inputs:
+        #     print(f"\t{belt.get_label()}")
+
+        # minimum of output belt demands--input supply will be split evenly up to this magnitude
+        min_demand = min([x.demand if x.enabled else 0 for x in self.outputs])
+
+        # no more than 1 priority output please
+        assert len([x for x in self.outputs if x.enabled and x.source_priority]) < 2
+
+        has_priority_output = any([x.source_priority for x in self.outputs])
+
+        if has_priority_output:
+            # priority output detected, we're sharing /no/ output
+            min_demand = 0
+
+        # print(f"Min demand: {min_demand}")
+        if min_demand * num_enabled_outputs > total_supply:
+            min_demand_scaling_factor = 1.0 / num_enabled_outputs
+            tsb_scale_factor = 0
+        else:
+            min_demand_scaling_factor = min_demand / total_supply
+            new_total_supply = total_supply - (min_demand * num_enabled_outputs)
+            tsb_scale_factor = new_total_supply / total_supply
+
+        # print(f"Min demand scaling factor: {min_demand_scaling_factor}")
+        # print(f"Total Supply Balance scaling factor: {tsb_scale_factor}")
+
+        # fill all outputs with equal amount of supply
+        for belt in self.outputs:
+            if not belt.enabled:
+                continue
+            belt.supply_balance = {k: v * min_demand_scaling_factor for k, v in total_supply_balance.items()}
+
+        # print(f"After filling belts to min demand: ")
+        # for belt in self.outputs:
+        #     if not belt.enabled:
+        #         continue
+        #     print(belt.get_label())
+
+        # scale total supply down to represent what hasn't yet been moved to output belts
+        total_supply_balance = {k: v * tsb_scale_factor for k, v in total_supply_balance.items()}
+
+        # print("After scaling down supply:")
+        # print("Total supply balance:")
+        # for k, v in total_supply_balance.items():
+        #     print(f"\t{k}: {v}")
+
+        # sum of magnitude of all balances coming into splitter
+        # total_supply = sum(total_supply_balance.values())
+        # print(f"Total supply: {total_supply}")
+
+        # if one belt has greater demand, fill that with more supply
+        for belt in self.outputs:
+
+            if not belt.enabled:
+                continue
+            if belt.demand <= min_demand:
+                continue
+            if has_priority_output and not belt.source_priority:
+                continue
+
+            # print(f"Belt {belt} has higher demand (or priority): {belt.demand}")
+
+            total_supply_balance = belt.fill_with(total_supply_balance)
+
+        non_priority_outputs = [x for x in self.outputs if x.enabled and not x.source_priority]
+        if has_priority_output and len(non_priority_outputs) > 0:
+            total_supply_balance = non_priority_outputs[0].fill_with(total_supply_balance)
+
+
+    def get_total_supply_balance(self) -> dict:
+        # calculate the sum of the input belt balances as a dict
+        ans = dict()
+        for belt in self.inputs:
+            if not belt.enabled:
+                continue
+            print(f"Adding belt {belt.get_label()}")
+            ans = {i: ans.get(i, 0) + belt.supply_balance.get(i, 0)
+                   for i in set(ans).union(belt.supply_balance)}
+
+        print("total_supply_balance:")
+        for k, v in ans.items():
+            print(f"\t{k}: {v}")
+        return ans
