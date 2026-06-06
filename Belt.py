@@ -50,10 +50,21 @@ class Belt:
 
         return " + ".join([f"{frac:.{decimals_verif}f}*{name}" if frac != 1 else str(name) for name, frac in self.supply_balance.items()])
 
-    def get_label(self):
+    def get_label(self) -> str:
         if not self.enabled:
             return ""
         return f"{self.get_balance_str()} ({self.demand:.{decimals_verif}f})"
+
+    def get_color(self) -> str:
+        if not self.enabled:
+            return "white"
+        if self.source_priority and self.dest_priority:
+            return "green"
+        if self.source_priority:
+            return "red"
+        if self.dest_priority:
+            return "blue"
+        return "black"
 
     def add_balance(self, other_balance: dict):
         for name, frac in other_balance.items():

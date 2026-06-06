@@ -268,5 +268,5 @@ class Balancer:
         g = Digraph(engine='dot', node_attr={'shape': 'rect', 'height': '0.5', 'width': '0.3'},
                     graph_attr={'rankdir': 'LR'})
         for belt in self.balance:
-            g.edge(str(belt.source), str(belt.dest), label=belt.get_label())
+            g.edge(str(belt.source), str(belt.dest), label=belt.get_label(), color=belt.get_color())
         g.render(name, format='png', view=(name == "Network"), cleanup=True)
