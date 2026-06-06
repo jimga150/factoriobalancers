@@ -18,11 +18,16 @@ class Balancer:
         self.balance = list()
         self.nodes = set()
 
-    def update_node_set(self):
+    def postprocess_nodes(self):
         self.nodes.clear()
+
+        input_char = ord('A')
         for belt in self.balance:
             self.nodes.add(belt.source)
             self.nodes.add(belt.dest)
+            if self.is_input(belt):
+                belt.source.name = str(chr(input_char))
+                input_char += 1
 
     @staticmethod
     def make3x3() -> Balancer:
@@ -63,7 +68,7 @@ class Balancer:
         # self.balance.append(Belt(node_6, node_7))
         # self.balance.append(Belt(node_7, node_o))
 
-        ans.update_node_set()
+        ans.postprocess_nodes()
         return ans
 
     @staticmethod
@@ -96,7 +101,7 @@ class Balancer:
         ans.balance.append(Belt(node_4, node_o3))
         ans.balance.append(Belt(node_4, node_o4))
 
-        ans.update_node_set()
+        ans.postprocess_nodes()
         return ans
 
     @staticmethod
@@ -119,7 +124,7 @@ class Balancer:
         ans.balance.append(Belt(node_3, node_1))
         ans.balance.append(Belt(node_3, node_o))
 
-        ans.update_node_set()
+        ans.postprocess_nodes()
         return ans
 
     @staticmethod
@@ -146,7 +151,7 @@ class Balancer:
                 continue
             ans.balance.append(belt)
 
-        ans.update_node_set()
+        ans.postprocess_nodes()
         return ans
 
     def get_splitter(self, node) -> Splitter:
