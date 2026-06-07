@@ -128,6 +128,7 @@ class Balancer:
         ans.postprocess_nodes()
         return ans
 
+    @staticmethod
     def make_2x2() -> Balancer:
 
         ans = Balancer()
@@ -146,6 +147,7 @@ class Balancer:
         ans.postprocess_nodes()
         return ans
 
+    @staticmethod
     def make_2x2_pri_out() -> Balancer:
 
         ans = Balancer()
@@ -164,6 +166,7 @@ class Balancer:
         ans.postprocess_nodes()
         return ans
 
+    @staticmethod
     def make_2x1_pri_in() -> Balancer:
 
         ans = Balancer()
