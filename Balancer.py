@@ -224,7 +224,7 @@ class Balancer:
 
         ans.balance.append(Belt(input_nodes[0], int_nodes[0], False, True))
         ans.balance.append(Belt(input_nodes[1], int_nodes[1], False, True))
-        ans.balance.append(Belt(input_nodes[2], int_nodes[2], False, True))
+        # ans.balance.append(Belt(input_nodes[2], int_nodes[2], False, True))
         ans.balance.append(Belt(input_nodes[3], int_nodes[3], False, True))
         ans.balance.append(Belt(int_nodes[0], int_nodes[4]))
         ans.balance.append(Belt(int_nodes[1], int_nodes[4]))
@@ -255,9 +255,9 @@ class Balancer:
         ans.balance.append(Belt(int_nodes[17], int_nodes[0]))
         ans.balance.append(Belt(int_nodes[17], int_nodes[2]))
         ans.balance.append(Belt(int_nodes[8], output_nodes[0], True))
-        ans.balance.append(Belt(int_nodes[9], output_nodes[1], True))
-        ans.balance.append(Belt(int_nodes[10], output_nodes[2], True))
-        ans.balance.append(Belt(int_nodes[11], output_nodes[3], True))
+        # ans.balance.append(Belt(int_nodes[9], output_nodes[1], True))
+        # ans.balance.append(Belt(int_nodes[10], output_nodes[2], True))
+        # ans.balance.append(Belt(int_nodes[11], output_nodes[3], True))
 
         ans.postprocess_nodes()
         return ans
@@ -348,18 +348,22 @@ class Balancer:
             belt.supply_balance.clear()
             belt.demand = 1
 
-        iters = 0
-        while self.calc_demand_iter():
-            common.debug_print(f"Trying to converge demand, iteration {iters}")
-            iters += 1
-            if iters > 100:
-                raise Exception(f"Balancer failed to converge demand after {iters} iterations")
+        # iters = 0
+        # self.render(f"demand_only_iter_{iters}")
+        # while self.calc_demand_iter():
+        #     common.debug_print(f"Trying to converge demand, iteration {iters}")
+        #     iters += 1
+        #     self.render(f"demand_only_iter_{iters}")
+        #     if iters > 1000:
+        #         raise Exception(f"Balancer failed to converge demand after {iters} iterations")
+
+        # self.render("demand_only")
 
         iters = 0
         while self.calc_balance_iter():
             common.debug_print(f"Trying to balance, iteration {iters}")
             iters += 1
-            if iters > 100:
+            if iters > 10000:
                 raise Exception(f"Balancer failed to converge balance after {iters} iterations")
 
     def render(self, name: str = "Network") -> None:
