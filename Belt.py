@@ -46,21 +46,16 @@ class Belt:
             balance_node_names = [str(x) for x in self.supply_balance.keys()]
             return "|".join(balance_node_names)
 
-        balance_terms = [self.get_balance_term_str(name, frac) for name, frac in self.supply_balance.items()]
+        balance_terms = [common.term_str(name, frac) for name, frac in self.supply_balance.items()]
         balance_terms = [x for x in balance_terms if x != ""]
         return " + ".join(balance_terms)
 
-    def get_balance_term_str(self, name: str, frac: float) -> str:
-        if frac < common.diff_threshold_verif:
-            return ""
-        if frac == 1:
-            return str(name)
-        return f"{frac:.{common.decimals_verif}f}*{name}"
+
 
     def get_label(self) -> str:
         if not self.enabled:
             return ""
-        return f"{self.get_balance_str()} ({self.demand:.{common.decimals_verif}f})"
+        return f"{self.get_balance_str()} ({common.term_str("", self.demand)})"
 
     def get_color(self) -> str:
         if not self.enabled:
