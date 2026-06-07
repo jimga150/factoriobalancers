@@ -18,6 +18,8 @@ for in_belt in balancer.get_inputs():
 
     in_belt.enabled = False
 
+    common.debug_print(f"Calculating balance with {in_belt.source} dry")
+
     balancer.calc_balance()
     balancer.render(f"Sans_{in_belt.source}")
 
@@ -25,13 +27,13 @@ for in_belt in balancer.get_inputs():
     for out_belt in balancer.get_outputs():
         for name, frac in out_belt.supply_balance.items():
             if abs(frac - exp_balance_coeff_1dry) > common.diff_threshold_verif:
-                print(f"Error on {out_belt.dest}: expected balance of input {name} to be "
+                common.debug_print(f"Error on {out_belt.dest}: expected balance of input {name} to be "
                       f"{exp_balance_coeff_1dry:.{common.decimals_iter}f}, got {frac:.{common.decimals_iter}f}"
                       f" (diff > {common.diff_threshold_verif})")
                 is_balanced = False
 
     if not is_balanced:
-        print(f"Balancer unbalanced when input {in_belt.source} is dry.")
+        common.debug_print(f"Balancer unbalanced when input {in_belt.source} is dry.")
 
     in_belt.enabled = True
 

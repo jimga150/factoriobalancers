@@ -9,10 +9,6 @@ class Splitter:
         self.inputs = inputs
         self.outputs = outputs
 
-        # sources = ", ".join([str(x.source) for x in inputs])
-        # dests = ", ".join([str(x.dest) for x in outputs])
-        # print(f"{sources=} and {dests=}")
-
         if len(self.inputs) > 0:
             self.node = self.inputs[0].dest
         else:
@@ -39,6 +35,9 @@ class Splitter:
     # return True if input demands changed
     def update_check_input_demand(self) -> bool:
 
+        common.debug_print("update_check_input_demand")
+        common.debug_print(f"Splitter: {self}")
+
         is_changed = False
 
         old_demands = [x.demand for x in self.inputs if x.enabled]
@@ -48,7 +47,7 @@ class Splitter:
 
         if output_demand == 0:
             assert len(self.inputs) == 1
-            # print(f"Output splitter: setting belt {self.inputs[0]} to 1")
+            common.debug_print(f"Output splitter: setting belt {self.inputs[0]} to 1")
             self.inputs[0].demand = 1
         elif output_demand < input_demand:
             new_demand = output_demand / len(self.inputs)
@@ -96,37 +95,37 @@ class Splitter:
 
         num_enabled_outputs = len([x for x in self.outputs if x.enabled])
 
-        # print(f"Splitter: {self}")
+        common.debug_print(f"update_output_balance, Splitter: {self}")
 
         if len(self.inputs) == 0:
             # represents an input, just set it to itself
             assert len(self.outputs) == 1
             self.outputs[0].supply_balance[self.node] = self.outputs[0].demand
-            # print(f"No inputs, setting {self.node} to demand ({self.outputs[0].demand})")
+            common.debug_print(f"No inputs, setting {self.node} to demand ({self.outputs[0].demand})")
             return
 
         input_balances = [x for x in self.inputs if x.enabled]
 
         total_supply_balance = self.get_total_supply_balance()
 
-        # print("Total supply balance:")
-        # for k, v in total_supply_balance.items():
-        #     print(f"\t{k}: {v}")
+        common.debug_print("Total supply balance:")
+        for k, v in total_supply_balance.items():
+            common.debug_print(f"\t{k}: {v}")
 
         # sum of magnitude of all balances coming into splitter
         total_supply = sum(total_supply_balance.values())
-        # print(f"Total supply: {total_supply}")
+        common.debug_print(f"Total supply: {total_supply}")
 
         if len(input_balances) == 0 or total_supply == 0:
             # no supply to work with, just wipe the record and move on
             for belt in self.outputs:
                 belt.supply_balance.clear()
-            # print(f"No supply available, clearing output balances")
+            common.debug_print(f"No supply available, clearing output balances")
             return
 
-        # print("Balancing inputs:")
-        # for belt in self.inputs:
-        #     print(f"\t{belt.get_label()}")
+        common.debug_print("Balancing inputs:")
+        for belt in self.inputs:
+            common.debug_print(f"\t{belt.get_label()}")
 
         # minimum of output belt demands--input supply will be split evenly up to this magnitude
         min_demand = min([x.demand if x.enabled else 0 for x in self.outputs])
@@ -140,7 +139,7 @@ class Splitter:
             # priority output detected, we're sharing /no/ output
             min_demand = 0
 
-        # print(f"Min demand: {min_demand}")
+        common.debug_print(f"Min demand: {min_demand}")
         if min_demand * num_enabled_outputs > total_supply:
             min_demand_scaling_factor = 1.0 / num_enabled_outputs
             tsb_scale_factor = 0
@@ -149,8 +148,8 @@ class Splitter:
             new_total_supply = total_supply - (min_demand * num_enabled_outputs)
             tsb_scale_factor = new_total_supply / total_supply
 
-        # print(f"Min demand scaling factor: {min_demand_scaling_factor}")
-        # print(f"Total Supply Balance scaling factor: {tsb_scale_factor}")
+        common.debug_print(f"Min demand scaling factor: {min_demand_scaling_factor}")
+        common.debug_print(f"Total Supply Balance scaling factor: {tsb_scale_factor}")
 
         # fill all outputs with equal amount of supply
         for belt in self.outputs:
@@ -158,23 +157,23 @@ class Splitter:
                 continue
             belt.supply_balance = {k: v * min_demand_scaling_factor for k, v in total_supply_balance.items()}
 
-        # print(f"After filling belts to min demand: ")
-        # for belt in self.outputs:
-        #     if not belt.enabled:
-        #         continue
-        #     print(belt.get_label())
+        common.debug_print(f"After filling belts to min demand: ")
+        for belt in self.outputs:
+            if not belt.enabled:
+                continue
+            common.debug_print(belt.get_label())
 
         # scale total supply down to represent what hasn't yet been moved to output belts
         total_supply_balance = {k: v * tsb_scale_factor for k, v in total_supply_balance.items()}
 
-        # print("After scaling down supply:")
-        # print("Total supply balance:")
-        # for k, v in total_supply_balance.items():
-        #     print(f"\t{k}: {v}")
+        common.debug_print("After scaling down supply:")
+        common.debug_print("Total supply balance:")
+        for k, v in total_supply_balance.items():
+            common.debug_print(f"\t{k}: {v}")
 
         # sum of magnitude of all balances coming into splitter
-        # total_supply = sum(total_supply_balance.values())
-        # print(f"Total supply: {total_supply}")
+        total_supply = sum(total_supply_balance.values())
+        common.debug_print(f"Total supply: {total_supply}")
 
         # if one belt has greater demand, fill that with more supply
         for belt in self.outputs:
@@ -186,7 +185,7 @@ class Splitter:
             if has_priority_output and not belt.source_priority:
                 continue
 
-            # print(f"Belt {belt} has higher demand (or priority): {belt.demand}")
+            common.debug_print(f"Belt {belt} has higher demand (or priority): {belt.demand}")
 
             total_supply_balance = belt.fill_with(total_supply_balance)
 

@@ -2,6 +2,7 @@ import copy
 import sys
 from argparse import ArgumentError
 
+import common
 from Belt import Belt
 from Node import Node
 from Splitter import Splitter
@@ -219,9 +220,9 @@ class Balancer:
         return len(self.get_inputs())
 
     def calc_demand_iter(self) -> bool:
+        common.debug_print("calc_demand_iter")
         is_changed = False
         for node in self.nodes:
-            # print(f"{node=}")
             try:
                 is_changed |= self.get_splitter(node).update_check_input_demand()
             except ArgumentError:
@@ -231,10 +232,9 @@ class Balancer:
 
     # return True if balance changed
     def calc_balance_iter(self) -> bool:
-        # print("calc_balance_iter")
+        common.debug_print("calc_balance_iter")
         is_changed = False
         for node in self.nodes:
-            # print(f"{node=}")
             try:
                 is_changed |= self.get_splitter(node).update_check_output_balance()
             except ArgumentError:
@@ -244,7 +244,7 @@ class Balancer:
 
     def calc_balance(self) -> None:
 
-        # print("calc_balance")
+        common.debug_print("calc_balance")
 
         for belt in self.balance:
             belt.supply_balance.clear()
@@ -252,14 +252,14 @@ class Balancer:
 
         iters = 0
         while self.calc_demand_iter():
-            # print(f"Trying to balance, iteration {iters}")
+            common.debug_print(f"Trying to converge demand, iteration {iters}")
             iters += 1
             if iters > 100:
                 raise Exception(f"Balancer failed to converge demand after {iters} iterations")
 
         iters = 0
         while self.calc_balance_iter():
-            # print(f"Trying to balance, iteration {iters}")
+            common.debug_print(f"Trying to balance, iteration {iters}")
             iters += 1
             if iters > 100:
                 raise Exception(f"Balancer failed to converge balance after {iters} iterations")

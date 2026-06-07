@@ -1,7 +1,5 @@
 import common
 from Node import Node
-from common import *
-
 
 class Belt:
 
@@ -53,7 +51,7 @@ class Belt:
     def get_label(self) -> str:
         if not self.enabled:
             return ""
-        return f"{self.get_balance_str()} ({self.demand:.{decimals_verif}f})"
+        return f"{self.get_balance_str()} ({self.demand:.{common.decimals_verif}f})"
 
     def get_color(self) -> str:
         if not self.enabled:
@@ -84,22 +82,22 @@ class Belt:
 
         additional_demand = self.demand - belt_full_magnitude
         if supply_magnitude < additional_demand:
-            # print(f"total_supply ({total_supply}) < additional_demand ({additional_demand})")
+            common.debug_print(f"supply_magnitude ({supply_magnitude}) < additional_demand ({additional_demand})")
             as_ratio = 1
         else:
-            # print(f"total_supply ({total_supply}) >= additional_demand ({additional_demand})")
+            common.debug_print(f"supply_magnitude ({supply_magnitude}) >= additional_demand ({additional_demand})")
             as_ratio = additional_demand / supply_magnitude
 
-        # print(f"as_ratio: {as_ratio}")
+        common.debug_print(f"as_ratio: {as_ratio}")
 
         self.supply_balance = {i: supply.get(i, 0) * as_ratio + self.supply_balance.get(i, 0)
                                for i in set(supply).union(self.supply_balance)}
 
         supply = {k: v * (1 - as_ratio) for k, v in supply.items()}
 
-        # print("Belt supply balance after adding more:")
-        # for k, v in self.supply_balance.items():
-        #     print(f"\t{k}: {v}")
+        common.debug_print("Belt supply balance after adding more:")
+        for k, v in self.supply_balance.items():
+            common.debug_print(f"\t{k}: {v}")
 
         return supply
 
