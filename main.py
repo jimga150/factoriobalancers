@@ -11,6 +11,7 @@ from Balancer import Balancer
 # balancer = Balancer.make_2x1_pri_in()
 # balancer = Balancer.make_3x1()
 balancer = Balancer().make_4x4_universal()
+# balancer = Balancer().make_3x1_subbalancer()
 
 num_outputs = balancer.get_num_outputs()
 num_inputs = balancer.get_num_inputs()
