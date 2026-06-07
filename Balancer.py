@@ -248,6 +248,55 @@ class Balancer:
         return ans
 
     @staticmethod
+    def make_real_3x1() -> Balancer:
+
+        ans = Balancer()
+
+        input_nodes = [Node() for _ in range(4)]
+        output_nodes = [Node() for _ in range(4)]
+        int_nodes = [Node() for _ in range(18)]
+
+        ans.balance.append(Belt(input_nodes[0], int_nodes[0], False, True))
+        ans.balance.append(Belt(input_nodes[1], int_nodes[1], False, True))
+        ans.balance.append(Belt(input_nodes[2], int_nodes[2], False, True))
+        # ans.balance.append(Belt(input_nodes[3], int_nodes[3], False, True))
+        ans.balance.append(Belt(int_nodes[0], int_nodes[4]))
+        ans.balance.append(Belt(int_nodes[1], int_nodes[4]))
+        ans.balance.append(Belt(int_nodes[2], int_nodes[5]))
+        # ans.balance.append(Belt(int_nodes[3], int_nodes[5]))
+        ans.balance.append(Belt(int_nodes[4], int_nodes[6]))
+        ans.balance.append(Belt(int_nodes[4], int_nodes[7]))
+        ans.balance.append(Belt(int_nodes[5], int_nodes[6]))
+        ans.balance.append(Belt(int_nodes[5], int_nodes[7]))
+        ans.balance.append(Belt(int_nodes[6], int_nodes[8]))
+        ans.balance.append(Belt(int_nodes[6], int_nodes[12]))
+        ans.balance.append(Belt(int_nodes[7], int_nodes[12]))
+        ans.balance.append(Belt(int_nodes[7], int_nodes[13]))
+        ans.balance.append(Belt(int_nodes[8], int_nodes[13]))
+        # ans.balance.append(Belt(int_nodes[9], int_nodes[12]))
+        # ans.balance.append(Belt(int_nodes[10], int_nodes[12]))
+        # ans.balance.append(Belt(int_nodes[11], int_nodes[13]))
+        ans.balance.append(Belt(int_nodes[12], int_nodes[14]))
+        ans.balance.append(Belt(int_nodes[12], int_nodes[15]))
+        ans.balance.append(Belt(int_nodes[13], int_nodes[14]))
+        ans.balance.append(Belt(int_nodes[13], int_nodes[15]))
+        ans.balance.append(Belt(int_nodes[14], int_nodes[16]))
+        ans.balance.append(Belt(int_nodes[15], int_nodes[16]))
+        ans.balance.append(Belt(int_nodes[14], int_nodes[17]))
+        ans.balance.append(Belt(int_nodes[15], int_nodes[17]))
+        ans.balance.append(Belt(int_nodes[16], int_nodes[5]))
+        ans.balance.append(Belt(int_nodes[16], int_nodes[1]))
+        ans.balance.append(Belt(int_nodes[17], int_nodes[0]))
+        ans.balance.append(Belt(int_nodes[17], int_nodes[2]))
+        ans.balance.append(Belt(int_nodes[8], output_nodes[0], True))
+        # ans.balance.append(Belt(int_nodes[9], output_nodes[1], True))
+        # ans.balance.append(Belt(int_nodes[10], output_nodes[2], True))
+        # ans.balance.append(Belt(int_nodes[11], output_nodes[3], True))
+
+        ans.postprocess_nodes()
+        return ans
+
+    @staticmethod
     def make_4x4_universal() -> Balancer:
 
         ans = Balancer()
@@ -258,7 +307,7 @@ class Balancer:
 
         ans.balance.append(Belt(input_nodes[0], int_nodes[0], False, True))
         ans.balance.append(Belt(input_nodes[1], int_nodes[1], False, True))
-        # ans.balance.append(Belt(input_nodes[2], int_nodes[2], False, True))
+        ans.balance.append(Belt(input_nodes[2], int_nodes[2], False, True))
         ans.balance.append(Belt(input_nodes[3], int_nodes[3], False, True))
         ans.balance.append(Belt(int_nodes[0], int_nodes[4]))
         ans.balance.append(Belt(int_nodes[1], int_nodes[4]))
@@ -289,9 +338,9 @@ class Balancer:
         ans.balance.append(Belt(int_nodes[17], int_nodes[0]))
         ans.balance.append(Belt(int_nodes[17], int_nodes[2]))
         ans.balance.append(Belt(int_nodes[8], output_nodes[0], True))
-        # ans.balance.append(Belt(int_nodes[9], output_nodes[1], True))
-        # ans.balance.append(Belt(int_nodes[10], output_nodes[2], True))
-        # ans.balance.append(Belt(int_nodes[11], output_nodes[3], True))
+        ans.balance.append(Belt(int_nodes[9], output_nodes[1], True))
+        ans.balance.append(Belt(int_nodes[10], output_nodes[2], True))
+        ans.balance.append(Belt(int_nodes[11], output_nodes[3], True))
 
         ans.postprocess_nodes()
         return ans
