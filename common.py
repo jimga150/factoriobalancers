@@ -4,7 +4,7 @@ decimals_verif = decimals_iter-2
 diff_threshold_iter = 10 ** (-decimals_iter)
 diff_threshold_verif = 10 ** (-decimals_verif)
 
-debug = False
+debug = True
 
 max_iters = 10000
 
