@@ -6,6 +6,8 @@ diff_threshold_verif = 10 ** (-decimals_verif)
 
 debug = False
 
+max_iters = 10000
+
 max_diff = 0
 
 def debug_print(*args, **kwargs):

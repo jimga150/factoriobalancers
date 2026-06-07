@@ -17,15 +17,17 @@ except ModuleNotFoundError:
 class Balancer:
     def __init__(self):
         self.balance = list()
-        self.nodes = set()
+        self.nodes = list()
 
     def postprocess_nodes(self):
         self.nodes.clear()
 
         input_char = ord('A')
         for belt in self.balance:
-            self.nodes.add(belt.source)
-            self.nodes.add(belt.dest)
+            if belt.source not in self.nodes:
+                self.nodes.append(belt.source)
+            if belt.dest not in self.nodes:
+                self.nodes.append(belt.dest)
             if self.is_input(belt):
                 belt.source.name = str(chr(input_char))
                 input_char += 1
@@ -395,7 +397,7 @@ class Balancer:
         while self.calc_balance_iter():
             common.debug_print(f"Trying to balance, iteration {iters}")
             iters += 1
-            if iters > 10000:
+            if iters > common.max_iters:
                 raise Exception(f"Balancer failed to converge balance after {iters} iterations")
 
     def render(self, name: str = "Network") -> None:
