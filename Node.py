@@ -4,8 +4,11 @@ class Node:
     def __init__(self):
         self.uuid = uuid.uuid4()
         self.name = ""
+        self.order = -1
 
     def __str__(self):
+        if self.order != -1:
+            return f"{self.order}"
         if self.name != "":
             return self.name
         return self.uuid.hex[-4:]

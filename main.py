@@ -1,3 +1,5 @@
+import os
+
 import common
 from Balancer import Balancer
 
@@ -39,5 +41,13 @@ for in_belt in balancer.get_inputs():
 
     in_belt.enabled = True
 
-balancer.calc_balance()
-balancer.render()
+try:
+    iters = balancer.calc_balance()
+except Exception as e:
+    if str(e).startswith("Balancer failed"):
+        iters = common.max_iters
+    else:
+        raise e
+balancer.render(f"Network_{iters}")
+
+os.popen(f"copy main_out.txt main_out_{iters}.txt")
