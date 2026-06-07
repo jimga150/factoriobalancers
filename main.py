@@ -3,6 +3,9 @@ import os
 import common
 from Balancer import Balancer
 
+# TODO: add output balance test
+# TODO: use 4x4 universal to make a 1x3?
+
 # balancer3x3TU = Balancer.combine_balancers(Balancer.make3x3(), Balancer.make3x3())
 # balancer = Balancer.combine_balancers(balancer3x3TU, Balancer.make_3x1())
 # balancer = Balancer.make_2x1_pri_in()
