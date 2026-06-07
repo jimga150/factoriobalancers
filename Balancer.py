@@ -399,7 +399,7 @@ class Balancer:
                 raise Exception(f"Balancer failed to converge balance after {iters} iterations")
 
     def render(self, name: str = "Network") -> None:
-        g = Digraph(engine='dot', node_attr={'shape': 'rect', 'height': '0.3', 'width': '0.5'},
+        g = Digraph(engine='dot', node_attr={'shape': 'rect', 'height': '0.4', 'width': '0.5'},
                     graph_attr={'rankdir': 'BT'})
 
         input_splitters = [x for x in self.nodes if self.get_splitter(x).is_input_proxy()]
