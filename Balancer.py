@@ -404,9 +404,17 @@ class Balancer:
         g = Digraph(engine='dot', node_attr={'shape': 'rect', 'height': '0.4', 'width': '0.5'},
                     graph_attr={'rankdir': 'BT'})
 
-        input_splitters = [x for x in self.nodes if self.get_splitter(x).is_input_proxy()]
-        output_splitters = [x for x in self.nodes if self.get_splitter(x).is_output_proxy()]
-        middle_splitters = [x for x in self.nodes if x not in input_splitters and x not in output_splitters]
+        valid_nodes = []
+        for node in self.nodes:
+            try:
+                self.get_splitter(node)
+                valid_nodes.append(node)
+            except ArgumentError:
+                continue
+
+        input_splitters = [x for x in valid_nodes if self.get_splitter(x).is_input_proxy()]
+        output_splitters = [x for x in valid_nodes if self.get_splitter(x).is_output_proxy()]
+        middle_splitters = [x for x in valid_nodes if x not in input_splitters and x not in output_splitters]
 
         with g.subgraph() as s:
             s.attr(rank='source')
