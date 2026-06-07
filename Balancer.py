@@ -123,7 +123,7 @@ class Balancer:
         ans.balance.append(Belt(node_1, node_3))
         ans.balance.append(Belt(node_2, node_3))
         ans.balance.append(Belt(node_3, node_1))
-        ans.balance.append(Belt(node_3, node_o))
+        ans.balance.append(Belt(node_3, node_o, True))
 
         ans.postprocess_nodes()
         return ans
@@ -146,7 +146,7 @@ class Balancer:
         ans.postprocess_nodes()
         return ans
 
-    def make_2x2_pri() -> Balancer:
+    def make_2x2_pri_out() -> Balancer:
 
         ans = Balancer()
 
@@ -160,6 +160,22 @@ class Balancer:
         ans.balance.append(Belt(node_b, node_1))
         ans.balance.append(Belt(node_1, node_o1, True))
         ans.balance.append(Belt(node_1, node_o2))
+
+        ans.postprocess_nodes()
+        return ans
+
+    def make_2x1_pri_in() -> Balancer:
+
+        ans = Balancer()
+
+        node_a = Node()
+        node_b = Node()
+        node_1 = Node()
+        node_o1 = Node()
+
+        ans.balance.append(Belt(node_a, node_1, False, True))
+        ans.balance.append(Belt(node_b, node_1))
+        ans.balance.append(Belt(node_1, node_o1))
 
         ans.postprocess_nodes()
         return ans
