@@ -64,14 +64,17 @@ class Belt:
             return "blue"
         return "black"
 
+    @staticmethod
+    def merge_balances(dictA: dict, weightA: float, dictB: dict, weightB: float) -> dict:
+        return {i: dictA.get(i, 0) * weightA + dictB.get(i, 0) * weightB
+                for i in set(dictA).union(dictB)}
+
+    @staticmethod
+    def merge_balances_eq(dictA: dict, dictB: dict) -> dict:
+        return Belt.merge_balances(dictA, 1, dictB, 1)
+
     def add_balance(self, other_balance: dict):
-        for name, frac in other_balance.items():
-            if name in self.supply_balance:
-                # print(f"\t{name} already in balance, adding {frac}")
-                self.supply_balance[name] += frac
-            else:
-                # print(f"\t{name} = {frac}")
-                self.supply_balance[name] = frac
+        self.supply_balance = Belt.merge_balances_eq(self.supply_balance, other_balance)
 
     # returns supply less what the belt took
     def fill_with(self, supply: dict) -> dict:
@@ -90,8 +93,7 @@ class Belt:
 
         common.debug_print(f"as_ratio: {as_ratio}")
 
-        self.supply_balance = {i: supply.get(i, 0) * as_ratio + self.supply_balance.get(i, 0)
-                               for i in set(supply).union(self.supply_balance)}
+        self.supply_balance = Belt.merge_balances(self.supply_balance, 1, supply, as_ratio)
 
         supply = {k: v * (1 - as_ratio) for k, v in supply.items()}
 
