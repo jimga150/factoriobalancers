@@ -1,11 +1,11 @@
 import common
 from Balancer import Balancer
 
-balancer3x3TU = Balancer.combine_balancers(Balancer.make3x3(), Balancer.make3x3())
-balancer = Balancer.combine_balancers(balancer3x3TU, Balancer.make_3x1())
+# balancer3x3TU = Balancer.combine_balancers(Balancer.make3x3(), Balancer.make3x3())
+# balancer = Balancer.combine_balancers(balancer3x3TU, Balancer.make_3x1())
 # balancer = Balancer.make_2x1_pri_in()
 # balancer = Balancer.make_3x1()
-
+balancer = Balancer().make_4x4_universal()
 
 num_outputs = balancer.get_num_outputs()
 num_inputs = balancer.get_num_inputs()
