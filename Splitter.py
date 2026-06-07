@@ -30,11 +30,20 @@ class Splitter:
     def get_input_demand(self) -> float:
         return sum([x.demand for x in self.inputs])
 
+    def is_input_proxy(self):
+        return len(self.inputs) == 0
+
+    def is_output_proxy(self):
+        return len(self.outputs) == 0
+
     # return True if input demands changed
     def update_check_input_demand(self) -> bool:
 
-        common.debug_print("update_check_input_demand")
-        common.debug_print(f"Splitter: {self}")
+        common.debug_print(f"update_check_input_demand, Splitter: {self}")
+
+        if self.is_input_proxy():
+            common.debug_print(f"This splitter is an input proxy")
+            return False
 
         is_changed = False
 
@@ -45,7 +54,7 @@ class Splitter:
 
         enabled_outputs = [x for x in self.outputs if x.enabled]
 
-        if len(enabled_outputs) == 0:
+        if self.is_output_proxy():
             assert len(self.inputs) == 1
             common.debug_print(f"Output splitter: setting belt {self.inputs[0]} to 1")
             self.inputs[0].demand = 1
@@ -114,11 +123,11 @@ class Splitter:
 
         common.debug_print(f"update_output_balance, Splitter: {self}")
 
-        if len(self.inputs) == 0:
+        if self.is_input_proxy():
             # represents an input, just set it to itself
             assert len(self.outputs) == 1
             self.outputs[0].supply_balance[self.node] = self.outputs[0].demand
-            common.debug_print(f"No inputs, setting {self.node} to demand ({self.outputs[0].demand})")
+            common.debug_print(f"Input proxy, setting {self.node} to demand ({self.outputs[0].demand})")
             return
 
         input_balances = [x for x in self.inputs if x.enabled]

@@ -365,6 +365,26 @@ class Balancer:
     def render(self, name: str = "Network") -> None:
         g = Digraph(engine='dot', node_attr={'shape': 'rect', 'height': '0.3', 'width': '0.5'},
                     graph_attr={'rankdir': 'BT'})
+
+        input_splitters = [x for x in self.nodes if self.get_splitter(x).is_input_proxy()]
+        output_splitters = [x for x in self.nodes if self.get_splitter(x).is_output_proxy()]
+        middle_splitters = [x for x in self.nodes if x not in input_splitters and x not in output_splitters]
+
+        with g.subgraph() as s:
+            s.attr(rank='source')
+            for node in input_splitters:
+                s.node(str(node))
+
+        with g.subgraph() as s:
+            s.attr(rank='sink')
+            for node in output_splitters:
+                s.node(str(node))
+
+        with g.subgraph() as s:
+            # s.attr(ordering='out')
+            for node in middle_splitters:
+                s.node(str(node))
+
         for belt in self.balance:
             g.edge(str(belt.source), str(belt.dest), label=belt.get_label(), color=belt.get_color())
         g.render(name, format='png', view=(name == "Network"), cleanup=True)
