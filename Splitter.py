@@ -58,7 +58,7 @@ class Splitter:
             assert len(self.inputs) == 1
             common.debug_print(f"Output splitter: setting belt {self.inputs[0]} to 1")
             self.inputs[0].demand = 1
-        elif output_demand < input_demand:
+        elif abs(output_demand - input_demand) > common.diff_threshold_iter:
 
             enabled_inputs = [x for x in self.inputs if x.enabled]
             priority_input_belts = [x for x in enabled_inputs if x.dest_priority]
@@ -67,17 +67,19 @@ class Splitter:
             if has_priority_input:
                 priority_input_belt = priority_input_belts[0]
                 priority_input_belt.demand = min(output_demand, 1)
-                non_priority_input = [x for x in enabled_inputs if not x.dest_priority][0]
-
-                remaining_demand = output_demand - 1
-                non_priority_input.demand = max(remaining_demand, 0)
 
                 common.debug_print(f"{self.node} has priority input")
-                common.debug_print(f"Set {priority_input_belt} demand to {non_priority_input.demand}")
-                common.debug_print(f"Set {non_priority_input} demand to {non_priority_input.demand}")
+                common.debug_print(f"Set {priority_input_belt} demand to {priority_input_belt.demand}")
+
+                non_priority_inputs = [x for x in enabled_inputs if not x.dest_priority]
+                if len(non_priority_inputs) > 0:
+                    non_priority_input = [x for x in enabled_inputs if not x.dest_priority][0]
+                    remaining_demand = output_demand - 1
+                    non_priority_input.demand = max(remaining_demand, 0)
+                    common.debug_print(f"Set {non_priority_input} demand to {non_priority_input.demand}")
             else:
-                new_demand = output_demand / len(self.inputs)
-                common.debug_print(f"{self.node}: output demand ({output_demand}) < input demand ({input_demand}), setting input demands each to {new_demand}")
+                new_demand = min(output_demand / len(self.inputs), 1)
+                common.debug_print(f"{self.node}: output demand ({output_demand}) != input demand ({input_demand}), setting input demands each to {new_demand}")
                 for belt in self.inputs:
                     belt.demand = new_demand
 
