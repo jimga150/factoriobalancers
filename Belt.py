@@ -42,11 +42,20 @@ class Belt:
         if first_frac < common.diff_threshold_verif and is_equal:
             return ""
 
-        if is_equal and abs(1 / first_frac - len(self.supply_balance.values())) < diff_threshold_verif:
+        if is_equal and abs(1 / first_frac - len(self.supply_balance.values())) < common.diff_threshold_verif:
             balance_node_names = [str(x) for x in self.supply_balance.keys()]
             return "|".join(balance_node_names)
 
-        return " + ".join([f"{frac:.{decimals_verif}f}*{name}" if frac != 1 else str(name) for name, frac in self.supply_balance.items()])
+        balance_terms = [self.get_balance_term_str(name, frac) for name, frac in self.supply_balance.items()]
+        balance_terms = [x for x in balance_terms if x != ""]
+        return " + ".join(balance_terms)
+
+    def get_balance_term_str(self, name: str, frac: float) -> str:
+        if frac < common.diff_threshold_verif:
+            return ""
+        if frac == 1:
+            return str(name)
+        return f"{frac:.{common.decimals_verif}f}*{name}"
 
     def get_label(self) -> str:
         if not self.enabled:
