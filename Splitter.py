@@ -22,9 +22,7 @@ class Splitter:
             assert node.dest == self.node
 
     def __str__(self):
-        sources = ", ".join([str(x.source) for x in self.inputs])
-        dests = ", ".join([str(x.dest) for x in self.outputs])
-        return f"{sources} --> {dests}"
+        return str(self.node)
 
     def get_output_demand(self) -> float:
         return sum([x.demand for x in self.outputs])
