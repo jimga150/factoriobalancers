@@ -13,7 +13,7 @@ num_inputs = balancer.get_num_inputs()
 exp_balance_coeff = num_outputs/num_inputs if num_outputs < num_inputs else num_inputs/num_outputs
 
 num_inputs_1dry = num_inputs-1
-exp_balance_coeff_1dry = num_outputs/num_inputs_1dry if num_outputs < num_inputs_1dry else num_inputs_1dry/num_outputs
+exp_balance_coeff_1dry = 1/num_outputs
 
 # test drying each input individually
 for in_belt in balancer.get_inputs():
