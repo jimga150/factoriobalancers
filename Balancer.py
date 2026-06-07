@@ -214,6 +214,38 @@ class Balancer:
         return ans
 
     @staticmethod
+    def make_3x1_subbalancer() -> Balancer:
+
+        # this is the subtree of the 4 - 4 universal balancer that takes leftover output, balances it,
+        # and then loops it back to each input
+        # im cutting out I/Os to force it to act as a 3 - 1 as it does in the 3 - 1 case for the universal balancer
+
+        ans = Balancer()
+
+        input_nodes = [Node() for _ in range(3)]
+        output_nodes = [Node() for _ in range(1)]
+        int_nodes = [Node() for _ in range(18)]
+
+        ans.balance.append(Belt(input_nodes[0], int_nodes[0]))
+        ans.balance.append(Belt(input_nodes[1], int_nodes[0]))
+        ans.balance.append(Belt(input_nodes[2], int_nodes[1]))
+        ans.balance.append(Belt(int_nodes[0], int_nodes[2]))
+        ans.balance.append(Belt(int_nodes[1], int_nodes[2]))
+        ans.balance.append(Belt(int_nodes[0], int_nodes[3]))
+        ans.balance.append(Belt(int_nodes[1], int_nodes[3]))
+        # ans.balance.append(Belt(int_nodes[2], int_nodes[4]))
+        # ans.balance.append(Belt(int_nodes[3], int_nodes[4]))
+        ans.balance.append(Belt(int_nodes[2], int_nodes[5]))
+        ans.balance.append(Belt(int_nodes[3], int_nodes[5]))
+        ans.balance.append(Belt(int_nodes[5], output_nodes[0]))
+        # ans.balance.append(Belt(int_nodes[9], output_nodes[1], True))
+        # ans.balance.append(Belt(int_nodes[10], output_nodes[2], True))
+        # ans.balance.append(Belt(int_nodes[11], output_nodes[3], True))
+
+        ans.postprocess_nodes()
+        return ans
+
+    @staticmethod
     def make_4x4_universal() -> Balancer:
 
         ans = Balancer()
