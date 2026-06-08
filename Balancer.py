@@ -100,6 +100,14 @@ class Balancer:
             except ArgumentError:
                 pass
 
+        # iterate in reverse, skipping the first and last nodes since computing them twice in a row wont do anything
+        for i in range(len(self.nodes)-2, 0, -1):
+            node = self.nodes[i]
+            try:
+                is_changed |= self.get_splitter(node).update_check_output_balance()
+            except ArgumentError:
+                pass
+
         return is_changed
 
     def calc_balance(self) -> None:
