@@ -297,6 +297,40 @@ class Balancer:
         return ans
 
     @staticmethod
+    def make_real_3x1_reduced() -> Balancer:
+
+        ans = Balancer()
+
+        input_nodes = [Node() for _ in range(3)]
+        output_node = Node()
+        int_nodes = [Node() for _ in range(18)]
+
+        ans.balance.append(Belt(input_nodes[0], int_nodes[0], False, True))
+        ans.balance.append(Belt(input_nodes[1], int_nodes[1], False, True))
+        ans.balance.append(Belt(input_nodes[2], int_nodes[2], False, True))
+
+        ans.balance.append(Belt(int_nodes[0], int_nodes[3]))
+        ans.balance.append(Belt(int_nodes[1], int_nodes[3]))
+        ans.balance.append(Belt(int_nodes[2], int_nodes[4]))
+        ans.balance.append(Belt(int_nodes[3], int_nodes[5]))
+        ans.balance.append(Belt(int_nodes[4], int_nodes[5]))
+        ans.balance.append(Belt(int_nodes[3], int_nodes[6]))
+        ans.balance.append(Belt(int_nodes[4], int_nodes[6]))
+        ans.balance.append(Belt(int_nodes[5], int_nodes[7]))
+        ans.balance.append(Belt(int_nodes[6], int_nodes[7]))
+        ans.balance.append(Belt(int_nodes[5], int_nodes[8]))
+        ans.balance.append(Belt(int_nodes[8], int_nodes[4]))
+        ans.balance.append(Belt(int_nodes[8], int_nodes[0]))
+        ans.balance.append(Belt(int_nodes[7], int_nodes[1]))
+        ans.balance.append(Belt(int_nodes[7], int_nodes[2]))
+
+        ans.balance.append(Belt(int_nodes[6], output_node))
+
+
+        ans.postprocess_nodes()
+        return ans
+
+    @staticmethod
     def make_4x4_universal() -> Balancer:
 
         ans = Balancer()
