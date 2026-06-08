@@ -36,63 +36,6 @@ class Splitter:
     def is_output_proxy(self):
         return len(self.outputs) == 0
 
-    # return True if input demands changed
-    def update_check_input_demand(self) -> bool:
-
-        common.debug_print(f"update_check_input_demand, Splitter: {self}")
-
-        if self.is_input_proxy():
-            common.debug_print(f"This splitter is an input proxy")
-            return False
-
-        is_changed = False
-
-        old_demands = [x.demand for x in self.inputs if x.enabled]
-
-        output_demand = self.get_output_demand()
-        input_demand = self.get_input_demand()
-
-        enabled_outputs = [x for x in self.outputs if x.enabled]
-
-        if self.is_output_proxy():
-            assert len(self.inputs) == 1
-            common.debug_print(f"Output splitter: setting belt {self.inputs[0]} to 1")
-            self.inputs[0].demand = 1
-        elif abs(output_demand - input_demand) > common.diff_threshold_iter:
-
-            enabled_inputs = [x for x in self.inputs if x.enabled]
-            priority_input_belts = [x for x in enabled_inputs if x.dest_priority]
-            has_priority_input = len(priority_input_belts) > 0
-
-            if has_priority_input:
-                priority_input_belt = priority_input_belts[0]
-                priority_input_belt.demand = min(output_demand, 1)
-
-                common.debug_print(f"{self.node} has priority input")
-                common.debug_print(f"Set {priority_input_belt} demand to {priority_input_belt.demand}")
-
-                non_priority_inputs = [x for x in enabled_inputs if not x.dest_priority]
-                if len(non_priority_inputs) > 0:
-                    non_priority_input = [x for x in enabled_inputs if not x.dest_priority][0]
-                    remaining_demand = output_demand - 1
-                    non_priority_input.demand = max(remaining_demand, 0)
-                    common.debug_print(f"Set {non_priority_input} demand to {non_priority_input.demand}")
-            else:
-                new_demand = min(output_demand / len(self.inputs), 1)
-                common.debug_print(f"{self.node}: output demand ({output_demand}) != input demand ({input_demand}), setting input demands each to {new_demand}")
-                for belt in self.inputs:
-                    belt.demand = new_demand
-
-        # check for any changes in demand
-        new_demands = [x.demand for x in self.inputs if x.enabled]
-        for i in range(len(new_demands)):
-            new_demand = new_demands[i]
-            old_demand = old_demands[i]
-            if abs(new_demand - old_demand) > common.diff_threshold_iter:
-                is_changed = True
-
-        return is_changed
-
     def update_check_output_balance(self) -> bool:
 
         # record old balances for change detection
@@ -284,47 +227,6 @@ class Splitter:
 
         # no more than 1 priority input belt please
         assert len(priority_input_belts) < 2
-
-        # if has_priority_input:
-        #
-        #     common.debug_print(f"This splitter has a priority input")
-        #
-        #     priority_input_belt = priority_input_belts[0]
-        #     priority_supply = priority_input_belt.get_strength()
-        #     downstream_demand = sum([x.demand for x in self.outputs if x.enabled])
-        #
-        #     if downstream_demand < priority_supply:
-        #         common.debug_print(f"Downstream demand ({downstream_demand}) < priority_supply ({priority_supply})")
-        #         ratio = downstream_demand / priority_supply
-        #         common.debug_print(f"Ratio: {ratio}")
-        #         return {k: v*ratio for k, v in priority_input_belt.supply_balance.items()}
-        #
-        #     ans = copy.deepcopy(priority_input_belt.supply_balance)
-        #
-        #     if len(enabled_inputs) == 1:
-        #         # the priority belt was the only one.
-        #         common.debug_print(f"Priority input was alone")
-        #         return ans
-        #
-        #     other_belt = [x for x in enabled_inputs if not x.dest_priority][0]
-        #     additional_demand = downstream_demand - priority_supply
-        #     other_supply_magnitude = other_belt.get_strength()
-        #
-        #     common.debug_print(f"Adding belt {other_belt.get_label()}")
-        #
-        #     if other_supply_magnitude < additional_demand:
-        #         ratio = 1
-        #     elif additional_demand == 0:
-        #         ratio = 0
-        #     else:
-        #         ratio = additional_demand / other_supply_magnitude
-        #
-        #     common.debug_print(f"Ratio: {ratio}")
-        #
-        #     ans = Belt.merge_balances(ans, 1, other_belt.supply_balance, ratio)
-        #     return ans
-
-        # common.debug_print(f"This splitter has no priority input")
 
         for belt in enabled_inputs:
             common.debug_print(f"Adding belt {belt.get_label()}")

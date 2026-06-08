@@ -4,7 +4,6 @@ from argparse import ArgumentError
 
 import common
 from Belt import Belt
-from Node import Node
 from Splitter import Splitter
 
 try:
@@ -23,6 +22,7 @@ class Balancer:
         self.nodes.clear()
 
         input_char = ord('A')
+        output_idx = 1
         for belt in self.balance:
             if belt.source not in self.nodes:
                 self.nodes.append(belt.source)
@@ -31,6 +31,9 @@ class Balancer:
             if self.is_input(belt):
                 belt.source.name = str(chr(input_char))
                 input_char += 1
+            if self.is_output(belt):
+                belt.dest.name = f"O{output_idx}"
+                output_idx += 1
 
     @staticmethod
     def combine_balancers(upstream: Balancer, downstream: Balancer) -> Balancer:
@@ -87,17 +90,6 @@ class Balancer:
     def get_num_inputs(self) -> int:
         return len(self.get_inputs())
 
-    def calc_demand_iter(self) -> bool:
-        common.debug_print("calc_demand_iter")
-        is_changed = False
-        for node in self.nodes:
-            try:
-                is_changed |= self.get_splitter(node).update_check_input_demand()
-            except ArgumentError:
-                pass
-
-        return is_changed
-
     # return True if balance changed
     def calc_balance_iter(self) -> bool:
         common.debug_print("calc_balance_iter")
@@ -117,17 +109,6 @@ class Balancer:
         for belt in self.balance:
             belt.supply_balance.clear()
             belt.demand = 1
-
-        # iters = 0
-        # self.render(f"demand_only_iter_{iters}")
-        # while self.calc_demand_iter():
-        #     common.debug_print(f"Trying to converge demand, iteration {iters}")
-        #     iters += 1
-        #     self.render(f"demand_only_iter_{iters}")
-        #     if iters > 1000:
-        #         raise Exception(f"Balancer failed to converge demand after {iters} iterations")
-
-        # self.render("demand_only")
 
         iters = 0
         while self.calc_balance_iter():
