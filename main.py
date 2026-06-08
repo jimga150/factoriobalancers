@@ -2,6 +2,7 @@ import common
 from Balancer import Balancer
 
 # TODO: add output balance test
+# TODO: add blueprint parsing (rip from Factorio SAT)
 
 # balancer3x3TU = Balancer.combine_balancers(Balancer.make3x3(), Balancer.make3x3())
 # balancer = Balancer.combine_balancers(balancer3x3TU, Balancer.make_3x1())
@@ -44,3 +45,4 @@ for in_belt in balancer.get_inputs():
 
 balancer.calc_balance()
 balancer.render()
+balancer.export_to_sat_network()

@@ -27,6 +27,9 @@ class Belt:
     def __ne__(self, other):
         return self.source != other.source or self.dest != other.dest
 
+    def __hash__(self):
+        return hash((self.source, self.dest))
+
     def get_balance_str(self):
 
         if len(self.supply_balance.keys()) == 0:

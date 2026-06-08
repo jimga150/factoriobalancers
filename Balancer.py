@@ -519,3 +519,39 @@ class Balancer:
                 continue
             g.edge(str(belt.source), str(belt.dest), label=belt.get_label(), color=belt.get_color())
         g.render(name, format='png', view=(name == "Network"), cleanup=True)
+
+    def export_to_sat_network(self) -> None:
+
+        belt_indices = dict()
+
+        i = 1
+        for belt in self.balance:
+            if not belt.enabled:
+                belt_indices[belt] = -1
+                continue
+            if self.get_splitter(belt.source).is_input_proxy():
+                belt_indices[belt] = 0
+                continue
+            belt_indices[belt] = i
+            i += 1
+
+        sat_network_str = ""
+
+        for node in self.nodes:
+            splitter = self.get_splitter(node)
+            if splitter.is_input_proxy() or splitter.is_output_proxy():
+                continue
+
+            input_line = " ".join([str(belt_indices[belt]) for belt in splitter.inputs])
+            if len(splitter.inputs) == 1:
+                input_line = "-1 " + input_line
+
+            output_line = " ".join([str(belt_indices[belt]) for belt in splitter.outputs])
+            if len(splitter.outputs) == 1:
+                output_line = "-1 " + output_line
+
+            line = input_line + " " + output_line
+            sat_network_str += line + "\n"
+
+        with open("sat_network.txt", "w") as f:
+            f.write(sat_network_str)
