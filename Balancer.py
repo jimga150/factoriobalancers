@@ -90,6 +90,16 @@ class Balancer:
     def get_num_inputs(self) -> int:
         return len(self.get_inputs())
 
+    @staticmethod
+    def get_exp_output_term_coeff(num_inputs:int, num_outputs: int) -> float:
+        if num_inputs == 0 or num_outputs == 0:
+            return 0
+
+        if num_outputs > num_inputs:
+            return 1.0 / num_outputs
+
+        return 1.0 / num_inputs
+
     # return True if balance changed
     def calc_balance_iter(self) -> bool:
         common.debug_print("calc_balance_iter")
