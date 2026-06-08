@@ -91,11 +91,11 @@ class Belt:
         belt_full_magnitude = sum(self.supply_balance.values())
 
         additional_demand = self.demand - belt_full_magnitude
-        if supply_magnitude <= additional_demand:
-            common.debug_print(f"supply_magnitude ({supply_magnitude}) < additional_demand ({additional_demand})")
+        if supply_magnitude <= additional_demand or supply_magnitude == 0:
+            common.debug_print(f"supply_magnitude ({supply_magnitude}) <= additional_demand ({additional_demand})")
             as_ratio = 1
         else:
-            common.debug_print(f"supply_magnitude ({supply_magnitude}) >= additional_demand ({additional_demand})")
+            common.debug_print(f"supply_magnitude ({supply_magnitude}) > additional_demand ({additional_demand})")
             as_ratio = additional_demand / supply_magnitude
 
         common.debug_print(f"as_ratio: {as_ratio}")
