@@ -481,5 +481,7 @@ class Balancer:
                 s.node(str(node))
 
         for belt in self.balance:
+            if not belt.enabled:
+                continue
             g.edge(str(belt.source), str(belt.dest), label=belt.get_label(), color=belt.get_color())
         g.render(name, format='png', view=(name == "Network"), cleanup=True)
