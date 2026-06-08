@@ -2,7 +2,11 @@ import common
 from Balancer import Balancer
 
 # TODO: add output balance test
+# TODO: make networks for all N - M balancers for N,M = {1, 2, 3, 5, 7}
 # TODO: add blueprint parsing (rip from Factorio SAT)
+# TODO: add network optimization
+# TODO: add blueprint export
+# TODO: add P&R
 
 # balancer3x3TU = Balancer.combine_balancers(Balancer.make3x3(), Balancer.make3x3())
 # balancer = Balancer.combine_balancers(balancer3x3TU, Balancer.make_3x1())
