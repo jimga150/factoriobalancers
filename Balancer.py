@@ -119,11 +119,15 @@ class Balancer:
             belt.demand = 1
 
         iters = 0
-        while self.calc_balance_iter():
-            common.debug_print(f"Trying to balance, iteration {iters}")
+        while True:
             iters += 1
+            common.debug_print(f"Trying to balance, iteration {iters}")
+            if not self.calc_balance_iter():
+                break
             if iters > common.max_iters:
                 raise Exception(f"Balancer failed to converge balance after {iters} iterations")
+
+        common.debug_print(f"Took {iters} iterations")
 
     def render(self, name: str = "Network") -> None:
         g = Digraph(engine='dot', node_attr={'shape': 'rect', 'height': '0.4', 'width': '0.5'},
