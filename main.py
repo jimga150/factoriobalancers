@@ -110,8 +110,6 @@ def test_balance(balancer: Balancer) -> tuple[bool, bool, bool]:
 
     return is_input_balanced, is_output_balanced, is_tu
 
-# TODO: make I/O tests more thorough
-# TODO: make enabled outputs/enabled inputs a property of a splitter
 # TODO: make networks for all N - M balancers for N,M = {1, 2, 3, 5, 7}
 # TODO: add blueprint parsing (rip from Factorio SAT)
 # TODO: add network optimization
