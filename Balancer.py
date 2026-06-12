@@ -132,8 +132,9 @@ class Balancer:
         valid_nodes = []
         for node in self.nodes:
             try:
-                self.get_splitter(node)
-                valid_nodes.append(node)
+                splitter = self.get_splitter(node)
+                if len(splitter.get_enabled_inputs()) > 0 or len(splitter.get_enabled_outputs()) > 0:
+                    valid_nodes.append(node)
             except ArgumentError:
                 continue
 
