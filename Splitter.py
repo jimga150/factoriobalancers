@@ -193,11 +193,11 @@ class Splitter:
                 max_supply_belt.demand -= oversupply
             else:
                 common.debug_print(f"Relaxing backpressure")
+                # for belt in enabled_inputs:
+                #     belt.demand = belt.get_strength()
+                # overdemand = total_demand - total_supply
                 for belt in enabled_inputs:
-                    belt.demand = belt.get_strength()
-                overdemand = total_demand - total_supply
-                for belt in enabled_inputs:
-                    belt.demand = min(1, belt.demand + overdemand)
+                    belt.demand = min(1, total_demand)
 
         for belt in enabled_inputs:
             belt.scale_to_demand()
