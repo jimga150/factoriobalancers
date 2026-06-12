@@ -36,6 +36,9 @@ def term_str(name, frac: float) -> str:
         denominator_candidate = int(numerator_candidate / frac + 0.5)
         # print(f"denominator_candidate: {denominator_candidate}")
 
+        if denominator_candidate == 0:
+            continue
+
         if 1.0/denominator_candidate < diff_threshold_verif * 100:
             # print(f"Denominator candidate too small")
             continue
