@@ -21,6 +21,9 @@ class Belt:
 
         self.enabled = True
 
+    def __str__(self):
+        return f"{self.source}->{self.dest}"
+
     def __eq__(self, other):
         return self.source == other.source and self.dest == other.dest
 
@@ -52,8 +55,6 @@ class Belt:
         balance_terms = [common.term_str(name, frac) for name, frac in self.supply_balance.items()]
         balance_terms = [x for x in balance_terms if x != ""]
         return " + ".join(balance_terms)
-
-
 
     def get_label(self) -> str:
         if not self.enabled:
@@ -115,6 +116,3 @@ class Belt:
 
     def get_strength(self):
         return sum(self.supply_balance.values())
-
-    def __str__(self):
-        return f"{self.source}->{self.dest}"
