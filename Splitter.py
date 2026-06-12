@@ -44,33 +44,84 @@ class Splitter:
 
     def update_check_output_balance(self) -> bool:
 
+        enabled_inputs = self.get_enabled_inputs()
+        enabled_outputs = self.get_enabled_outputs()
+
         # record old balances for change detection
-        old_balances = [copy.deepcopy(x.supply_balance) for x in self.outputs if x.enabled]
-        old_demands = [x.demand for x in self.inputs if x.enabled]
+        old_balances = [copy.deepcopy(x.supply_balance) for x in enabled_outputs]
+        old_demands = [x.demand for x in enabled_inputs]
+
+        common.debug_print(f"------------------------------------------------")
+        common.debug_print(f"update_output_balance, Splitter: {self}")
+        common.debug_print(f"Inputs:")
+        for in_belt in enabled_inputs:
+            common.debug_print(f"\tfrom {in_belt.source}: {in_belt.get_label()}")
+        common.debug_print(f"Outputs:")
+        for out_belt in enabled_outputs:
+            common.debug_print(f"\tto {out_belt.dest}: {out_belt.get_label()}")
+        common.debug_print(f"------------------------------------------------")
 
         self.update_output_balance()
 
+        common.debug_print(f"------------------------------------------------")
+        common.debug_print(f"Done with update_output_balance, Splitter: {self}")
+        common.debug_print(f"Inputs:")
+        for in_belt in enabled_inputs:
+            common.debug_print(f"\tfrom {in_belt.source}: {in_belt.get_label()}")
+        common.debug_print(f"Outputs:")
+        for out_belt in enabled_outputs:
+            common.debug_print(f"\tto {out_belt.dest}: {out_belt.get_label()}")
+        common.debug_print(f"------------------------------------------------")
+
         # check for any changes in balance
-        new_balances = [x.supply_balance for x in self.outputs if x.enabled]
+        enabled_outputs = [x for x in enabled_outputs]
+
+        # remove any balance items that are basically 0
+        for out_belt in enabled_outputs:
+            out_belt.supply_balance = {name: frac for name, frac in out_belt.supply_balance.items()
+                                       if abs(frac) > common.diff_threshold_iter}
+
+        new_balances = [x.supply_balance for x in enabled_outputs]
+
+        is_changed = False
+
         for i in range(len(new_balances)):
             new_balance = new_balances[i]
             old_balance = old_balances[i]
             for name, frac in new_balance.items():
-                if name not in old_balance or abs(old_balance[name] - frac) > common.diff_threshold_iter:
-                    return True
+                if name not in old_balance:
+                    common.debug_print(f"\tchange: {name} added to {enabled_outputs[i]}")
+                    if common.debug:
+                        is_changed = True
+                    else:
+                        return True
+                elif abs(old_balance[name] - frac) > common.diff_threshold_iter:
+                    common.debug_print(f"\tchange: {name} in {enabled_outputs[i]} changed from {old_balance[name]} to {frac}")
+                    if common.debug:
+                        is_changed = True
+                    else:
+                        return True
             for name in old_balance.keys():
                 if name not in new_balance:
-                    return True
+                    common.debug_print(f"\tchange: {name} removed from {enabled_outputs[i]}")
+                    if common.debug:
+                        is_changed = True
+                    else:
+                        return True
 
         # check for any changes in demand
-        new_demands = [x.demand for x in self.inputs if x.enabled]
+        new_demands = [x.demand for x in enabled_inputs]
         for i in range(len(new_demands)):
             new_demand = new_demands[i]
             old_demand = old_demands[i]
             if abs(new_demand - old_demand) > common.diff_threshold_iter:
-                return True
+                common.debug_print(f"\tchange: demand of {enabled_inputs[i]} changed from {old_demand} to {new_demand}")
+                if common.debug:
+                    is_changed = True
+                else:
+                    return True
 
-        return False
+        return is_changed
 
     # apply input supply to outputs, and apply output demand to inputs based on actual flow rate
     def update_output_balance(self):

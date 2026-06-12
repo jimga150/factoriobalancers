@@ -94,9 +94,15 @@ class Balancer:
     def calc_balance_iter(self) -> bool:
         common.debug_print("calc_balance_iter")
         is_changed = False
+        changed_nodes = set()
         for node in self.nodes:
             try:
-                is_changed |= self.get_splitter(node).update_check_output_balance()
+                if self.get_splitter(node).update_check_output_balance():
+                    if common.debug:
+                        is_changed = True
+                    else:
+                        return True
+                    changed_nodes.add(node)
             except ArgumentError:
                 pass
 
@@ -104,10 +110,18 @@ class Balancer:
         for i in range(len(self.nodes)-2, 0, -1):
             node = self.nodes[i]
             try:
-                is_changed |= self.get_splitter(node).update_check_output_balance()
+                if self.get_splitter(node).update_check_output_balance():
+                    if common.debug:
+                        is_changed = True
+                    else:
+                        return True
+                    changed_nodes.add(node)
             except ArgumentError:
                 pass
 
+        common.debug_print(f"Changed nodes:")
+        for node in changed_nodes:
+            common.debug_print(f"\t{node}")
         return is_changed
 
     def calc_balance(self) -> None:
