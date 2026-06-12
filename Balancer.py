@@ -64,8 +64,8 @@ class Balancer:
         return ans
 
     def get_splitter(self, node) -> Splitter:
-        inputs = [x for x in self.balance if x.dest == node and x.enabled]
-        outputs = [x for x in self.balance if x.source == node and x.enabled]
+        inputs = [x for x in self.balance if x.dest == node]
+        outputs = [x for x in self.balance if x.source == node]
 
         if len(inputs) == 0 and len(outputs) == 0:
             raise ArgumentError(None, f"No inputs or outputs")

@@ -25,16 +25,22 @@ class Splitter:
         return str(self.node)
 
     def get_output_demand(self) -> float:
-        return sum([x.demand for x in self.outputs])
+        return sum([x.demand for x in self.get_enabled_outputs()])
 
     def get_input_demand(self) -> float:
-        return sum([x.demand for x in self.inputs])
+        return sum([x.demand for x in self.get_enabled_outputs()])
 
     def is_input_proxy(self):
         return len(self.inputs) == 0
 
     def is_output_proxy(self):
         return len(self.outputs) == 0
+
+    def get_enabled_inputs(self) -> list[Belt]:
+        return [x for x in self.inputs if x.enabled]
+
+    def get_enabled_outputs(self) -> list[Belt]:
+        return [x for x in self.outputs if x.enabled]
 
     def update_check_output_balance(self) -> bool:
 
@@ -221,18 +227,9 @@ class Splitter:
 
         ans = dict()
 
-        enabled_inputs = [x for x in self.inputs if x.enabled]
-        priority_input_belts = [x for x in enabled_inputs if x.dest_priority]
-        has_priority_input = len(priority_input_belts) > 0
-
-        # no more than 1 priority input belt please
-        assert len(priority_input_belts) < 2
+        enabled_inputs = self.get_enabled_inputs()
 
         for belt in enabled_inputs:
-            common.debug_print(f"Adding belt {belt.get_label()}")
+            # common.debug_print(f"Adding belt {belt.get_label()}")
             ans = Belt.merge_balances_eq(ans, belt.supply_balance)
-
-        common.debug_print("total_supply_balance:")
-        for k, v in ans.items():
-            common.debug_print(f"\t{k}: {v}")
         return ans
