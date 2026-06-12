@@ -126,13 +126,6 @@ class Splitter:
     # apply input supply to outputs, and apply output demand to inputs based on actual flow rate
     def update_output_balance(self):
 
-        enabled_inputs = [x for x in self.inputs if x.enabled]
-        enabled_outputs = [x for x in self.outputs if x.enabled]
-
-        num_enabled_outputs = len(enabled_outputs)
-
-        common.debug_print(f"update_output_balance, Splitter: {self}")
-
         if self.is_input_proxy():
             # represents an input, just set it to itself
             assert len(self.outputs) == 1
@@ -146,6 +139,16 @@ class Splitter:
             self.inputs[0].demand = 1
             return
 
+        enabled_inputs = self.get_enabled_inputs()
+        enabled_outputs = self.get_enabled_outputs()
+
+        num_enabled_inputs = len(enabled_inputs)
+        num_enabled_outputs = len(enabled_outputs)
+
+        if num_enabled_inputs == 0:
+            common.debug_print(f"No enabled inputs, skipping")
+            return
+
         total_supply_balance = self.get_total_supply_balance()
 
         common.debug_print("Total supply balance:")
@@ -156,18 +159,62 @@ class Splitter:
         total_supply = sum(total_supply_balance.values())
         common.debug_print(f"Total supply: {total_supply}")
 
-        if len(enabled_inputs) == 0 or total_supply == 0:
-            # no supply to work with, just wipe the record and move on
-            for belt in enabled_outputs:
-                belt.supply_balance.clear()
-            for belt in enabled_inputs:
-                belt.demand = 1 # we're hungry
-            common.debug_print(f"No supply available, clearing output balances and setting input demand to 1")
-            return
+        min_supply = min([x.get_strength() for x in enabled_inputs])
+        min_supply_belt = next(x for x in enabled_inputs if x.get_strength() == min_supply)
+        max_supply_belt = next((x for x in enabled_inputs if x.get_strength() > min_supply), None)
 
-        common.debug_print("Balancing inputs:")
+        if max_supply_belt is None:
+            min_supply_belt = enabled_inputs[0]
+            max_supply_belt = enabled_inputs[-1]
+
+        max_supply = max_supply_belt.get_strength()
+
+        total_demand = sum([x.demand for x in enabled_outputs])
+
+        has_priority_input = any([x.dest_priority for x in enabled_inputs])
+
+        if has_priority_input:
+            common.debug_print(f"Has priority input")
+            priority_belt = next(x for x in enabled_inputs if x.dest_priority)
+            priority_belt.demand = min(total_demand, 1)
+            if num_enabled_inputs > 1:
+                assert num_enabled_inputs == 2
+                non_priority_belt = next(x for x in enabled_inputs if not x.dest_priority)
+                non_priority_belt.demand = min(total_demand - priority_belt.get_strength(), 1)
+        else:
+            common.debug_print(f"No priority input")
+            if min_supply * num_enabled_inputs >= total_demand:
+                common.debug_print(f"Applying backpressure evenly to inputs")
+                for belt in enabled_inputs:
+                    belt.demand = total_demand / num_enabled_inputs
+            elif total_supply > total_demand:
+                common.debug_print(f"Applying backpressure to higher throughput belt to meet demand limit")
+                oversupply = total_supply - total_demand
+                max_supply_belt.demand -= oversupply
+            else:
+                common.debug_print(f"Relaxing backpressure")
+                for belt in enabled_inputs:
+                    belt.demand = belt.get_strength()
+                overdemand = total_demand - total_supply
+                for belt in enabled_inputs:
+                    belt.demand = min(1, belt.demand + overdemand)
+
         for belt in enabled_inputs:
-            common.debug_print(f"\t{belt.get_label()}")
+            belt.scale_to_demand()
+
+        common.debug_print(f"After applying backpressure:")
+        for in_belt in enabled_inputs:
+            common.debug_print(f"\tfrom {in_belt.source}: {in_belt.get_label()}")
+
+        total_supply_balance = self.get_total_supply_balance()
+
+        common.debug_print("Total supply balance:")
+        for k, v in total_supply_balance.items():
+            common.debug_print(f"\t{k}: {v}")
+
+        # sum of magnitude of all balances coming into splitter
+        total_supply = sum(total_supply_balance.values())
+        common.debug_print(f"Total supply: {total_supply}")
 
         # minimum of output belt demands--input supply will be split evenly up to this magnitude
         min_demand = min([x.demand for x in enabled_outputs])
@@ -184,6 +231,9 @@ class Splitter:
         common.debug_print(f"Min demand: {min_demand}")
         if min_demand * num_enabled_outputs > total_supply:
             min_demand_scaling_factor = 1.0 / num_enabled_outputs
+            tsb_scale_factor = 0
+        elif total_supply == 0:
+            min_demand_scaling_factor = 0
             tsb_scale_factor = 0
         else:
             min_demand_scaling_factor = min_demand / total_supply
@@ -236,42 +286,6 @@ class Splitter:
         # represents the amount of backpressure we must exert on the inputs total
         leftover_supply = sum(total_supply_balance.values())
         common.debug_print(f"Leftover supply: {leftover_supply}")
-
-        priority_inputs = [x for x in enabled_inputs if x.dest_priority]
-        has_priority_input = len(priority_inputs) > 0
-        assert len(priority_inputs) < 2
-
-        non_priority_inputs = [x for x in enabled_inputs if not x.dest_priority]
-        assert len(non_priority_inputs) > 0
-
-        if has_priority_input:
-            common.debug_print(f"This splitter has a priority input")
-            priority_input = priority_inputs[0]
-            non_priority_input = non_priority_inputs[0]
-
-            # if the nonpri input doesnt entirely account of the leftover supply
-            if non_priority_input.demand < leftover_supply:
-                # nix it anyways
-                leftover_supply -= non_priority_input.demand
-                non_priority_input.demand = 0
-            else:
-                # this is if the nonpri input would still have supply leftover after the backpressure propagates
-                # (so this wont go negative)
-                non_priority_input.demand -= leftover_supply
-                leftover_supply = 0
-
-            # now apply any remaining backpressure to the priority input
-            priority_input.demand -= leftover_supply
-
-            common.debug_print(f"Set nonpriority input demand to {non_priority_input.demand}")
-            common.debug_print(f"Set priority input demand to {priority_input.demand}")
-            return
-
-        # here, no priority inputs. apply backpressure evenly
-        backpressure_per_input = leftover_supply / len(enabled_inputs)
-        for belt in enabled_inputs:
-            belt.demand -= backpressure_per_input
-
 
     def get_total_supply_balance(self) -> dict:
         # calculate the sum of the input belt balances as a dict

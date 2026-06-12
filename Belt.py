@@ -33,6 +33,16 @@ class Belt:
     def __hash__(self):
         return hash((self.source, self.dest))
 
+    def scale_to_demand(self):
+        strength = self.get_strength()
+        if strength == 0:
+            return
+        if strength <= self.demand:
+            return
+        ratio = self.demand / strength
+        for name in self.supply_balance.keys():
+            self.supply_balance[name] *= ratio
+
     def get_balance_str(self):
 
         if len(self.supply_balance.keys()) == 0:
