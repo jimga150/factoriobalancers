@@ -16,7 +16,9 @@ class Belt:
 
         # keys are input nodes
         # values are ratio of that input's items (where 1 = this belt is full capacity with this input belt)
-        self.supply_balance = dict()
+        self.real_balance = dict()
+        self.desired_balance = dict()
+
         self.demand = 1
 
         self.enabled = True
@@ -33,24 +35,27 @@ class Belt:
     def __hash__(self):
         return hash((self.source, self.dest))
 
-    def scale_to_demand(self):
-        strength = self.get_strength()
+    def scale_real_to_demand(self):
+        strength = self.get_desired_strength()
         if strength == 0:
             return
-        if strength <= self.demand:
-            return
-        ratio = self.demand / strength
-        for name in self.supply_balance.keys():
-            self.supply_balance[name] *= ratio
+        ratio = min(self.demand / strength, 1)
+        self.real_balance.clear()
+        for name, frac in self.desired_balance.items():
+            self.real_balance[name] = frac*ratio
 
-    def get_balance_str(self):
+    def get_balance_str(self, use_desired_balance: bool = False):
 
-        if len(self.supply_balance.keys()) == 0:
+        balance = self.real_balance
+        if use_desired_balance:
+            balance = self.desired_balance
+
+        if len(balance.keys()) == 0:
             return ""
 
-        first_frac = list(self.supply_balance.values())[0]
+        first_frac = list(balance.values())[0]
         is_equal = True
-        for name, frac in self.supply_balance.items():
+        for name, frac in balance.items():
             if abs(frac - first_frac) > common.diff_threshold_verif:
                 is_equal = False
                 break
@@ -58,18 +63,21 @@ class Belt:
         if first_frac < common.diff_threshold_verif and is_equal:
             return ""
 
-        if is_equal and abs(1 / first_frac - len(self.supply_balance.values())) < common.diff_threshold_verif:
-            balance_node_names = [str(x) for x in self.supply_balance.keys()]
+        if is_equal and abs(1 / first_frac - len(balance.values())) < common.diff_threshold_verif:
+            balance_node_names = [str(x) for x in balance.keys()]
             return "|".join(balance_node_names)
 
-        balance_terms = [common.term_str(name, frac) for name, frac in self.supply_balance.items()]
+        balance_terms = [common.term_str(name, frac) for name, frac in balance.items()]
         balance_terms = [x for x in balance_terms if x != ""]
         return " + ".join(balance_terms)
 
-    def get_label(self) -> str:
+    def get_label(self, use_desired_balance: bool = False) -> str:
         if not self.enabled:
             return ""
-        return f"{self.get_balance_str()} ({common.term_str("", self.demand)})"
+        ans = f"{self.get_balance_str(use_desired_balance)} ({common.term_str("", self.demand)})"
+        if use_desired_balance:
+            ans += " (Des)"
+        return ans
 
     def get_color(self) -> str:
         if not self.enabled:
@@ -91,15 +99,15 @@ class Belt:
     def merge_balances_eq(dictA: dict, dictB: dict) -> dict:
         return Belt.merge_balances(dictA, 1, dictB, 1)
 
-    def add_balance(self, other_balance: dict):
-        self.supply_balance = Belt.merge_balances_eq(self.supply_balance, other_balance)
+    def add_real_balance(self, other_balance: dict):
+        self.real_balance = Belt.merge_balances_eq(self.real_balance, other_balance)
 
     # returns supply less what the belt took
-    def fill_with(self, supply: dict) -> dict:
+    def fill_desired_with(self, supply: dict) -> dict:
 
         supply_magnitude = sum(supply.values())
 
-        belt_full_magnitude = sum(self.supply_balance.values())
+        belt_full_magnitude = sum(self.desired_balance.values())
 
         additional_demand = self.demand - belt_full_magnitude
         if supply_magnitude <= additional_demand or supply_magnitude == 0:
@@ -111,18 +119,21 @@ class Belt:
 
         common.debug_print(f"as_ratio: {as_ratio}")
 
-        self.supply_balance = Belt.merge_balances(self.supply_balance, 1, supply, as_ratio)
+        self.desired_balance = Belt.merge_balances(self.desired_balance, 1, supply, as_ratio)
 
         supply = {k: v * (1 - as_ratio) for k, v in supply.items()}
 
-        common.debug_print("Belt supply balance after adding more:")
-        for k, v in self.supply_balance.items():
+        common.debug_print("Belt desired balance after adding more:")
+        for k, v in self.desired_balance.items():
             common.debug_print(f"\t{k}: {v}")
 
         return supply
 
     def is_balanced(self):
-        return len(self.supply_balance.keys()) == 1 or "|" in self.get_label()
+        return len(self.real_balance.keys()) == 1 or "|" in self.get_label()
 
-    def get_strength(self):
-        return sum(self.supply_balance.values())
+    def get_real_strength(self):
+        return sum(self.real_balance.values())
+
+    def get_desired_strength(self):
+        return sum(self.desired_balance.values())

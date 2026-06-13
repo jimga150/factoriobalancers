@@ -71,7 +71,7 @@ def test_balance(balancer: Balancer) -> tuple[bool, bool, bool]:
             exp_output_strength = exp_throughput / num_enabled_outputs
             actual_coeff = -1
 
-            total_throughput = sum([x.get_strength() for x in balancer.get_outputs()])
+            total_throughput = sum([x.get_real_strength() for x in balancer.get_outputs()])
             if abs(total_throughput - exp_throughput) > common.diff_threshold_verif:
                 print(f"Error: expected throughput to be "
                       f"{exp_throughput:.{common.decimals_iter}f}, "
@@ -82,7 +82,7 @@ def test_balance(balancer: Balancer) -> tuple[bool, bool, bool]:
             for out_belt in balancer.get_outputs():
                 if not out_belt.enabled:
                     continue
-                strength = out_belt.get_strength()
+                strength = out_belt.get_real_strength()
                 if abs(strength - exp_output_strength) > common.diff_threshold_verif:
                     print(f"Error on {out_belt.dest}: expected strength to be "
                           f"{exp_output_strength:.{common.decimals_iter}f}, "
@@ -93,7 +93,7 @@ def test_balance(balancer: Balancer) -> tuple[bool, bool, bool]:
             for in_belt in balancer.get_inputs():
                 if not in_belt.enabled:
                     continue
-                strength = in_belt.get_strength()
+                strength = in_belt.get_real_strength()
                 if abs(strength - exp_input_strength) > common.diff_threshold_verif:
                     print(f"Error on {in_belt.source}: expected strength to be "
                           f"{exp_input_strength:.{common.decimals_iter}f}, "

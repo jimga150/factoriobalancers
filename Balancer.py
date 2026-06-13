@@ -129,7 +129,8 @@ class Balancer:
         common.debug_print("calc_balance")
 
         for belt in self.balance:
-            belt.supply_balance.clear()
+            belt.real_balance.clear()
+            belt.desired_balance.clear()
             belt.demand = 1
 
         iters = 0
