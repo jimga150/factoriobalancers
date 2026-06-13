@@ -103,11 +103,11 @@ class Belt:
         self.real_balance = Belt.merge_balances_eq(self.real_balance, other_balance)
 
     # returns supply less what the belt took
-    def fill_desired_with(self, supply: dict) -> dict:
+    def fill_real_with(self, supply: dict) -> dict:
 
         supply_magnitude = sum(supply.values())
 
-        belt_full_magnitude = sum(self.desired_balance.values())
+        belt_full_magnitude = sum(self.real_balance.values())
 
         additional_demand = self.demand - belt_full_magnitude
         if supply_magnitude <= additional_demand or supply_magnitude == 0:
@@ -119,12 +119,12 @@ class Belt:
 
         common.debug_print(f"as_ratio: {as_ratio}")
 
-        self.desired_balance = Belt.merge_balances(self.desired_balance, 1, supply, as_ratio)
+        self.real_balance = Belt.merge_balances(self.real_balance, 1, supply, as_ratio)
 
         supply = {k: v * (1 - as_ratio) for k, v in supply.items()}
 
-        common.debug_print("Belt desired balance after adding more:")
-        for k, v in self.desired_balance.items():
+        common.debug_print("Belt real balance after adding more:")
+        for k, v in self.real_balance.items():
             common.debug_print(f"\t{k}: {v}")
 
         return supply

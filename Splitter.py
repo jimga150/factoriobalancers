@@ -86,8 +86,17 @@ class Splitter:
         enabled_outputs = [x for x in enabled_outputs]
 
         # remove any balance items that are basically 0
+
+        for out_belt in enabled_inputs:
+            out_belt.real_balance = {name: frac for name, frac in out_belt.real_balance.items()
+                                     if abs(frac) > common.diff_threshold_iter}
+            out_belt.desired_balance = {name: frac for name, frac in out_belt.desired_balance.items()
+                                     if abs(frac) > common.diff_threshold_iter}
+
         for out_belt in enabled_outputs:
             out_belt.real_balance = {name: frac for name, frac in out_belt.real_balance.items()
+                                     if abs(frac) > common.diff_threshold_iter}
+            out_belt.desired_balance = {name: frac for name, frac in out_belt.desired_balance.items()
                                      if abs(frac) > common.diff_threshold_iter}
 
         new_real_balances = [x.real_balance for x in enabled_outputs]
@@ -258,76 +267,90 @@ class Splitter:
         total_real_supply = sum(total_real_supply_balance.values())
         common.debug_print(f"Total real supply: {total_real_supply}")
 
-        # minimum of output belt demands--input supply will be split evenly up to this magnitude
-        min_demand = min([x.demand for x in enabled_outputs])
+        priority_outputs = [x for x in enabled_outputs if x.source_priority]
+        nonpriority_outputs = [x for x in enabled_outputs if not x.source_priority]
+
+        has_priority_output = len(priority_outputs) > 0
 
         # no more than 1 priority output please
-        assert len([x for x in enabled_outputs if x.source_priority]) < 2
-
-        has_priority_output = any([x.source_priority for x in enabled_outputs])
+        assert len(priority_outputs) < 2
 
         if has_priority_output:
-            # priority output detected, we're sharing /no/ output
-            min_demand = 0
+            common.debug_print("Has priority output")
+            priority_output = priority_outputs[0]
 
-        common.debug_print(f"Min demand: {min_demand}")
-        if min_demand * num_enabled_outputs > total_real_supply:
-            min_demand_scaling_factor = 1.0 / num_enabled_outputs
-            tsb_scale_factor = 0
-        elif total_real_supply == 0:
-            min_demand_scaling_factor = 0
-            tsb_scale_factor = 0
+            pri_ratio = 1
+            if total_real_supply > 1:
+                pri_ratio = 1 / total_real_supply
+
+            # fill priority output with real supply up to strength 1
+            priority_output.desired_balance.clear()
+            for k, v in total_real_supply_balance.items():
+                priority_output.desired_balance[k] = v * pri_ratio
+
+            if len(nonpriority_outputs) > 0:
+                nonpri_supply_limit = total_real_supply - priority_output.demand
+
+                if nonpri_supply_limit < 0:
+                    nonpri_supply_limit = 0
+                if nonpri_supply_limit > 1:
+                    nonpri_supply_limit = 1
+
+                nonpriority_output = nonpriority_outputs[0]
+                desired_strength = min(nonpri_supply_limit, total_real_supply)
+
+                if desired_strength > 0:
+                    nonpri_ratio = desired_strength / total_real_supply
+                else:
+                    nonpri_ratio = 0
+                # fill nonpriority output with real supply up to what is left over
+                # after subtracting the demand of the priority output
+                nonpriority_output.desired_balance.clear()
+                for k, v in total_real_supply_balance.items():
+                    nonpriority_output.desired_balance[k] = v * nonpri_ratio
         else:
-            min_demand_scaling_factor = min_demand / total_real_supply
-            new_total_supply = total_real_supply - (min_demand * num_enabled_outputs)
-            tsb_scale_factor = new_total_supply / total_real_supply
+            common.debug_print("No priority output")
+            # fill desired output balances, ignoring demand
+            for belt in enabled_outputs:
+                belt.desired_balance.clear()
+                for k, v in total_real_supply_balance.items():
+                    belt.desired_balance[k] = v / num_enabled_outputs
 
-        common.debug_print(f"Min demand scaling factor: {min_demand_scaling_factor}")
-        common.debug_print(f"Total Supply Balance scaling factor: {tsb_scale_factor}")
+            common.debug_print("After applying real supply evenly:")
+            for belt in enabled_outputs:
+                common.debug_print(belt.get_label(True))
 
-        # fill all outputs with equal amount of supply
-        for belt in enabled_outputs:
-            belt.desired_balance = {k: v * min_demand_scaling_factor for k, v in total_real_supply_balance.items()}
+            # if any output belt has a demand restricting it below its desired balance,
+            # add the difference to the desired balance of the others.
+            # we keep the restricted belt's balance where it is in case that backpressure reduces in later iterations
+            oversupplies = []
+            for i in range(len(enabled_outputs)):
+                belt = enabled_outputs[i]
+                oversupply = max(0, belt.get_desired_strength() - belt.demand)
+                oversupplies.append(oversupply)
 
-        common.debug_print(f"After filling belts to min demand: ")
+            assert(len(oversupplies) == len(enabled_outputs))
+
+            for i in range(len(oversupplies)):
+                # oversupply of all other outputs
+                belt = enabled_outputs[i]
+                desired_strength = belt.get_desired_strength()
+                if desired_strength <= 0:
+                    continue
+
+                oversupply_to_apply = sum(oversupplies[:i]) + sum(oversupplies[i+1:])
+                ratio = (oversupply_to_apply + desired_strength) / desired_strength
+
+                common.debug_print(f"\t{belt} will get oversupply of {oversupply_to_apply} from other belts")
+
+                for name in belt.desired_balance.keys():
+                    belt.desired_balance[name] = belt.desired_balance[name] * ratio
+
+        common.debug_print(f"After filling output desired balance: ")
         for belt in enabled_outputs:
             common.debug_print(belt.get_label(True))
 
-        # scale total supply down to represent what hasn't yet been moved to output belts
-        total_real_supply_balance = {k: v * tsb_scale_factor for k, v in total_real_supply_balance.items()}
-
-        common.debug_print("After scaling down supply:")
-        common.debug_print("Total supply balance:")
-        for k, v in total_real_supply_balance.items():
-            common.debug_print(f"\t{k}: {v}")
-
-        # sum of magnitude of all balances coming into splitter
-        total_real_supply = sum(total_real_supply_balance.values())
-        common.debug_print(f"Total supply: {total_real_supply}")
-
-        # if one belt has greater demand, fill that with more supply
-        for belt in enabled_outputs:
-
-            if belt.demand <= min_demand:
-                continue
-            if has_priority_output and not belt.source_priority:
-                continue
-
-            common.debug_print(f"Belt {belt} has higher demand (or priority): {belt.demand}")
-
-            total_real_supply_balance = belt.fill_desired_with(total_real_supply_balance)
-
-        non_priority_outputs = [x for x in enabled_outputs if not x.source_priority]
-        if has_priority_output and len(non_priority_outputs) > 0:
-            total_real_supply_balance = non_priority_outputs[0].fill_desired_with(total_real_supply_balance)
-
-        common.debug_print("After filling outputs with input supply, this is left over in inputs:")
-        for k, v in total_real_supply_balance.items():
-            common.debug_print(f"\t{k}: {v}")
-
-        # represents the amount of backpressure we must exert on the inputs total
-        leftover_supply = sum(total_real_supply_balance.values())
-        common.debug_print(f"Leftover supply: {leftover_supply}")
+        return
 
     def get_total_real_supply_balance(self) -> dict:
         # calculate the sum of the input belt balances as a dict
