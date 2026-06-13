@@ -2,6 +2,8 @@ import copy
 import sys
 from argparse import ArgumentError
 
+import numpy as np
+
 import common
 from Belt import Belt
 from Splitter import Splitter
@@ -143,6 +145,45 @@ class Balancer:
                 raise Exception(f"Balancer failed to converge balance after {iters} iterations")
 
         common.debug_print(f"Took {iters} iterations")
+
+    def calc_balance_linalg(self) -> None:
+        common.debug_print("calc_balance_linalg")
+
+        input_names = [x.source.name for x in self.get_inputs() if x.enabled]
+
+        # key is string representing belt and term
+        # val is column index for that variable in linear system
+        variable_indices = dict()
+
+        var_idx = 0
+        for belt in self.balance:
+            if not belt.enabled:
+                continue
+            belt_key = belt.key()
+            for input_name in input_names:
+                variable_indices[f"{belt_key}_{input_name}"] = var_idx
+                var_idx += 1
+
+        num_vars = var_idx
+
+        for node in self.nodes:
+            try:
+                splitter = self.get_splitter(node)
+            except ArgumentError:
+                continue
+
+            input_indices = []
+            output_indices = []
+            for input_name in input_names:
+                for belt in splitter.get_enabled_inputs():
+                    input_indices.append(variable_indices[f"{belt.key()}_{input_name}"])
+                for belt in splitter.get_enabled_outputs():
+                    output_indices.append(variable_indices[f"{belt.key()}_{input_name}"])
+
+        a = np.array([[1, 2], [3, 5]])
+        b = np.array([1, 2])
+        x = np.linalg.solve(a, b)
+        print(x)
 
     def render(self, name: str = "Network") -> None:
         g = Digraph(engine='dot', node_attr={'shape': 'rect', 'height': '0.4', 'width': '0.5'},

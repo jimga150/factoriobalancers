@@ -1,5 +1,6 @@
 import itertools
 import os
+import sys
 
 import Balancer_Book
 import common
@@ -129,6 +130,9 @@ for file in files:
 balancer = Balancer_Book.make_4x4_universal()
 # balancer = Balancer_Book.make_real_3x1_reduced()
 # balancer = Balancer_Book.make_4x3()
+
+# balancer.calc_balance_linalg()
+# sys.exit(0)
 
 is_input_balanced, is_output_balanced, is_tu = test_balance(balancer)
 

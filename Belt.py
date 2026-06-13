@@ -26,6 +26,9 @@ class Belt:
     def __str__(self):
         return f"{self.source}->{self.dest}"
 
+    def key(self):
+        return f"{self.source}_{self.dest}"
+
     def __eq__(self, other):
         return self.source == other.source and self.dest == other.dest
 
