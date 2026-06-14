@@ -167,6 +167,10 @@ class Splitter:
     # apply input supply to outputs, and apply output demand to inputs based on actual flow rate
     def update_output_balance(self):
 
+        # -------------------------------------------------------------
+        # Weeding out base cases
+        # -------------------------------------------------------------
+
         if self.is_input_proxy():
             # represents an input, just set it to itself
             assert len(self.outputs) == 1
@@ -196,6 +200,10 @@ class Splitter:
 
         for belt in enabled_outputs:
             assert belt.demand >= 0
+
+        # -------------------------------------------------------------
+        # Calculate demand of inputs
+        # -------------------------------------------------------------
 
         total_desired_supply_balance = self.get_total_desired_supply_balance()
 
@@ -256,6 +264,9 @@ class Splitter:
         for in_belt in enabled_inputs:
             common.debug_print(f"\tfrom {in_belt.source}: {in_belt.get_label()}")
 
+        # -------------------------------------------------------------
+        # Calculate desired supply of outputs
+        # -------------------------------------------------------------
         
         total_real_supply_balance = self.get_total_real_supply_balance()
 
