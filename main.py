@@ -109,6 +109,8 @@ def test_balance(balancer: Balancer) -> tuple[bool, bool, bool]:
 
     return is_input_balanced, is_output_balanced, is_tu
 
+# TODO: make desired balance actually preempt flow without breaking everything else
+
 # TODO: make networks for all N - M balancers for N,M = {1, 2, 3, 5, 7}
 # TODO: add blueprint parsing (rip from Factorio SAT)
 # TODO: add network optimization
@@ -126,20 +128,22 @@ for file in files:
 # balancer = Balancer_Book.combine_balancers(balancer3x3TU, Balancer_Book.make_3x1())
 # balancer = Balancer_Book.make_2x1_pri_in()
 # balancer = Balancer_Book.make_3x1()
-balancer = Balancer_Book.make_4x4_universal()
+# balancer = Balancer_Book.make_3x1_bigloop()
+# balancer = Balancer_Book.make_4x4_universal()
+balancer = Balancer_Book.make_4x4_universal_blocked()
 # balancer = Balancer_Book.make_real_3x1_reduced()
 # balancer = Balancer_Book.make_4x3()
 
-is_input_balanced, is_output_balanced, is_tu = test_balance(balancer)
-
-if not is_input_balanced:
-    print("Balancer is not input balanced")
-
-if not is_output_balanced:
-    print("Balancer is not output balanced")
-
-if not is_tu:
-    print("Balancer is not TU")
+# is_input_balanced, is_output_balanced, is_tu = test_balance(balancer)
+#
+# if not is_input_balanced:
+#     print("Balancer is not input balanced")
+#
+# if not is_output_balanced:
+#     print("Balancer is not output balanced")
+#
+# if not is_tu:
+#     print("Balancer is not TU")
 
 balancer.calc_balance()
 balancer.render()

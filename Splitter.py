@@ -249,13 +249,50 @@ class Splitter:
                 min_desired_supply_belt.demand = min_desired_supply_belt.get_desired_strength()
             else:
                 common.debug_print(f"Relaxing backpressure")
-                # for belt in enabled_inputs:
-                #     belt.demand = belt.get_desired_strength()
-                # overdemand = total_demand - total_real_supply
-                # for belt in enabled_inputs:
-                #     belt.demand = min(1, belt.demand + overdemand)
+
+                demand_slack = total_demand - total_desired_supply
+
+                # apply demand evenly, letting out slack for
                 for belt in enabled_inputs:
-                    belt.demand = min(1, total_demand)
+                    belt.demand = belt.get_desired_strength()
+
+                common.debug_print(f"Step 1:")
+                for in_belt in enabled_inputs:
+                    common.debug_print(f"\tfrom {in_belt.source}: {in_belt.get_label(True)}")
+
+                # attempt to add slack evenly to inputs, capping demand at 1
+                remaining_demand_slack = 0
+                for belt in enabled_inputs:
+                    to_add = demand_slack / num_enabled_inputs
+                    belt.demand += to_add
+                    if belt.demand > 1:
+                        remaining_demand_slack += belt.demand - 1
+                        belt.demand = 1
+
+                # take slack that wasn't added to capped inputs and apply it to other input as available
+                # this only works because there's at most 2 inputs,
+                # so 2 iterations of this process is all that is necessary
+                assert num_enabled_inputs <= 2
+                for belt in enabled_inputs:
+                    if belt.demand < 1:
+                        belt.demand += remaining_demand_slack
+                        break
+
+                # # check where demand slack exists, as compared to if demand was applied evenly to inputs
+                # demand_slacks = dict()
+                # for belt in enabled_inputs:
+                #     demand_slacks[belt] = (total_demand / num_enabled_inputs) - belt.get_desired_strength()
+                #
+                # common.debug_print(f"demand_slacks:")
+                # for in_belt, slack in demand_slacks.items():
+                #     common.debug_print(f"\t{in_belt}: {slack}")
+                #
+                # # for each input, add demand to it equal to the slack left over by other belts.
+                # # slacks can be negative, this is by design.
+                # for belt in enabled_inputs:
+                #     to_add = demand_slack
+                #     common.debug_print(f"Adding {to_add} to {belt} capping result at 1")
+                #     belt.demand = min(belt.demand + to_add, 1)
 
         for belt in enabled_inputs:
             belt.scale_real_to_demand()
@@ -356,6 +393,9 @@ class Splitter:
 
                 for name in belt.desired_balance.keys():
                     belt.desired_balance[name] = belt.desired_balance[name] * ratio
+
+        for belt in enabled_outputs:
+            belt.scale_real_to_demand()
 
         common.debug_print(f"After filling output desired balance: ")
         for belt in enabled_outputs:

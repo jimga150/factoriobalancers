@@ -98,6 +98,34 @@ def make_3x1() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
+def make_3x1_bigloop() -> Balancer:
+    ans = Balancer()
+
+    loop_size = 8
+
+    node_a = Node()
+    node_b = Node()
+    node_c = Node()
+    int_nodes = [Node() for _ in range(loop_size+1)]
+    node_o = Node()
+
+    ans.balance.append(Belt(node_a, int_nodes[1]))
+    ans.balance.append(Belt(node_b, int_nodes[0]))
+    ans.balance.append(Belt(node_c, int_nodes[0]))
+
+    for i in range(1, loop_size):
+        ans.balance.append(Belt(int_nodes[i], int_nodes[i+1]))
+
+    node_d = Node()
+    ans.balance.append(Belt(node_d, int_nodes[4]))
+
+    ans.balance.append(Belt(int_nodes[0], int_nodes[loop_size]))
+    ans.balance.append(Belt(int_nodes[loop_size], int_nodes[1]))
+    ans.balance.append(Belt(int_nodes[loop_size], node_o, True))
+
+    ans.postprocess_nodes()
+    return ans
+
 def make_2x2() -> Balancer:
 
     ans = Balancer()
@@ -337,4 +365,17 @@ def make_4x4_universal() -> Balancer:
     ans.balance.append(Belt(int_nodes[11], output_nodes[3], True))
 
     ans.postprocess_nodes()
+    return ans
+
+def make_4x4_universal_blocked() -> Balancer:
+
+    ans = make_4x4_universal()
+
+    ans.get_inputs()[0].enabled = False
+
+    outputs = ans.get_outputs()
+    outputs[0].enabled = False
+    outputs[1].enabled = False
+    outputs[2].enabled = False
+
     return ans

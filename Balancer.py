@@ -90,39 +90,44 @@ class Balancer:
     def get_num_inputs(self) -> int:
         return len(self.get_inputs())
 
-    # return True if balance changed
-    def calc_balance_iter(self) -> bool:
-        common.debug_print("calc_balance_iter")
-        is_changed = False
-        changed_nodes = set()
-        for node in self.nodes:
-            try:
-                if self.get_splitter(node).update_check_output_balance():
-                    if common.debug:
-                        is_changed = True
-                    else:
-                        return True
-                    changed_nodes.add(node)
-            except ArgumentError:
-                pass
+    # return -1 if no belts changed or index of belt if one did
+    def calc_balance_iter(self, start_idx: int) -> int:
+        common.debug_print(f"calc_balance_iter({start_idx})")
 
-        # iterate in reverse, skipping the first and last nodes since computing them twice in a row wont do anything
-        for i in range(len(self.nodes)-2, 0, -1):
+        if start_idx >= len(self.nodes):
+            start_idx = 0
+            common.debug_print(f"start_idx={start_idx}")
+
+        idx_order = [x for x in range(start_idx, len(self.nodes))]
+        idx_order.extend([x for x in range(0, start_idx)])
+
+        rvrs_idx_order = copy.deepcopy(idx_order)
+        rvrs_idx_order.reverse()
+
+        idx_order.extend(rvrs_idx_order)
+
+        changed_node_idxs = set()
+        for i in idx_order:
             node = self.nodes[i]
             try:
                 if self.get_splitter(node).update_check_output_balance():
-                    if common.debug:
-                        is_changed = True
+                    if common.deep_iteration_debug:
+                        # skip out on the first changed node so each iteration is limited to one splitter update
+                        return i
                     else:
-                        return True
-                    changed_nodes.add(node)
+                        changed_node_idxs.add(i)
             except ArgumentError:
                 pass
 
+        if len(changed_node_idxs) == 0:
+            common.debug_print("No changed nodes")
+            return -1
+
         common.debug_print(f"Changed nodes:")
-        for node in changed_nodes:
-            common.debug_print(f"\t{node}")
-        return is_changed
+        for i in changed_node_idxs:
+            common.debug_print(f"\t{self.nodes[i]}")
+
+        return list(changed_node_idxs)[0]
 
     def calc_balance(self) -> None:
 
@@ -134,11 +139,21 @@ class Balancer:
             belt.demand = 1
 
         iters = 0
+        changed_node_idx = -1
         while True:
+
             iters += 1
             common.debug_print(f"Trying to balance, iteration {iters}")
-            if not self.calc_balance_iter():
+
+            changed_node_idx = self.calc_balance_iter(changed_node_idx + 1)
+
+            # if common.deep_iteration_debug:
+            self.render(f"Iter{iters}")
+
+            common.debug_print(f"changed_node_idx = {changed_node_idx}")
+            if changed_node_idx < 0:
                 break
+
             if iters > common.max_iters:
                 raise Exception(f"Balancer failed to converge balance after {iters} iterations")
 
