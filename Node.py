@@ -14,7 +14,7 @@ class Node:
         return self.uuid == other.uuid
 
     def __ne__(self, other):
-        return not self.uuid != other.uuid
+        return self.uuid != other.uuid
 
     def __hash__(self):
         return hash(self.uuid)
