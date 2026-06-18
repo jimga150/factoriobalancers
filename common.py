@@ -11,7 +11,7 @@ debug = False
 # This is liable to generate hundreds of MBs of images for each balancer calculation.
 deep_iteration_debug = False
 
-max_iters = 1000
+max_iters = 100
 
 def debug_print(*args, **kwargs):
     if debug:
