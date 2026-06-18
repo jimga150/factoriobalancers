@@ -51,9 +51,7 @@ class Belt:
     def get_label(self) -> str:
         if not self.enabled:
             return ""
-        ans = (f"{str(self.balance)} "
-               f"[{common.frac_str(self.demand)}, {common.frac_str(self.supply)}]")
-        return ans
+        return f"{str(self.balance)} (S: {common.frac_str(self.supply)}, D: {common.frac_str(self.demand)})"
 
     def get_color(self) -> str:
         if not self.enabled:
