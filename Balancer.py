@@ -112,6 +112,8 @@ class Balancer:
             try:
                 if self.get_splitter(node).update_check_output_balance():
                     changed_node_idxs.add(i)
+                    if common.deep_iteration_debug:
+                        break
             except ArgumentError:
                 pass
 
@@ -151,6 +153,8 @@ class Balancer:
                 old_splitter = old_balancer.get_splitter(node)
                 if old_splitter.update_check_flow_rate(new_splitter):
                     changed_node_idxs.add(i)
+                    if common.deep_iteration_debug:
+                        break
             except ArgumentError:
                 pass
 
@@ -183,7 +187,7 @@ class Balancer:
             changed_node_idx = self.calc_flow_rate_iter(changed_node_idx + 1)
 
             if common.deep_iteration_debug:
-                self.render(f"Iter{iters}")
+                self.render(f"Flow_Iter{iters}")
 
             common.debug_print(f"changed_node_idx = {changed_node_idx}")
             if changed_node_idx < 0:
@@ -204,7 +208,7 @@ class Balancer:
             changed_node_idx = self.calc_balance_iter(changed_node_idx + 1)
 
             if common.deep_iteration_debug:
-                self.render(f"Iter{iters}")
+                self.render(f"Bal_Iter{iters}")
 
             common.debug_print(f"changed_node_idx = {changed_node_idx}")
             if changed_node_idx < 0:
