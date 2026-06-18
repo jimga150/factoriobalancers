@@ -28,13 +28,13 @@ def test_balance(balancer: Balancer) -> tuple[bool, bool, bool]:
     for i in range(num_inputs):
         input_sets_to_block.extend(list(itertools.combinations(inputs, i)))
 
-    # common.debug_print("Output sets:")
-    # for output_set_to_block in output_sets_to_block:
-    #     common.debug_print(", ".join([str(x.dest) for x in output_set_to_block]))
-    #
-    # common.debug_print("Input sets:")
-    # for input_set_to_block in input_sets_to_block:
-    #     common.debug_print(", ".join([str(x.source) for x in input_set_to_block]))
+    common.debug_print("Output sets:")
+    for output_set_to_block in output_sets_to_block:
+        common.debug_print(", ".join([str(x.dest) for x in output_set_to_block]))
+
+    common.debug_print("Input sets:")
+    for input_set_to_block in input_sets_to_block:
+        common.debug_print(", ".join([str(x.source) for x in input_set_to_block]))
 
     for output_set_to_block in output_sets_to_block:
 
