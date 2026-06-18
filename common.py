@@ -13,15 +13,11 @@ deep_iteration_debug = False
 
 max_iters = 1000
 
-max_diff = 0
-
 def debug_print(*args, **kwargs):
     if debug:
         print(*args, **kwargs)
 
 def term_str(name, frac: float) -> str:
-
-    global max_diff
 
     if name is None:
         name = ""
@@ -55,9 +51,6 @@ def term_str(name, frac: float) -> str:
             # print("fraction!")
             # other_diff = abs(numerator_candidate / frac - denominator_candidate)
             # print(f"diff the other way: {other_diff}")
-            # if max_diff < other_diff:
-            #     max_diff = other_diff
-            #     # print(f"max_diff: {max_diff}")
             if name == "":
                 return f"{numerator_candidate}/{denominator_candidate}"
             if numerator_candidate == 1:
