@@ -67,8 +67,8 @@ def test_balance(balancer: Balancer) -> tuple[bool, bool, bool]:
             balancer.render(img_filename)
 
             exp_throughput = min(num_enabled_inputs, num_enabled_outputs)
-            exp_input_strength = exp_throughput / num_enabled_inputs
-            exp_output_strength = exp_throughput / num_enabled_outputs
+            exp_input_flow = exp_throughput / num_enabled_inputs
+            exp_output_flow = exp_throughput / num_enabled_outputs
 
             total_throughput = sum([x.flow() for x in balancer.get_outputs()])
             if abs(total_throughput - exp_throughput) > common.diff_threshold_verif:
@@ -81,22 +81,22 @@ def test_balance(balancer: Balancer) -> tuple[bool, bool, bool]:
             for out_belt in balancer.get_outputs():
                 if not out_belt.enabled:
                     continue
-                strength = out_belt.flow()
-                if abs(strength - exp_output_strength) > common.diff_threshold_verif:
-                    print(f"Error on {out_belt.dest}: expected strength to be "
-                          f"{exp_output_strength:.{common.decimals_iter}f}, "
-                          f"got {strength:.{common.decimals_iter}f} "
+                flow = out_belt.flow()
+                if abs(flow - exp_output_flow) > common.diff_threshold_verif:
+                    print(f"Error on {out_belt.dest}: expected flow to be "
+                          f"{exp_output_flow:.{common.decimals_iter}f}, "
+                          f"got {flow:.{common.decimals_iter}f} "
                           f"(diff > {common.diff_threshold_verif})")
                     is_output_balanced = False
 
             for in_belt in balancer.get_inputs():
                 if not in_belt.enabled:
                     continue
-                strength = in_belt.flow()
-                if abs(strength - exp_input_strength) > common.diff_threshold_verif:
-                    print(f"Error on {in_belt.source}: expected strength to be "
-                          f"{exp_input_strength:.{common.decimals_iter}f}, "
-                          f"got {strength:.{common.decimals_iter}f} "
+                flow = in_belt.flow()
+                if abs(flow - exp_input_flow) > common.diff_threshold_verif:
+                    print(f"Error on {in_belt.source}: expected flow to be "
+                          f"{exp_input_flow:.{common.decimals_iter}f}, "
+                          f"got {flow:.{common.decimals_iter}f} "
                           f"(diff > {common.diff_threshold_verif})")
                     is_input_balanced = False
 
