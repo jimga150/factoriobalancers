@@ -1,7 +1,143 @@
+import itertools
+
+import common
+from Balance import Balance
 from Balancer import Balancer
 from Belt import Belt
 from Node import Node
 
+# return true if balancer passes test
+def test_balance(balancer: Balancer) -> bool:
+
+    # balancer is input balanced (meaning it draws evenly from all inputs no matter what)
+    is_input_balanced = True
+
+    # balancer is output balanced (meaning it supplies evenly to all outputs no matter what)
+    is_output_balanced = True
+
+    # balancer is throughput unlimited (meaning it always provides the maximum throughput possible no matter what)
+    is_tu = True
+
+    outputs = balancer.get_outputs()
+    inputs = balancer.get_inputs()
+
+    num_outputs = len(outputs)
+    num_inputs = len(inputs)
+
+    output_sets_to_block = []
+    for i in range(num_outputs):
+        output_sets_to_block.extend(list(itertools.combinations(outputs, i)))
+
+    input_sets_to_block = []
+    for i in range(num_inputs):
+        input_sets_to_block.extend(list(itertools.combinations(inputs, i)))
+
+    common.debug_print("Output sets:")
+    for output_set_to_block in output_sets_to_block:
+        common.debug_print(", ".join([str(x.dest) for x in output_set_to_block]))
+
+    common.debug_print("Input sets:")
+    for input_set_to_block in input_sets_to_block:
+        common.debug_print(", ".join([str(x.source) for x in input_set_to_block]))
+
+    for output_set_to_block in output_sets_to_block:
+
+        for output_belt in output_set_to_block:
+            output_belt.enabled = False
+
+        blocked_output_names = [str(x.dest) for x in output_set_to_block]
+        num_blocked_outputs = len(blocked_output_names)
+        num_enabled_outputs = num_outputs - num_blocked_outputs
+
+        for input_set_to_block in input_sets_to_block:
+
+            for input_belt in input_set_to_block:
+                input_belt.enabled = False
+
+            blocked_input_names = [str(x.source) for x in input_set_to_block]
+            num_blocked_inputs = len(blocked_input_names)
+            num_enabled_inputs = num_inputs - num_blocked_inputs
+
+            print("Blocking Outputs:")
+            print(", ".join(blocked_output_names))
+            print("Blocking Inputs:")
+            print(", ".join(blocked_input_names))
+
+            img_filename = "Sans_" + "_".join(blocked_output_names)
+            if len(blocked_input_names) > 0:
+                img_filename += "_"
+            img_filename += "_".join(blocked_input_names)
+
+            balancer.calc_balance()
+            balancer.render(img_filename)
+
+            exp_throughput = min(num_enabled_inputs, num_enabled_outputs)
+            exp_input_flow = exp_throughput / num_enabled_inputs
+            exp_output_flow = exp_throughput / num_enabled_outputs
+
+            exp_output_balance = Balance()
+            for in_belt in balancer.get_inputs():
+                if not in_belt.enabled:
+                    continue
+                exp_output_balance[in_belt.source] = exp_input_flow / num_enabled_outputs
+
+            total_throughput = sum([x.flow() for x in balancer.get_outputs()])
+            if abs(total_throughput - exp_throughput) > common.diff_threshold_verif:
+                print(f"Error: expected throughput to be "
+                      f"{exp_throughput:.{common.decimals_iter}f}, "
+                      f"got {total_throughput:.{common.decimals_iter}f} "
+                      f"(diff > {common.diff_threshold_verif})")
+                is_tu = False
+
+            for out_belt in balancer.get_outputs():
+                if not out_belt.enabled:
+                    continue
+                flow = out_belt.flow()
+                if abs(flow - exp_output_flow) > common.diff_threshold_verif:
+                    print(f"Error on {out_belt.dest}: expected flow to be "
+                          f"{exp_output_flow:.{common.decimals_iter}f}, "
+                          f"got {flow:.{common.decimals_iter}f} "
+                          f"(diff > {common.diff_threshold_verif})")
+                    is_output_balanced = False
+
+                if not out_belt.is_balanced():
+                    print(f"Error on {out_belt.dest}: expected output to be balanced (balance: {out_belt.balance})")
+                    is_output_balanced = False
+
+                if out_belt.balance != exp_output_balance:
+                    print(f"Error on {out_belt.dest}: expected balance to be "
+                          f"{exp_output_balance}, "
+                          f"got {out_belt.balance} "
+                          f"(diff > {common.diff_threshold_verif})")
+                    is_output_balanced = False
+
+            for in_belt in balancer.get_inputs():
+                if not in_belt.enabled:
+                    continue
+                flow = in_belt.flow()
+                if abs(flow - exp_input_flow) > common.diff_threshold_verif:
+                    print(f"Error on {in_belt.source}: expected flow to be "
+                          f"{exp_input_flow:.{common.decimals_iter}f}, "
+                          f"got {flow:.{common.decimals_iter}f} "
+                          f"(diff > {common.diff_threshold_verif})")
+                    is_input_balanced = False
+
+            for input_belt in input_set_to_block:
+                input_belt.enabled = True
+
+        for output_belt in output_set_to_block:
+            output_belt.enabled = True
+
+    if not is_input_balanced:
+        print("Balancer is not input balanced")
+
+    if not is_output_balanced:
+        print("Balancer is not output balanced")
+
+    if not is_tu:
+        print("Balancer is not TU")
+
+    return is_input_balanced and is_output_balanced and is_tu
 
 def make3x3() -> Balancer:
     ans = Balancer()
