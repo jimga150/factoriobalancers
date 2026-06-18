@@ -25,8 +25,6 @@ def term_str(name, frac: float) -> str:
     if type(name) != str:
         name = str(name)
 
-    # print(f"get_balance_term_str({name}, {frac})")
-
     if frac < diff_threshold_verif:
         return ""
     if frac == 1:
