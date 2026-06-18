@@ -5,7 +5,7 @@ diff_threshold_iter = 10 ** (-decimals_iter)
 diff_threshold_verif = 10 ** (-decimals_verif)
 
 # print extremely verbose iteration updates
-debug = True
+debug = False
 
 # Limit each iteration to one splitter update and render network on each iteration.
 # This is liable to generate hundreds of MBs of images for each balancer calculation.
@@ -67,3 +67,6 @@ def term_str(name, frac: float) -> str:
     # print("no fraction")
     frac_str = f"{frac:.{decimals_verif}f}"
     return f"{frac_str}*{name}" if name != "" else frac_str
+
+def frac_str(frac: float) -> str:
+    return term_str("", frac)

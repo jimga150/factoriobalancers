@@ -69,9 +69,8 @@ def test_balance(balancer: Balancer) -> tuple[bool, bool, bool]:
             exp_throughput = min(num_enabled_inputs, num_enabled_outputs)
             exp_input_strength = exp_throughput / num_enabled_inputs
             exp_output_strength = exp_throughput / num_enabled_outputs
-            actual_coeff = -1
 
-            total_throughput = sum([x.get_real_strength() for x in balancer.get_outputs()])
+            total_throughput = sum([x.flow() for x in balancer.get_outputs()])
             if abs(total_throughput - exp_throughput) > common.diff_threshold_verif:
                 print(f"Error: expected throughput to be "
                       f"{exp_throughput:.{common.decimals_iter}f}, "
@@ -82,7 +81,7 @@ def test_balance(balancer: Balancer) -> tuple[bool, bool, bool]:
             for out_belt in balancer.get_outputs():
                 if not out_belt.enabled:
                     continue
-                strength = out_belt.get_real_strength()
+                strength = out_belt.flow()
                 if abs(strength - exp_output_strength) > common.diff_threshold_verif:
                     print(f"Error on {out_belt.dest}: expected strength to be "
                           f"{exp_output_strength:.{common.decimals_iter}f}, "
@@ -93,7 +92,7 @@ def test_balance(balancer: Balancer) -> tuple[bool, bool, bool]:
             for in_belt in balancer.get_inputs():
                 if not in_belt.enabled:
                     continue
-                strength = in_belt.get_real_strength()
+                strength = in_belt.flow()
                 if abs(strength - exp_input_strength) > common.diff_threshold_verif:
                     print(f"Error on {in_belt.source}: expected strength to be "
                           f"{exp_input_strength:.{common.decimals_iter}f}, "
@@ -108,8 +107,6 @@ def test_balance(balancer: Balancer) -> tuple[bool, bool, bool]:
             output_belt.enabled = True
 
     return is_input_balanced, is_output_balanced, is_tu
-
-# TODO: make desired balance actually preempt flow without breaking everything else
 
 # TODO: make networks for all N - M balancers for N,M = {1, 2, 3, 5, 7}
 # TODO: add blueprint parsing (rip from Factorio SAT)
@@ -129,22 +126,22 @@ for file in files:
 # balancer = Balancer_Book.make_2x1_pri_in()
 # balancer = Balancer_Book.make_3x1()
 # balancer = Balancer_Book.make_3x1_bigloop()
-# balancer = Balancer_Book.make_4x4_universal()
-balancer = Balancer_Book.make_4x4_universal_blocked()
+balancer = Balancer_Book.make_4x4_universal()
+# balancer = Balancer_Book.make_4x4_universal_blocked()
 # balancer = Balancer_Book.make_real_3x1_reduced()
 # balancer = Balancer_Book.make_4x3()
 
-# is_input_balanced, is_output_balanced, is_tu = test_balance(balancer)
-#
-# if not is_input_balanced:
-#     print("Balancer is not input balanced")
-#
-# if not is_output_balanced:
-#     print("Balancer is not output balanced")
-#
-# if not is_tu:
-#     print("Balancer is not TU")
+is_input_balanced, is_output_balanced, is_tu = test_balance(balancer)
 
-balancer.calc_balance()
-balancer.render()
-balancer.export_to_sat_network()
+if not is_input_balanced:
+    print("Balancer is not input balanced")
+
+if not is_output_balanced:
+    print("Balancer is not output balanced")
+
+if not is_tu:
+    print("Balancer is not TU")
+
+# balancer.calc_balance()
+# balancer.render()
+# balancer.export_to_sat_network()

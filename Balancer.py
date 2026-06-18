@@ -111,11 +111,7 @@ class Balancer:
             node = self.nodes[i]
             try:
                 if self.get_splitter(node).update_check_output_balance():
-                    if common.deep_iteration_debug:
-                        # skip out on the first changed node so each iteration is limited to one splitter update
-                        return i
-                    else:
-                        changed_node_idxs.add(i)
+                    changed_node_idxs.add(i)
             except ArgumentError:
                 pass
 
@@ -129,14 +125,74 @@ class Balancer:
 
         return list(changed_node_idxs)[0]
 
+    # return -1 if no belts changed or index of belt if one did
+    def calc_flow_rate_iter(self, start_idx: int) -> int:
+        common.debug_print(f"calc_flow_rate_iter({start_idx})")
+
+        old_balancer = copy.deepcopy(self)
+
+        if start_idx >= len(self.nodes):
+            start_idx = 0
+            common.debug_print(f"start_idx={start_idx}")
+
+        idx_order = [x for x in range(start_idx, len(self.nodes))]
+        idx_order.extend([x for x in range(0, start_idx)])
+
+        rvrs_idx_order = copy.deepcopy(idx_order)
+        rvrs_idx_order.reverse()
+
+        idx_order.extend(rvrs_idx_order)
+
+        changed_node_idxs = set()
+        for i in idx_order:
+            node = self.nodes[i]
+            try:
+                new_splitter = self.get_splitter(node)
+                old_splitter = old_balancer.get_splitter(node)
+                if old_splitter.update_check_flow_rate(new_splitter):
+                    changed_node_idxs.add(i)
+            except ArgumentError:
+                pass
+
+        if len(changed_node_idxs) == 0:
+            common.debug_print("No changed nodes")
+            return -1
+
+        common.debug_print(f"Changed nodes:")
+        for i in changed_node_idxs:
+            common.debug_print(f"\t{self.nodes[i]}")
+
+        # TODO: apply change using linear combinations?
+
+        return list(changed_node_idxs)[0]
+
     def calc_balance(self) -> None:
 
         common.debug_print("calc_balance")
 
         for belt in self.balance:
-            belt.real_balance.clear()
-            belt.desired_balance.clear()
-            belt.demand = 1
+            belt.reset()
+
+        iters = 0
+        changed_node_idx = -1
+        while True:
+
+            iters += 1
+            common.debug_print(f"Trying to converge flow rate, iteration {iters}")
+
+            changed_node_idx = self.calc_flow_rate_iter(changed_node_idx + 1)
+
+            if common.deep_iteration_debug:
+                self.render(f"Iter{iters}")
+
+            common.debug_print(f"changed_node_idx = {changed_node_idx}")
+            if changed_node_idx < 0:
+                break
+
+            if iters > common.max_iters:
+                raise Exception(f"Balancer failed to converge flow rate after {iters} iterations")
+
+        common.debug_print(f"Flow rate took {iters} iterations")
 
         iters = 0
         changed_node_idx = -1
@@ -147,8 +203,8 @@ class Balancer:
 
             changed_node_idx = self.calc_balance_iter(changed_node_idx + 1)
 
-            # if common.deep_iteration_debug:
-            self.render(f"Iter{iters}")
+            if common.deep_iteration_debug:
+                self.render(f"Iter{iters}")
 
             common.debug_print(f"changed_node_idx = {changed_node_idx}")
             if changed_node_idx < 0:
@@ -157,7 +213,7 @@ class Balancer:
             if iters > common.max_iters:
                 raise Exception(f"Balancer failed to converge balance after {iters} iterations")
 
-        common.debug_print(f"Took {iters} iterations")
+        common.debug_print(f"Balance took {iters} iterations")
 
     def render(self, name: str = "Network") -> None:
         g = Digraph(engine='dot', node_attr={'shape': 'rect', 'height': '0.4', 'width': '0.5'},
