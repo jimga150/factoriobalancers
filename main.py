@@ -5,6 +5,7 @@ import Balancer_Book
 import common
 from Balancer import Balancer
 
+
 # first result is true if balancer is input balanced (meaning it draws evenly from all inputs no matter what)
 # first result is true if balancer is output balanced (meaning it supplies evenly to all outputs no matter what)
 # third result is true if the balancer is throughput unlimited

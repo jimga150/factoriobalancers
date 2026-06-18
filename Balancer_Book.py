@@ -211,7 +211,7 @@ def make_3x1_subbalancer() -> Balancer:
 
     # this is the subtree of the 4 - 4 universal balancer that takes leftover output, balances it,
     # and then loops it back to each input
-    # im cutting out I/Os to force it to act as a 3 - 1 as it does in the 3 - 1 case for the universal balancer
+    # I'm cutting out I/Os to force it to act as a 3 - 1 as it does in the 3 - 1 case for the universal balancer
 
     ans = Balancer()
 

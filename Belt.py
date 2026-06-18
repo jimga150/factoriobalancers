@@ -17,7 +17,7 @@ class Belt:
 
         self.enabled = True
 
-        # PyCharm gets mad if i don't put these here
+        # PyCharm gets mad if I don't put these here
         self.supply = None
         self.demand = None
         self.balance = Balance()
