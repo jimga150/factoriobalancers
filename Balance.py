@@ -47,6 +47,17 @@ class Balance:
     def __setitem__(self, key, value):
         self.balance[key] = value
 
+    def __eq__(self, other):
+        for k, v in self.balance.items():
+            if k not in other.balance:
+                return False
+            if abs(v - other.balance[k]) > common.diff_threshold_verif:
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self == other
+
     def __add__(self, other: Balance):
         assert isinstance(other, Balance)
         ans = copy.deepcopy(self)
@@ -90,7 +101,13 @@ class Balance:
             del self.balance[name]
 
     def is_balanced(self) -> bool:
-        return len(self.balance.keys()) == 1 or "|" in str(self)
+        if len(self.balance.keys()) == 1:
+            return True
+        first_item = list(self.balance.values())[0]
+        for v in self.balance.values():
+            if abs(v - first_item) > common.diff_threshold_verif:
+                return False
+        return True
 
     def magnitude(self):
         return sum(self.balance.values())

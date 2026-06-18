@@ -3,6 +3,7 @@ import os
 
 import Balancer_Book
 import common
+from Balance import Balance
 from Balancer import Balancer
 
 
@@ -71,6 +72,12 @@ def test_balance(balancer: Balancer) -> tuple[bool, bool, bool]:
             exp_input_flow = exp_throughput / num_enabled_inputs
             exp_output_flow = exp_throughput / num_enabled_outputs
 
+            exp_output_balance = Balance()
+            for in_belt in balancer.get_inputs():
+                if not in_belt.enabled:
+                    continue
+                exp_output_balance[in_belt.source] = exp_input_flow / num_enabled_outputs
+
             total_throughput = sum([x.flow() for x in balancer.get_outputs()])
             if abs(total_throughput - exp_throughput) > common.diff_threshold_verif:
                 print(f"Error: expected throughput to be "
@@ -87,6 +94,17 @@ def test_balance(balancer: Balancer) -> tuple[bool, bool, bool]:
                     print(f"Error on {out_belt.dest}: expected flow to be "
                           f"{exp_output_flow:.{common.decimals_iter}f}, "
                           f"got {flow:.{common.decimals_iter}f} "
+                          f"(diff > {common.diff_threshold_verif})")
+                    is_output_balanced = False
+
+                if not out_belt.is_balanced():
+                    print(f"Error on {out_belt.dest}: expected output to be balanced (balance: {out_belt.balance})")
+                    is_output_balanced = False
+
+                if out_belt.balance != exp_output_balance:
+                    print(f"Error on {out_belt.dest}: expected balance to be "
+                          f"{exp_output_balance}, "
+                          f"got {out_belt.balance} "
                           f"(diff > {common.diff_threshold_verif})")
                     is_output_balanced = False
 

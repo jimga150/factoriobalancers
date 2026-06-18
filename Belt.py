@@ -65,3 +65,6 @@ class Belt:
         if self.dest_priority:
             return "blue"
         return "black"
+
+    def is_balanced(self) -> bool:
+        return self.balance.is_balanced()
