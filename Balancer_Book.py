@@ -1,4 +1,6 @@
 import itertools
+import os.path
+import shutil
 
 import common
 from Balance import Balance
@@ -17,6 +19,11 @@ def test_balance(balancer: Balancer) -> bool:
 
     # balancer is throughput unlimited (meaning it always provides the maximum throughput possible no matter what)
     is_tu = True
+
+    output_folder_path = os.path.abspath("test")
+
+    # clear test folder output
+    shutil.rmtree(output_folder_path)
 
     outputs = balancer.get_outputs()
     inputs = balancer.get_inputs()
@@ -68,8 +75,10 @@ def test_balance(balancer: Balancer) -> bool:
                 img_filename += "_"
             img_filename += "_".join(blocked_input_names)
 
+            img_filepath = os.path.join(output_folder_path, img_filename)
+
             balancer.calc_balance()
-            balancer.render(img_filename)
+            balancer.render(img_filepath)
 
             exp_throughput = min(num_enabled_inputs, num_enabled_outputs)
             exp_input_flow = exp_throughput / num_enabled_inputs

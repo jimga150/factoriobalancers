@@ -1,21 +1,11 @@
-import os
-
 import Balancer_Book
 
 
-# TODO: make tests render to a folder
 # TODO: make networks for all N - M balancers for N,M = {1, 2, 3, 5, 7}
 # TODO: add blueprint parsing (rip from Factorio SAT)
 # TODO: add network optimization
 # TODO: add blueprint export
 # TODO: add P&R
-
-# remove all PNGs first
-path = "."
-files = os.listdir(path=path)
-for file in files:
-    if file.endswith(".png"):
-        os.remove(os.path.join(path, file))
 
 # balancer3x3TU = Balancer.combine_balancers(Balancer_Book.make3x3(), Balancer_Book.make3x3())
 # balancer = Balancer_Book.combine_balancers(balancer3x3TU, Balancer_Book.make_3x1())
