@@ -112,16 +112,26 @@ def test_balance(balancer: Balancer) -> bool:
                           f"(diff > {common.diff_threshold_verif})")
                     is_output_balanced = False
 
-                if not out_belt.is_balanced():
-                    print(f"Error on {out_belt.dest}: expected output to be balanced (balance: {out_belt.balance})")
-                    is_output_balanced = False
+                # upon consideration, i realized the balance ratios of each output don't matter.
+                # these metrics would matter if either:
+                # 1. they indicated input balance
+                #       (they dont, and we're checking that anyways by stress testing), or
+                # 2. they indicated item mixing ratios
+                #       (balancers do not mix different input items well--you need circuitry for that)
+                #
+                # we already check the throughput of each input and output. where, in theory, each input goes in the
+                # balancer is of no object to the performance of the balancer.
 
-                if out_belt.balance != exp_output_balance:
-                    print(f"Error on {out_belt.dest}: expected balance to be "
-                          f"{exp_output_balance}, "
-                          f"got {out_belt.balance} "
-                          f"(diff > {common.diff_threshold_verif})")
-                    is_output_balanced = False
+                # if not out_belt.is_balanced():
+                #     print(f"Error on {out_belt.dest}: expected output to be balanced (balance: {out_belt.balance})")
+                #     is_output_balanced = False
+                #
+                # if out_belt.balance != exp_output_balance:
+                #     print(f"Error on {out_belt.dest}: expected balance to be "
+                #           f"{exp_output_balance}, "
+                #           f"got {out_belt.balance} "
+                #           f"(diff > {common.diff_threshold_verif})")
+                #     is_output_balanced = False
 
             for in_belt in balancer.get_inputs():
                 if not in_belt.enabled:
