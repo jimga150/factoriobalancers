@@ -232,7 +232,7 @@ class Splitter:
             priority_output.supply = min(1, total_supply)
             if len(nonpriority_outputs) > 0:
                 nonpriority_output = nonpriority_outputs[0]
-                nonpriority_output.supply = total_supply - priority_output.supply
+                nonpriority_output.supply = total_supply - priority_output.flow()
         else:
             common.debug_print("No priority output")
             oversupplies = dict()
