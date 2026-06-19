@@ -170,6 +170,27 @@ class Balancer:
 
         return list(changed_node_idxs)[0]
 
+    # return True if flow is OK
+    # check each splitter for equal in and out flow
+    def verify_flow(self) -> bool:
+        test_pass = True
+        for node in self.nodes:
+            try:
+                splitter = self.get_splitter(node)
+
+                if splitter.is_input_proxy() or splitter.is_output_proxy():
+                    continue
+
+                in_flow = sum(x.flow() for x in splitter.get_enabled_inputs())
+                out_flow = sum(x.flow() for x in splitter.get_enabled_outputs())
+                if abs(in_flow - out_flow) > common.diff_threshold_verif:
+                    print(f"Error: Splitter {splitter} has inequal input and output flow. Input: {in_flow}, Output: {out_flow}")
+                    test_pass = False
+                    
+            except ArgumentError:
+                pass
+        return test_pass
+
     def calc_balance(self) -> None:
 
         common.debug_print("calc_balance")
@@ -197,6 +218,10 @@ class Balancer:
                 raise Exception(f"Balancer failed to converge flow rate after {iters} iterations")
 
         common.debug_print(f"Flow rate took {iters} iterations")
+
+        if not self.verify_flow():
+            self.render(f"Fail")
+            raise Exception("Flow check failed")
 
         iters = 0
         changed_node_idx = -1
