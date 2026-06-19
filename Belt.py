@@ -26,8 +26,6 @@ class Belt:
     def reset(self):
         # keys are input nodes
         # values are ratio of that input's items (where 1 = this belt is full capacity with this input belt)
-        # self.real_balance = dict()
-        # self.desired_balance = dict()
         self.balance = Balance()
 
         self.demand = 1
