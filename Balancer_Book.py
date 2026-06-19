@@ -23,7 +23,10 @@ def test_balance(balancer: Balancer) -> bool:
     output_folder_path = os.path.abspath("test")
 
     # clear test folder output
-    shutil.rmtree(output_folder_path)
+    try:
+        shutil.rmtree(output_folder_path)
+    except FileNotFoundError:
+        pass
 
     outputs = balancer.get_outputs()
     inputs = balancer.get_inputs()
