@@ -15,7 +15,7 @@ except ModuleNotFoundError:
 
 class Balancer:
     def __init__(self):
-        self.balance = list()
+        self.belts = list()
         self.nodes = list()
 
     def postprocess_nodes(self):
@@ -23,7 +23,8 @@ class Balancer:
 
         input_char = ord('A')
         output_idx = 1
-        for belt in self.balance:
+        for belt in self.belts:
+
             if belt.source not in self.nodes:
                 self.nodes.append(belt.source)
             if belt.dest not in self.nodes:
@@ -55,17 +56,17 @@ class Balancer:
             output_belt.dest = input_belt.dest
             output_belt.dest_priority = input_belt.dest_priority
 
-        for belt in downstream_copy.balance:
+        for belt in downstream_copy.belts:
             if downstream_copy.is_input(belt):
                 continue
-            ans.balance.append(belt)
+            ans.belts.append(belt)
 
         ans.postprocess_nodes()
         return ans
 
     def get_splitter(self, node) -> Splitter:
-        inputs = [x for x in self.balance if x.dest == node]
-        outputs = [x for x in self.balance if x.source == node]
+        inputs = [x for x in self.belts if x.dest == node]
+        outputs = [x for x in self.belts if x.source == node]
 
         if len(inputs) == 0 and len(outputs) == 0:
             raise ArgumentError(None, f"No inputs or outputs")
@@ -73,16 +74,16 @@ class Balancer:
         return Splitter(inputs, outputs)
 
     def get_inputs(self) -> list[Belt]:
-        return [x for x in self.balance if self.is_input(x)]
+        return [x for x in self.belts if self.is_input(x)]
 
     def get_outputs(self) -> list[Belt]:
-        return [x for x in self.balance if self.is_output(x)]
+        return [x for x in self.belts if self.is_output(x)]
 
     def is_input(self, belt: Belt) -> bool:
-        return len([x for x in self.balance if x.dest == belt.source]) == 0
+        return len([x for x in self.belts if x.dest == belt.source]) == 0
 
     def is_output(self, belt: Belt) -> bool:
-        return len([x for x in self.balance if x.source == belt.dest]) == 0
+        return len([x for x in self.belts if x.source == belt.dest]) == 0
 
     def get_num_outputs(self) -> int:
         return len(self.get_outputs())
@@ -186,7 +187,7 @@ class Balancer:
                 if abs(in_flow - out_flow) > common.diff_threshold_verif:
                     print(f"Error: Splitter {splitter} has inequal input and output flow. Input: {in_flow}, Output: {out_flow}")
                     test_pass = False
-                    
+
             except ArgumentError:
                 pass
         return test_pass
@@ -195,7 +196,7 @@ class Balancer:
 
         common.debug_print("calc_balance")
 
-        for belt in self.balance:
+        for belt in self.belts:
             belt.reset()
 
         iters = 0
@@ -276,7 +277,7 @@ class Balancer:
             for node in middle_splitters:
                 s.node(str(node))
 
-        for belt in self.balance:
+        for belt in self.belts:
             if not belt.enabled:
                 continue
             g.edge(str(belt.source), str(belt.dest), label=belt.get_label(), color=belt.get_color())
@@ -287,7 +288,7 @@ class Balancer:
         belt_indices = dict()
 
         i = 1
-        for belt in self.balance:
+        for belt in self.belts:
             if not belt.enabled:
                 belt_indices[belt] = -1
                 continue
