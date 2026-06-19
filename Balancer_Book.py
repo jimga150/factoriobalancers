@@ -192,6 +192,31 @@ def make3x3() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
+def make2x4_tl() -> Balancer:
+    ans = Balancer()
+
+    node_a = Node()
+    node_b = Node()
+    node_1 = Node()
+    node_2 = Node()
+    node_3 = Node()
+    node_o1 = Node()
+    node_o2 = Node()
+    node_o3 = Node()
+    node_o4 = Node()
+
+    ans.balance.append(Belt(node_a, node_1))
+    ans.balance.append(Belt(node_b, node_1))
+    ans.balance.append(Belt(node_1, node_2))
+    ans.balance.append(Belt(node_1, node_3))
+    ans.balance.append(Belt(node_2, node_o1))
+    ans.balance.append(Belt(node_2, node_o2))
+    ans.balance.append(Belt(node_3, node_o3))
+    ans.balance.append(Belt(node_3, node_o4))
+
+    ans.postprocess_nodes()
+    return ans
+
 def make4x4() -> Balancer:
     ans = Balancer()
 
