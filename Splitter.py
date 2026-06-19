@@ -215,7 +215,7 @@ class Splitter:
             common.debug_print(f"\tfrom {in_belt.source}: {in_belt.get_label()}")
 
         # -------------------------------------------------------------
-        # Calculate desired supply of outputs
+        # Calculate supply of outputs
         # -------------------------------------------------------------
 
         priority_outputs = [x for x in enabled_outputs if x.source_priority]
