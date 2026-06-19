@@ -29,12 +29,18 @@ class Balancer:
                 self.nodes.append(belt.source)
             if belt.dest not in self.nodes:
                 self.nodes.append(belt.dest)
+
             if self.is_input(belt):
                 belt.source.name = str(chr(input_char))
                 input_char += 1
+            else:
+                belt.source.name = ""
+
             if self.is_output(belt):
                 belt.dest.name = f"O{output_idx}"
                 output_idx += 1
+            else:
+                belt.dest.name = ""
 
     @staticmethod
     def combine_balancers(upstream: Balancer, downstream: Balancer) -> Balancer:
