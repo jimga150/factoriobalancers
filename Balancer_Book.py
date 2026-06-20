@@ -259,6 +259,44 @@ def make4x4() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
+def make4x4TU() -> Balancer:
+    ans = Balancer()
+
+    node_a = Node()
+    node_b = Node()
+    node_c = Node()
+    node_d = Node()
+    node_1 = Node()
+    node_2 = Node()
+    node_3 = Node()
+    node_4 = Node()
+    node_5 = Node()
+    node_6 = Node()
+    node_o1 = Node()
+    node_o2 = Node()
+    node_o3 = Node()
+    node_o4 = Node()
+
+    ans.belts.append(Belt(node_a, node_1))
+    ans.belts.append(Belt(node_b, node_1))
+    ans.belts.append(Belt(node_c, node_2))
+    ans.belts.append(Belt(node_d, node_2))
+    ans.belts.append(Belt(node_1, node_3))
+    ans.belts.append(Belt(node_1, node_4))
+    ans.belts.append(Belt(node_2, node_3))
+    ans.belts.append(Belt(node_2, node_4))
+    ans.belts.append(Belt(node_3, node_5))
+    ans.belts.append(Belt(node_3, node_6))
+    ans.belts.append(Belt(node_4, node_5))
+    ans.belts.append(Belt(node_4, node_6))
+    ans.belts.append(Belt(node_5, node_o1))
+    ans.belts.append(Belt(node_5, node_o2))
+    ans.belts.append(Belt(node_6, node_o3))
+    ans.belts.append(Belt(node_6, node_o4))
+
+    ans.postprocess_nodes()
+    return ans
+
 def make_3x1() -> Balancer:
     ans = Balancer()
 
