@@ -319,7 +319,7 @@ class Splitter:
         if self.is_input_proxy():
             # represents an input, just set it to itself
             assert len(self.outputs) == 1
-            self.outputs[0].balance[self.node] = self.outputs[0].flow()
+            self.outputs[0].balance[str(self.node)] = self.outputs[0].flow()
             common.debug_print(f"Input proxy, setting {self.node} to demand ({self.outputs[0].demand})")
             return
 

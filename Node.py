@@ -5,6 +5,11 @@ class Node:
         self.uuid = uuid.uuid4()
         self.name = ""
 
+    def __deepcopy__(self, memo):
+        ans = Node()
+        ans.name = self.name
+        return ans
+
     def __str__(self):
         if self.name != "":
             return self.name
