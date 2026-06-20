@@ -42,6 +42,13 @@ class Balancer:
             else:
                 belt.dest.name = ""
 
+        for node in self.nodes:
+            splitter = self.get_splitter(node)
+            if len(splitter.get_enabled_inputs()) > 2:
+                print(f"Error: {node} has more than 2 inputs. This balancer is illegal.")
+            if len(splitter.get_enabled_outputs()) > 2:
+                print(f"Error: {node} has more than 2 outputs. This balancer is illegal.")
+
     @staticmethod
     def combine_balancers(upstream: Balancer, downstream: Balancer) -> Balancer:
 
