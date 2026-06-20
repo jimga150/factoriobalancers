@@ -47,6 +47,9 @@ class Balance:
     def __setitem__(self, key, value):
         self.balance[key] = value
 
+    def __contains__(self, key):
+        return key in self.balance
+
     def __eq__(self, other):
         for k, v in self.balance.items():
             if k not in other.balance:
