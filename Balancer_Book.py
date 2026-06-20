@@ -9,7 +9,7 @@ from Belt import Belt
 from Node import Node
 
 # return true if balancer passes test
-def test_balance(balancer: Balancer) -> bool:
+def test_balance(balancer: Balancer, exit_on_fail: bool = True) -> bool:
 
     # balancer is input balanced (meaning it draws evenly from all inputs no matter what)
     is_input_balanced = True
@@ -147,8 +147,14 @@ def test_balance(balancer: Balancer) -> bool:
             for input_belt in input_set_to_block:
                 input_belt.enabled = True
 
+            if exit_on_fail and not (is_input_balanced and is_output_balanced and is_tu):
+                break
+
         for output_belt in output_set_to_block:
             output_belt.enabled = True
+
+        if exit_on_fail and not (is_input_balanced and is_output_balanced and is_tu):
+            break
 
     if not is_input_balanced:
         print("Balancer is not input balanced")
