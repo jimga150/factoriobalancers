@@ -12,15 +12,25 @@ from Balancer import Balancer
 # balancer = Balancer_Book.make_2x1_pri_in()
 # balancer = Balancer_Book.make_3x1()
 # balancer = Balancer_Book.make_3x1_bigloop()
-# balancer = Balancer_Book.make_4x4_universal()
+balancer = Balancer_Book.make_4x4_universal()
 # balancer = Balancer_Book.make_4x4_universal_blocked()
 # balancer = Balancer_Book.make_real_3x1_reduced()
 # balancer = Balancer_Book.make2x4_tl()
 # balancer = Balancer_Book.make_4x3()
 # balancer = Balancer_Book.make3x3()
-balancer = Balancer_Book.make4x4TU()
 # balancer = Balancer_Book.make_2x2()
-balancer = Balancer.make_tap_loop(balancer)
+
+# balancer44TU = Balancer_Book.make4x4TU()
+# balancer44 = Balancer_Book.make4x4()
+# balancer = Balancer.make_tap_loop(balancer44)
+
+'''
+I->O TU | reb TU    | Pass
+   N    |   N       |   N
+   N    |   Y       |   Y
+   Y    |   N       |   Y
+   Y    |   Y       |   Y
+'''
 
 if Balancer_Book.test_balance(balancer):
     print("Pass")
