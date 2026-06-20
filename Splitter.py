@@ -43,45 +43,42 @@ class Splitter:
     def get_enabled_outputs(self) -> list[Belt]:
         return [x for x in self.outputs if x.enabled]
 
-    def update_check_flow_rate(self, new_splitter: Splitter):
+    def update_check_flow_rate(self):
 
-        old_enabled_inputs = self.get_enabled_inputs()
-        old_enabled_outputs = self.get_enabled_outputs()
+        enabled_inputs = self.get_enabled_inputs()
+        enabled_outputs = self.get_enabled_outputs()
 
-        old_demands = [x.demand for x in old_enabled_inputs]
-        old_supplies = [x.supply for x in old_enabled_outputs]
+        old_demands = copy.deepcopy([x.demand for x in enabled_inputs])
+        old_supplies = copy.deepcopy([x.supply for x in enabled_outputs])
 
         common.debug_print(f"------------------------------------------------")
         common.debug_print(f"update_check_flow_rate, Splitter: {self}")
         common.debug_print(f"Inputs:")
-        for in_belt in old_enabled_inputs:
+        for in_belt in enabled_inputs:
             common.debug_print(f"\tfrom {in_belt.source}:")
             common.debug_print(f"\t\t{in_belt.get_label()}")
         common.debug_print(f"Outputs:")
-        for out_belt in old_enabled_outputs:
+        for out_belt in enabled_outputs:
             common.debug_print(f"\tto {out_belt.dest}:")
             common.debug_print(f"\t\t{out_belt.get_label()}")
         common.debug_print(f"------------------------------------------------")
 
-        self.update_flow_rate(new_splitter)
+        self.update_flow_rate()
 
         common.debug_print(f"------------------------------------------------")
         common.debug_print(f"Done with update_check_flow_rate, Splitter: {self}")
         common.debug_print(f"Inputs:")
-        for in_belt in old_enabled_inputs:
+        for in_belt in enabled_inputs:
             common.debug_print(f"\tfrom {in_belt.source}:")
             common.debug_print(f"\t\t{in_belt.get_label()}")
         common.debug_print(f"Outputs:")
-        for out_belt in old_enabled_outputs:
+        for out_belt in enabled_outputs:
             common.debug_print(f"\tto {out_belt.dest}:")
             common.debug_print(f"\t\t{out_belt.get_label()}")
         common.debug_print(f"------------------------------------------------")
 
-        new_enabled_inputs = new_splitter.get_enabled_inputs()
-        new_enabled_outputs = new_splitter.get_enabled_outputs()
-
-        new_demands = [x.demand for x in new_enabled_inputs]
-        new_supplies = [x.supply for x in new_enabled_outputs]
+        new_demands = [x.demand for x in enabled_inputs]
+        new_supplies = [x.supply for x in enabled_outputs]
 
         is_changed = False
 
@@ -89,7 +86,7 @@ class Splitter:
             new_demand = new_demands[i]
             old_demand = old_demands[i]
             if abs(new_demand - old_demand) > common.diff_threshold_iter:
-                common.debug_print(f"\tchange: demand of {new_enabled_inputs[i]} changed from {old_demand} to {new_demand}")
+                common.debug_print(f"\tchange: demand of {enabled_inputs[i]} changed from {old_demand} to {new_demand}")
                 if common.debug:
                     is_changed = True
                 else:
@@ -99,7 +96,7 @@ class Splitter:
             new_supply = new_supplies[i]
             old_supply = old_supplies[i]
             if abs(new_supply - old_supply) > common.diff_threshold_iter:
-                common.debug_print(f"\tchange: demand of {new_enabled_outputs[i]} changed from {old_supply} to {new_supply}")
+                common.debug_print(f"\tchange: demand of {enabled_outputs[i]} changed from {old_supply} to {new_supply}")
                 if common.debug:
                     is_changed = True
                 else:
@@ -107,7 +104,7 @@ class Splitter:
 
         return is_changed
 
-    def update_flow_rate(self, new_splitter: Splitter):
+    def update_flow_rate(self):
 
         # -------------------------------------------------------------
         # Weeding out base cases
@@ -116,18 +113,18 @@ class Splitter:
         if self.is_input_proxy():
             # represents an input, just set it to itself
             assert len(self.outputs) == 1
-            new_splitter.outputs[0].supply = 1
+            self.outputs[0].supply = 1
             common.debug_print(f"Input proxy, setting {self.node} to demand ({self.outputs[0].demand})")
             return
 
         if self.is_output_proxy():
             assert len(self.inputs) == 1
             common.debug_print(f"Output proxy: setting demand of {self.inputs[0]} to 1")
-            new_splitter.inputs[0].demand = 1
+            self.inputs[0].demand = 1
             return
 
-        enabled_inputs = new_splitter.get_enabled_inputs()
-        enabled_outputs = new_splitter.get_enabled_outputs()
+        enabled_inputs = self.get_enabled_inputs()
+        enabled_outputs = self.get_enabled_outputs()
 
         num_enabled_inputs = len(enabled_inputs)
         num_enabled_outputs = len(enabled_outputs)

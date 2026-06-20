@@ -145,8 +145,6 @@ class Balancer:
     def calc_flow_rate_iter(self, start_idx: int) -> int:
         common.debug_print(f"calc_flow_rate_iter({start_idx})")
 
-        old_balancer = copy.deepcopy(self)
-
         if start_idx >= len(self.nodes):
             start_idx = 0
             common.debug_print(f"start_idx={start_idx}")
@@ -163,14 +161,12 @@ class Balancer:
         for i in idx_order:
             node = self.nodes[i]
             try:
-                new_splitter = self.get_splitter(node)
-                old_splitter = old_balancer.get_splitter(node)
-                if old_splitter.update_check_flow_rate(new_splitter):
+                if self.get_splitter(node).update_check_flow_rate():
                     changed_node_idxs.add(i)
                     if common.deep_iteration_debug:
                         break
             except ArgumentError:
-                pass
+                common.debug_print(f"Splitter for node {node} raised an ArgumentError")
 
         if len(changed_node_idxs) == 0:
             common.debug_print("No changed nodes")
@@ -179,8 +175,6 @@ class Balancer:
         common.debug_print(f"Changed nodes:")
         for i in changed_node_idxs:
             common.debug_print(f"\t{self.nodes[i]}")
-
-        # TODO: apply change using linear combinations?
 
         return list(changed_node_idxs)[0]
 
