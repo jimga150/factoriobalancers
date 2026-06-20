@@ -7,8 +7,8 @@ from Balancer import Balancer
 # TODO: add blueprint export
 # TODO: add P&R
 
-# balancer3x3TU = Balancer.combine_balancers(Balancer_Book.make3x3(), Balancer_Book.make3x3())
-# balancer = Balancer_Book.combine_balancers(balancer3x3TU, Balancer_Book.make_3x1())
+# balancer3x3TU = Balancer.combine_balancers_endtoend(Balancer_Book.make3x3(), Balancer_Book.make3x3())
+# balancer = Balancer_Book.combine_balancers_endtoend(balancer3x3TU, Balancer_Book.make_3x1())
 # balancer = Balancer_Book.make_2x1_pri_in()
 # balancer = Balancer_Book.make_3x1()
 # balancer = Balancer_Book.make_3x1_bigloop()

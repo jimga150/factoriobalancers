@@ -52,7 +52,7 @@ class Balancer:
                 print(f"Error: {node} has more than 2 outputs. This balancer is illegal.")
 
     @staticmethod
-    def combine_balancers(upstream: Balancer, downstream: Balancer) -> Balancer:
+    def combine_balancers_endtoend(upstream: Balancer, downstream: Balancer) -> Balancer:
 
         ans = copy.deepcopy(upstream)
         downstream_copy = copy.deepcopy(downstream)
