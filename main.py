@@ -20,6 +20,8 @@ balancer = Balancer_Book.make_4x4_universal()
 # balancer = Balancer_Book.make3x3()
 # balancer = Balancer_Book.make_2x2()
 
+balancer = Balancer.combine_sidebyside(balancer)
+
 # balancer44TU = Balancer_Book.make4x4TU()
 # balancer44 = Balancer_Book.make4x4()
 # balancer = Balancer.make_tap_loop(balancer44)

@@ -122,6 +122,40 @@ class Balancer:
 
         ans.postprocess_nodes()
         return ans
+    
+    @staticmethod
+    def combine_sidebyside(sub_balancer: Balancer) -> Balancer:
+        ans = copy.deepcopy(sub_balancer)
+        sideB = copy.deepcopy(sub_balancer)
+
+        num_sub_balancer_outputs = len(ans.get_outputs())
+
+        assert len(sideB.get_outputs()) == num_sub_balancer_outputs
+
+        sideA_outputs = ans.get_outputs()
+        sideB_outputs = sideB.get_outputs()
+
+        for belt in sideB.belts:
+            ans.belts.append(belt)
+
+        for i in range(num_sub_balancer_outputs):
+            sideA_output = sideA_outputs[i]
+            sideB_output = sideB_outputs[i]
+
+            # reuse an output proxy node as the merge splitter
+            merge_node = sideA_output.dest
+            new_out_node_1 = sideB_output.dest
+            new_out_node_2 = Node()
+
+            sideA_output.dest = merge_node
+            sideB_output.dest = merge_node
+
+            # add belts going from the merge to the new output proxies
+            ans.belts.append(Belt(merge_node, new_out_node_1))
+            ans.belts.append(Belt(merge_node, new_out_node_2))
+
+        ans.postprocess_nodes()
+        return ans
 
     def get_splitter(self, node) -> Splitter:
         inputs = [x for x in self.belts if x.dest == node]
