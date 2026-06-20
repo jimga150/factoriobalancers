@@ -1,6 +1,7 @@
 import copy
 import sys
 from argparse import ArgumentError
+from types import NoneType
 
 import common
 from Belt import Belt
@@ -79,13 +80,16 @@ class Balancer:
         return ans
 
     @staticmethod
-    def make_tap_loop(simple_balancer: Balancer) -> Balancer:
+    def make_tap_loop(simple_balancer: Balancer, rebalancer: Balancer | NoneType = None) -> Balancer:
 
-        # for now this only works on n - n balancers
-        assert simple_balancer.get_num_outputs() == simple_balancer.get_num_inputs()
+        if rebalancer is None:
+            rebalancer = simple_balancer
+
+        assert simple_balancer.get_num_outputs() == rebalancer.get_num_inputs()
+        assert rebalancer.get_num_outputs() == simple_balancer.get_num_inputs()
 
         ans = copy.deepcopy(simple_balancer)
-        excess_rebalancer = copy.deepcopy(simple_balancer)
+        excess_rebalancer = copy.deepcopy(rebalancer)
 
         pri_in_nodes = []
 
