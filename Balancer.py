@@ -4,6 +4,7 @@ from argparse import ArgumentError
 
 import common
 from Belt import Belt
+from Node import Node
 from Splitter import Splitter
 
 try:
@@ -72,6 +73,47 @@ class Balancer:
         for belt in downstream_copy.belts:
             if downstream_copy.is_input(belt):
                 continue
+            ans.belts.append(belt)
+
+        ans.postprocess_nodes()
+        return ans
+
+    @staticmethod
+    def make_tap_loop(simple_balancer: Balancer) -> Balancer:
+
+        # for now this only works on n - n balancers
+        assert simple_balancer.get_num_outputs() == simple_balancer.get_num_inputs()
+
+        ans = copy.deepcopy(simple_balancer)
+        excess_rebalancer = copy.deepcopy(simple_balancer)
+
+        pri_in_nodes = []
+
+        for belt in ans.get_inputs():
+            # insert a new splitter into the input path, we'll use it later to reconnect the rebalancer
+            pri_in_node = Node()
+            ans.belts.append(Belt(belt.source, pri_in_node, dest_priority=True))
+            belt.source = pri_in_node
+            pri_in_nodes.append(pri_in_node)
+
+        pri_out_nodes = []
+
+        for belt in ans.get_outputs():
+            # insert a new splitter into the output path, we'll use it later to source the rebalancer
+            pri_out_node = Node()
+            ans.belts.append(Belt(pri_out_node, belt.dest, source_priority=True))
+            belt.dest = pri_out_node
+            pri_out_nodes.append(pri_out_node)
+
+        input_idx = 0
+        output_idx = 0
+        for belt in excess_rebalancer.belts:
+            if excess_rebalancer.is_input(belt):
+                belt.source = pri_out_nodes[output_idx]
+                output_idx += 1
+            if excess_rebalancer.is_output(belt):
+                belt.dest = pri_in_nodes[input_idx]
+                input_idx += 1
             ans.belts.append(belt)
 
         ans.postprocess_nodes()

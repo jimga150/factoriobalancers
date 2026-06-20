@@ -1,5 +1,5 @@
 import Balancer_Book
-
+from Balancer import Balancer
 
 # TODO: make networks for all N - M balancers for N,M = {1, 2, 3, 5, 7}
 # TODO: add blueprint parsing (rip from Factorio SAT)
@@ -12,16 +12,21 @@ import Balancer_Book
 # balancer = Balancer_Book.make_2x1_pri_in()
 # balancer = Balancer_Book.make_3x1()
 # balancer = Balancer_Book.make_3x1_bigloop()
-balancer = Balancer_Book.make_4x4_universal()
+# balancer = Balancer_Book.make_4x4_universal()
 # balancer = Balancer_Book.make_4x4_universal_blocked()
 # balancer = Balancer_Book.make_real_3x1_reduced()
+# balancer = Balancer_Book.make2x4_tl()
 # balancer = Balancer_Book.make_4x3()
+# balancer = Balancer_Book.make3x3()
+balancer = Balancer_Book.make4x4TU()
+# balancer = Balancer_Book.make_2x2()
+balancer = Balancer.make_tap_loop(balancer)
 
 if Balancer_Book.test_balance(balancer):
     print("Pass")
 else:
     print("Fail")
 
-# balancer.calc_balance()
-# balancer.render()
-# balancer.export_to_sat_network()
+balancer.calc_balance()
+balancer.render()
+balancer.export_to_sat_network()
