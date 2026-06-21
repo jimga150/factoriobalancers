@@ -1,6 +1,8 @@
+import copy
 import itertools
 import os.path
 import shutil
+from concurrent.futures.process import ProcessPoolExecutor
 
 import common
 from Balance import Balance
@@ -68,33 +70,55 @@ def test_balance(
 
     pp = ProgressPrinter()
 
-    for output_set_to_block in output_sets_to_block:
+    threads = []
+    balancer_copies = []
 
-        for output_belt in output_set_to_block:
-            output_belt.enabled = False
+    with ProcessPoolExecutor() as executor:
 
-        blocked_output_names = [str(x.dest) for x in output_set_to_block]
-        num_blocked_outputs = len(blocked_output_names)
-        num_enabled_outputs = num_outputs - num_blocked_outputs
+        # launch all threads
+        thread_idx = 0
+        for output_set_to_block in output_sets_to_block:
 
-        for input_set_to_block in input_sets_to_block:
+            for output_belt in output_set_to_block:
+                output_belt.enabled = False
 
-            for input_belt in input_set_to_block:
-                input_belt.enabled = False
+            blocked_output_names = [str(x.dest) for x in output_set_to_block]
 
-            blocked_input_names = [str(x.source) for x in input_set_to_block]
-            num_blocked_inputs = len(blocked_input_names)
-            num_enabled_inputs = num_inputs - num_blocked_inputs
+            for input_set_to_block in input_sets_to_block:
 
-            img_filename = "Sans_" + "_".join(blocked_output_names)
-            if len(blocked_input_names) > 0:
-                img_filename += "_"
-            img_filename += "_".join(blocked_input_names)
+                for input_belt in input_set_to_block:
+                    input_belt.enabled = False
 
-            img_filepath = os.path.join(output_folder_path, img_filename)
+                blocked_input_names = [str(x.source) for x in input_set_to_block]
 
-            balancer.calc_balance()
-            balancer.render(img_filepath)
+                img_filename = "Sans_" + "_".join(blocked_output_names)
+                if len(blocked_input_names) > 0:
+                    img_filename += "_"
+                img_filename += "_".join(blocked_input_names)
+
+                img_filepath = os.path.join(output_folder_path, img_filename)
+
+                balancer_copy = copy.deepcopy(balancer)
+                balancer_copies.append(balancer_copy)
+                threads.append(executor.submit(balancer_copy.calc_and_render, (img_filepath)))
+                thread_idx += 1
+
+                for input_belt in input_set_to_block:
+                    input_belt.enabled = True
+
+            for output_belt in output_set_to_block:
+                output_belt.enabled = True
+
+        # process them as they come
+        for thread_idx in range(len(threads)):
+
+            # wait until this thread completes
+            balancer = threads[thread_idx].result()
+
+            # balancer = balancer_copies[thread_idx]
+
+            num_enabled_outputs = balancer.get_num_enabled_outputs()
+            num_enabled_inputs = balancer.get_num_enabled_inputs()
 
             exp_throughput = min(num_enabled_inputs, num_enabled_outputs)
             exp_input_flow = exp_throughput / num_enabled_inputs
@@ -165,6 +189,8 @@ def test_balance(
                     issue_this_iter = True
 
             if issue_this_iter:
+                blocked_output_names = [str(x.dest) for x in balancer.get_outputs() if not x.enabled]
+                blocked_input_names = [str(x.source) for x in balancer.get_inputs() if not x.enabled]
                 print("While blocking outputs:")
                 print(", ".join(blocked_output_names))
                 print("And blocking inputs:")
@@ -174,17 +200,8 @@ def test_balance(
             completion = float(balancer_combos_tested) / num_balancer_combos
             pp.print_progress(completion)
 
-            for input_belt in input_set_to_block:
-                input_belt.enabled = True
-
-            if exit_on_fail and not (is_input_balanced and is_output_balanced and is_tu):
+            if exit_on_fail and issue_this_iter:
                 break
-
-        for output_belt in output_set_to_block:
-            output_belt.enabled = True
-
-        if exit_on_fail and not (is_input_balanced and is_output_balanced and is_tu):
-            break
 
     if not is_input_balanced:
         print("Balancer is not input balanced")
