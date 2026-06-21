@@ -187,6 +187,18 @@ class Balancer:
     def get_num_inputs(self) -> int:
         return len(self.get_inputs())
 
+    def get_enabled_inputs(self) -> list[Belt]:
+        return [x for x in self.get_inputs() if x.enabled]
+
+    def get_enabled_outputs(self) -> list[Belt]:
+        return [x for x in self.get_outputs() if x.enabled]
+
+    def get_num_enabled_inputs(self) -> int:
+        return len(self.get_enabled_inputs())
+
+    def get_num_enabled_outputs(self) -> int:
+        return len(self.get_enabled_outputs())
+
     # return -1 if no belts changed or index of belt if one did
     def calc_balance_iter(self, start_idx: int) -> int:
         common.debug_print(f"calc_balance_iter({start_idx})")
