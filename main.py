@@ -2,7 +2,6 @@ import Balancer_Book
 from Balancer import Balancer
 
 # TODO: experiment with universal balancer generation
-# TODO: multithreading on test (takes nCr(n)*nCr(m) iterations)
 # TODO: add blueprint parsing (rip from Factorio SAT)
 # TODO: add network optimization
 # TODO: add P&R
