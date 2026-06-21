@@ -33,7 +33,9 @@ def test_balance(
 
     # clear test folder output
     try:
+        print("cleaning test folder...")
         shutil.rmtree(output_folder_path)
+        print("done")
     except FileNotFoundError:
         pass
 
