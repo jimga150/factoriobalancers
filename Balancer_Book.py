@@ -17,7 +17,8 @@ def test_balance(
         balancer: Balancer,
         exit_on_fail: bool = True,
         test_input_blocking: bool = True,
-        test_output_blocking: bool = True
+        test_output_blocking: bool = True,
+        max_threads: int | None = None,
 ) -> bool:
 
     # balancer is input balanced (meaning it draws evenly from all inputs no matter what)
@@ -75,7 +76,7 @@ def test_balance(
     threads = []
     balancer_copies = []
 
-    with ProcessPoolExecutor() as executor:
+    with ProcessPoolExecutor(max_threads) as executor:
 
         # launch all threads
         thread_idx = 0
