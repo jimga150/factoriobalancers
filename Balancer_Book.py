@@ -7,9 +7,16 @@ from Balance import Balance
 from Balancer import Balancer
 from Belt import Belt
 from Node import Node
+from ProgressPrinter import ProgressPrinter
+
 
 # return true if balancer passes test
-def test_balance(balancer: Balancer, exit_on_fail: bool = True) -> bool:
+def test_balance(
+        balancer: Balancer,
+        exit_on_fail: bool = True,
+        test_input_blocking: bool = True,
+        test_output_blocking: bool = True
+) -> bool:
 
     # balancer is input balanced (meaning it draws evenly from all inputs no matter what)
     is_input_balanced = True
@@ -35,12 +42,18 @@ def test_balance(balancer: Balancer, exit_on_fail: bool = True) -> bool:
     num_inputs = len(inputs)
 
     output_sets_to_block = []
-    for i in range(num_outputs):
-        output_sets_to_block.extend(list(itertools.combinations(outputs, i)))
+    if test_output_blocking:
+        for i in range(num_outputs):
+            output_sets_to_block.extend(list(itertools.combinations(outputs, i)))
+    else:
+        output_sets_to_block.append([])
 
     input_sets_to_block = []
-    for i in range(num_inputs):
-        input_sets_to_block.extend(list(itertools.combinations(inputs, i)))
+    if test_input_blocking:
+        for i in range(num_inputs):
+            input_sets_to_block.extend(list(itertools.combinations(inputs, i)))
+    else:
+        input_sets_to_block.append([])
 
     common.debug_print("Output sets:")
     for output_set_to_block in output_sets_to_block:
@@ -49,6 +62,11 @@ def test_balance(balancer: Balancer, exit_on_fail: bool = True) -> bool:
     common.debug_print("Input sets:")
     for input_set_to_block in input_sets_to_block:
         common.debug_print(", ".join([str(x.source) for x in input_set_to_block]))
+
+    num_balancer_combos = len(output_sets_to_block)*len(input_sets_to_block)
+    balancer_combos_tested = 0
+
+    pp = ProgressPrinter()
 
     for output_set_to_block in output_sets_to_block:
 
@@ -67,11 +85,6 @@ def test_balance(balancer: Balancer, exit_on_fail: bool = True) -> bool:
             blocked_input_names = [str(x.source) for x in input_set_to_block]
             num_blocked_inputs = len(blocked_input_names)
             num_enabled_inputs = num_inputs - num_blocked_inputs
-
-            print("Blocking Outputs:")
-            print(", ".join(blocked_output_names))
-            print("Blocking Inputs:")
-            print(", ".join(blocked_input_names))
 
             img_filename = "Sans_" + "_".join(blocked_output_names)
             if len(blocked_input_names) > 0:
@@ -93,6 +106,8 @@ def test_balance(balancer: Balancer, exit_on_fail: bool = True) -> bool:
                     continue
                 exp_output_balance[in_belt.source] = exp_input_flow / num_enabled_outputs
 
+            issue_this_iter = False
+
             total_throughput = sum([x.flow() for x in balancer.get_outputs()])
             if abs(total_throughput - exp_throughput) > common.diff_threshold_verif:
                 print(f"Error: expected throughput to be "
@@ -100,6 +115,7 @@ def test_balance(balancer: Balancer, exit_on_fail: bool = True) -> bool:
                       f"got {total_throughput:.{common.decimals_iter}f} "
                       f"(diff > {common.diff_threshold_verif})")
                 is_tu = False
+                issue_this_iter = True
 
             for out_belt in balancer.get_outputs():
                 if not out_belt.enabled:
@@ -111,6 +127,7 @@ def test_balance(balancer: Balancer, exit_on_fail: bool = True) -> bool:
                           f"got {flow:.{common.decimals_iter}f} "
                           f"(diff > {common.diff_threshold_verif})")
                     is_output_balanced = False
+                    issue_this_iter = True
 
                 # upon consideration, i realized the balance ratios of each output don't matter.
                 # these metrics would matter if either:
@@ -125,6 +142,7 @@ def test_balance(balancer: Balancer, exit_on_fail: bool = True) -> bool:
                 # if not out_belt.is_balanced():
                 #     print(f"Error on {out_belt.dest}: expected output to be balanced (balance: {out_belt.balance})")
                 #     is_output_balanced = False
+                #     issue_this_iter = True
                 #
                 # if out_belt.balance != exp_output_balance:
                 #     print(f"Error on {out_belt.dest}: expected balance to be "
@@ -132,6 +150,7 @@ def test_balance(balancer: Balancer, exit_on_fail: bool = True) -> bool:
                 #           f"got {out_belt.balance} "
                 #           f"(diff > {common.diff_threshold_verif})")
                 #     is_output_balanced = False
+                #     issue_this_iter = True
 
             for in_belt in balancer.get_inputs():
                 if not in_belt.enabled:
@@ -143,6 +162,17 @@ def test_balance(balancer: Balancer, exit_on_fail: bool = True) -> bool:
                           f"got {flow:.{common.decimals_iter}f} "
                           f"(diff > {common.diff_threshold_verif})")
                     is_input_balanced = False
+                    issue_this_iter = True
+
+            if issue_this_iter:
+                print("While blocking outputs:")
+                print(", ".join(blocked_output_names))
+                print("And blocking inputs:")
+                print(", ".join(blocked_input_names))
+
+            balancer_combos_tested += 1
+            completion = float(balancer_combos_tested) / num_balancer_combos
+            pp.print_progress(completion)
 
             for input_belt in input_set_to_block:
                 input_belt.enabled = True
@@ -166,6 +196,9 @@ def test_balance(balancer: Balancer, exit_on_fail: bool = True) -> bool:
         print("Balancer is not TU")
 
     return is_input_balanced and is_output_balanced and is_tu
+
+def makeNxN(num_inputs: int, num_outputs: int):
+    pass
 
 def make3x3() -> Balancer:
     ans = Balancer()

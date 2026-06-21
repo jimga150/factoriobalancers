@@ -34,7 +34,7 @@ I->O TU | reb TU    | Pass
    Y    |   Y       |   Y
 '''
 
-if Balancer_Book.test_balance(balancer):
+if Balancer_Book.test_balance(balancer, exit_on_fail=True, test_input_blocking=True, test_output_blocking=True):
     print("Pass")
 else:
     print("Fail")
