@@ -16,6 +16,9 @@ except ModuleNotFoundError:
 
 
 class Balancer:
+
+    default_img_filename = "Network"
+
     def __init__(self):
         self.belts = list()
         self.nodes = list()
@@ -347,7 +350,7 @@ class Balancer:
 
         common.debug_print(f"Balance took {iters} iterations")
 
-    def render(self, name: str = "Network") -> None:
+    def render(self, name: str = default_img_filename) -> None:
         g = Digraph(engine='dot', node_attr={'shape': 'rect', 'height': '0.4', 'width': '0.5'},
                     graph_attr={'rankdir': 'BT'})
 
@@ -383,7 +386,7 @@ class Balancer:
             if not belt.enabled:
                 continue
             g.edge(str(belt.source), str(belt.dest), label=belt.get_label(), color=belt.get_color())
-        g.render(name, format='png', view=(name == "Network"), cleanup=True)
+        g.render(name, format='png', view=(name == Balancer.default_img_filename), cleanup=True)
 
     def export_to_sat_network(self) -> None:
 
