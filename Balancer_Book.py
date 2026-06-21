@@ -204,6 +204,7 @@ def test_balance(
             pp.print_progress(completion)
 
             if exit_on_fail and issue_this_iter:
+                executor.shutdown(wait=True, cancel_futures=True)
                 break
 
     if not is_input_balanced:
