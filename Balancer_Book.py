@@ -137,6 +137,11 @@ def test_balance(
     if not is_tu:
         print("Balancer is not TU")
 
+    if exit_on_fail and len(combos_w_issues) > 0:
+        print("Note: exit_on_fail set to True, so this test may be incomplete.")
+
+    print(f"Tested {balancer_combos_tested}/{num_balancer_combos} combinations")
+
     return is_input_balanced and is_output_balanced and is_tu
 
 def calc_balance_on_copy(

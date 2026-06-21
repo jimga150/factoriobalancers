@@ -49,7 +49,7 @@ if __name__ == '__main__':
     # two partial TU balancers can be combined to make a full TU balancer
     # A TU balancer rebalancing a non-TU balancer (or vice versa) makes a universal balancer
 
-    if Balancer_Book.test_balance(balancer, exit_on_fail=True, test_input_blocking=True, test_output_blocking=True, max_threads=3):
+    if Balancer_Book.test_balance(balancer, exit_on_fail=False, test_input_blocking=True, test_output_blocking=True, max_threads=3):
         print("Pass")
     else:
         print("Fail")
