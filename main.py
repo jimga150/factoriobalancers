@@ -13,15 +13,22 @@ from Balancer import Balancer
 # balancer = Balancer_Book.make_2x1_pri_in()
 # balancer = Balancer_Book.make_3x1()
 # balancer = Balancer_Book.make_3x1_bigloop()
-balancer = Balancer_Book.make_4x4_universal()
+# balancer = Balancer_Book.make_4x4_universal()
 # balancer = Balancer_Book.make_4x4_universal_blocked()
+# balancer = Balancer_Book.make4x4()
+# balancer = Balancer_Book.make4x4TU()
 # balancer = Balancer_Book.make_real_3x1_reduced()
 # balancer = Balancer_Book.make2x4_tl()
 # balancer = Balancer_Book.make_4x3()
 # balancer = Balancer_Book.make3x3()
 # balancer = Balancer_Book.make_2x2()
 
-balancer = Balancer.combine_sidebyside(balancer)
+# hopefully this makes a TU 8x8
+balancer44 = Balancer_Book.make4x4()
+balancer88 = Balancer.combine_sidebyside(balancer44)
+balancer88TU = Balancer.combine_endtoend(balancer88)
+balancer88Uni = Balancer.make_tap_loop(balancer88TU, balancer88)
+balancer = balancer88Uni
 
 # balancer44TU = Balancer_Book.make4x4TU()
 # balancer44 = Balancer_Book.make4x4()
