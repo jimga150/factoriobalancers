@@ -34,6 +34,12 @@ I->O TU | reb TU    | Pass
    Y    |   Y       |   Y
 '''
 
+# universal balancers cannot simply be combined to make larger universal balancers
+# you have to make a rebalancer at the net I/O layer
+
+# two partial TU balancers can be combined to make a full TU balancer
+# A TU balancer rebalancing a non-TU balancer (or vice versa) makes a universal balancer
+
 if Balancer_Book.test_balance(balancer, exit_on_fail=True, test_input_blocking=True, test_output_blocking=True):
     print("Pass")
 else:
