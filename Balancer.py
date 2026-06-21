@@ -1,4 +1,6 @@
 import copy
+import logging
+import os
 import sys
 from argparse import ArgumentError
 from types import NoneType
@@ -22,6 +24,11 @@ class Balancer:
     def __init__(self):
         self.belts = list()
         self.nodes = list()
+        self.logger = logging.getLogger("Balancer")
+        if common.debug:
+            self.logger.setLevel(logging.DEBUG)
+        else:
+            self.logger.setLevel(logging.INFO)
 
     def postprocess_nodes(self):
         self.nodes.clear()
@@ -204,11 +211,11 @@ class Balancer:
 
     # return -1 if no belts changed or index of belt if one did
     def calc_balance_iter(self, start_idx: int) -> int:
-        common.debug_print(f"calc_balance_iter({start_idx})")
+        self.logger.debug(f"calc_balance_iter({start_idx})")
 
         if start_idx >= len(self.nodes):
             start_idx = 0
-            common.debug_print(f"start_idx={start_idx}")
+            self.logger.debug(f"start_idx={start_idx}")
 
         idx_order = [x for x in range(start_idx, len(self.nodes))]
         idx_order.extend([x for x in range(0, start_idx)])
@@ -222,7 +229,7 @@ class Balancer:
         for i in idx_order:
             node = self.nodes[i]
             try:
-                if self.get_splitter(node).update_check_output_balance():
+                if self.get_splitter(node).update_check_output_balance(self.logger):
                     changed_node_idxs.add(i)
                     if common.deep_iteration_debug:
                         break
@@ -230,22 +237,22 @@ class Balancer:
                 pass
 
         if len(changed_node_idxs) == 0:
-            common.debug_print("No changed nodes")
+            self.logger.debug("No changed nodes")
             return -1
 
-        common.debug_print(f"Changed nodes:")
+        self.logger.debug(f"Changed nodes:")
         for i in changed_node_idxs:
-            common.debug_print(f"\t{self.nodes[i]}")
+            self.logger.debug(f"\t{self.nodes[i]}")
 
         return list(changed_node_idxs)[0]
 
     # return -1 if no belts changed or index of belt if one did
     def calc_flow_rate_iter(self, start_idx: int) -> int:
-        common.debug_print(f"calc_flow_rate_iter({start_idx})")
+        self.logger.debug(f"calc_flow_rate_iter({start_idx})")
 
         if start_idx >= len(self.nodes):
             start_idx = 0
-            common.debug_print(f"start_idx={start_idx}")
+            self.logger.debug(f"start_idx={start_idx}")
 
         idx_order = [x for x in range(start_idx, len(self.nodes))]
         idx_order.extend([x for x in range(0, start_idx)])
@@ -259,20 +266,20 @@ class Balancer:
         for i in idx_order:
             node = self.nodes[i]
             try:
-                if self.get_splitter(node).update_check_flow_rate():
+                if self.get_splitter(node).update_check_flow_rate(self.logger):
                     changed_node_idxs.add(i)
                     if common.deep_iteration_debug:
                         break
             except ArgumentError:
-                common.debug_print(f"Splitter for node {node} raised an ArgumentError")
+                self.logger.debug(f"Splitter for node {node} raised an ArgumentError")
 
         if len(changed_node_idxs) == 0:
-            common.debug_print("No changed nodes")
+            self.logger.debug("No changed nodes")
             return -1
 
-        common.debug_print(f"Changed nodes:")
+        self.logger.debug(f"Changed nodes:")
         for i in changed_node_idxs:
-            common.debug_print(f"\t{self.nodes[i]}")
+            self.logger.debug(f"\t{self.nodes[i]}")
 
         return list(changed_node_idxs)[0]
 
@@ -299,7 +306,7 @@ class Balancer:
 
     def calc_balance(self) -> None:
 
-        common.debug_print("calc_balance")
+        self.logger.debug("calc_balance")
 
         for belt in self.belts:
             belt.reset()
@@ -309,21 +316,21 @@ class Balancer:
         while True:
 
             iters += 1
-            common.debug_print(f"Trying to converge flow rate, iteration {iters}")
+            self.logger.debug(f"Trying to converge flow rate, iteration {iters}")
 
             changed_node_idx = self.calc_flow_rate_iter(changed_node_idx + 1)
 
             if common.deep_iteration_debug:
                 self.render(f"Flow_Iter{iters}")
 
-            common.debug_print(f"changed_node_idx = {changed_node_idx}")
+            self.logger.debug(f"changed_node_idx = {changed_node_idx}")
             if changed_node_idx < 0:
                 break
 
             if iters > common.max_iters:
                 raise Exception(f"Balancer failed to converge flow rate after {iters} iterations")
 
-        common.debug_print(f"Flow rate took {iters} iterations")
+        self.logger.debug(f"Flow rate took {iters} iterations")
 
         if not self.verify_flow():
             self.render(f"Fail")
@@ -334,21 +341,21 @@ class Balancer:
         while True:
 
             iters += 1
-            common.debug_print(f"Trying to balance, iteration {iters}")
+            self.logger.debug(f"Trying to balance, iteration {iters}")
 
             changed_node_idx = self.calc_balance_iter(changed_node_idx + 1)
 
             if common.deep_iteration_debug:
                 self.render(f"Bal_Iter{iters}")
 
-            common.debug_print(f"changed_node_idx = {changed_node_idx}")
+            self.logger.debug(f"changed_node_idx = {changed_node_idx}")
             if changed_node_idx < 0:
                 break
 
             if iters > common.max_iters:
                 raise Exception(f"Balancer failed to converge balance after {iters} iterations")
 
-        common.debug_print(f"Balance took {iters} iterations")
+        self.logger.debug(f"Balance took {iters} iterations")
 
     def render(self, name: str = default_img_filename) -> None:
         g = Digraph(engine='dot', node_attr={'shape': 'rect', 'height': '0.4', 'width': '0.5'},
@@ -388,8 +395,27 @@ class Balancer:
             g.edge(str(belt.source), str(belt.dest), label=belt.get_label(), color=belt.get_color())
         g.render(name, format='png', view=(name == Balancer.default_img_filename), cleanup=True)
 
+    # meant to be called as its own thread
     def calc_and_render(self, filepath: str = default_img_filename) -> Balancer:
-        common.debug_print(f"calc_and_render({self}, {filepath})")
+
+        # stop debugs from reaching the console,
+        self.logger.setLevel(logging.WARNING)
+
+        log_filepath = f"{filepath}.log"
+
+        # if not os.path.exists(log_filepath):
+        #     with open(log_filepath, 'w'): pass
+
+        # set this balancer to log to filepath.log
+        fh = logging.FileHandler(log_filepath, mode='w+')
+        if common.debug:
+            fh.setLevel(logging.DEBUG)
+        else:
+            fh.setLevel(logging.INFO)
+
+        self.logger.addHandler(fh)
+
+        self.logger.debug(f"calc_and_render({self}, {filepath})")
         self.calc_balance()
         self.render(filepath)
         return self

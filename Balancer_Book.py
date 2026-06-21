@@ -40,6 +40,8 @@ def test_balance(
     except FileNotFoundError:
         pass
 
+    os.makedirs(output_folder_path)
+
     outputs = balancer.get_outputs()
     inputs = balancer.get_inputs()
 
@@ -60,13 +62,13 @@ def test_balance(
     else:
         input_sets_to_block.append([])
 
-    common.debug_print("Output sets:")
+    balancer.logger.debug("Output sets:")
     for output_set_to_block in output_sets_to_block:
-        common.debug_print(", ".join([str(x.dest) for x in output_set_to_block]))
+        balancer.logger.debug(", ".join([str(x.dest) for x in output_set_to_block]))
 
-    common.debug_print("Input sets:")
+    balancer.logger.debug("Input sets:")
     for input_set_to_block in input_sets_to_block:
-        common.debug_print(", ".join([str(x.source) for x in input_set_to_block]))
+        balancer.logger.debug(", ".join([str(x.source) for x in input_set_to_block]))
 
     num_balancer_combos = len(output_sets_to_block)*len(input_sets_to_block)
     balancer_combos_tested = 0
@@ -79,6 +81,7 @@ def test_balance(
     with ProcessPoolExecutor(max_threads) as executor:
 
         # launch all threads
+        print(f"Launching {num_balancer_combos} test threads...")
         thread_idx = 0
         for output_set_to_block in output_sets_to_block:
 
@@ -111,6 +114,8 @@ def test_balance(
 
             for output_belt in output_set_to_block:
                 output_belt.enabled = True
+
+        print("Resolving threads...")
 
         # process them as they come
         for thread_idx in range(len(threads)):

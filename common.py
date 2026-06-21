@@ -13,10 +13,6 @@ deep_iteration_debug = False
 
 max_iters = 100
 
-def debug_print(*args, **kwargs):
-    if debug:
-        print(*args, **kwargs)
-
 def term_str(name, frac: float) -> str:
 
     if name is None:
