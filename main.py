@@ -1,11 +1,12 @@
 import Balancer_Book
 from Balancer import Balancer
 
-# TODO: make networks for all N - M balancers for N,M = {1, 2, 3, 5, 7}
+# TODO: experiment with universal balancer generation
+# TODO: multithreading on test (takes nCr(n)*nCr(m) iterations)
 # TODO: add blueprint parsing (rip from Factorio SAT)
 # TODO: add network optimization
-# TODO: add blueprint export
 # TODO: add P&R
+# TODO: add blueprint export
 
 # balancer3x3TU = Balancer.combine_endtoend(Balancer_Book.make3x3(), Balancer_Book.make3x3())
 # balancer = Balancer_Book.combine_endtoend(balancer3x3TU, Balancer_Book.make_3x1())
