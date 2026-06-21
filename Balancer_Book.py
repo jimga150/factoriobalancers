@@ -1,5 +1,6 @@
 import copy
 import itertools
+import logging
 import os.path
 import shutil
 from concurrent.futures.process import ProcessPoolExecutor
@@ -76,7 +77,6 @@ def test_balance(
     pp = ProgressPrinter()
 
     threads = []
-    balancer_copies = []
 
     with ProcessPoolExecutor(max_threads) as executor:
 
@@ -85,35 +85,14 @@ def test_balance(
         thread_idx = 0
         for output_set_to_block in output_sets_to_block:
 
-            for output_belt in output_set_to_block:
-                output_belt.enabled = False
-
             blocked_output_names = [str(x.dest) for x in output_set_to_block]
 
             for input_set_to_block in input_sets_to_block:
 
-                for input_belt in input_set_to_block:
-                    input_belt.enabled = False
-
                 blocked_input_names = [str(x.source) for x in input_set_to_block]
 
-                img_filename = "Sans_" + "_".join(blocked_output_names)
-                if len(blocked_input_names) > 0:
-                    img_filename += "_"
-                img_filename += "_".join(blocked_input_names)
-
-                img_filepath = os.path.join(output_folder_path, img_filename)
-
-                balancer_copy = copy.deepcopy(balancer)
-                balancer_copies.append(balancer_copy)
-                threads.append(executor.submit(balancer_copy.calc_and_render, (img_filepath)))
+                threads.append(executor.submit(calc_balance_on_copy, balancer, blocked_input_names, blocked_output_names, output_folder_path))
                 thread_idx += 1
-
-                for input_belt in input_set_to_block:
-                    input_belt.enabled = True
-
-            for output_belt in output_set_to_block:
-                output_belt.enabled = True
 
         print("Resolving threads...")
 
@@ -222,6 +201,67 @@ def test_balance(
         print("Balancer is not TU")
 
     return is_input_balanced and is_output_balanced and is_tu
+
+def calc_balance_on_copy(balancer: Balancer, in_belt_names_to_block: list[str], out_belt_names_to_block: list[str], output_folder_path: str) -> Balancer:
+    bal_copy = copy.deepcopy(balancer)
+
+    result_filename = "Sans_" + "_".join(out_belt_names_to_block)
+    if len(in_belt_names_to_block) > 0:
+        result_filename += "_"
+    result_filename += "_".join(in_belt_names_to_block)
+
+    result_filepath = os.path.join(output_folder_path, result_filename)
+
+    if common.debug:
+
+        thread_logger = logging.getLogger(result_filename)
+        bal_copy.logger = thread_logger
+
+        log_filepath = f"{result_filepath}.log"
+
+        # if not os.path.exists(log_filepath):
+        #     with open(log_filepath, 'w'): pass
+
+        # set this balancer to log to filepath.log
+        fh = logging.FileHandler(log_filepath, mode='w+')
+        fh.setLevel(logging.DEBUG)
+
+        bal_copy.logger.addHandler(fh)
+        bal_copy.logger.setLevel(logging.DEBUG)
+    else:
+        bal_copy.logger.setLevel(logging.INFO)
+
+    bal_copy.logger.debug(f"calc_and_render({bal_copy}, {output_folder_path})")
+    bal_copy.logger.debug(f"logger at {id(bal_copy.logger)}")
+
+    bal_copy.logger.debug("Blocking outputs:")
+    bal_copy.logger.debug(", ".join(out_belt_names_to_block))
+    bal_copy.logger.debug("Blocking inputs:")
+    bal_copy.logger.debug(", ".join(in_belt_names_to_block))
+
+    inputs = bal_copy.get_inputs()
+    outputs = bal_copy.get_outputs()
+
+    for in_belt_name in in_belt_names_to_block:
+        in_belt = next((x for x in inputs if x.source.name == in_belt_name), None)
+        if in_belt is None:
+            bal_copy.logger.error(f"Error: {in_belt_name} is not an input")
+            continue
+        in_belt.enabled = False
+
+    for out_belt_name in out_belt_names_to_block:
+        out_belt = next((x for x in outputs if x.dest.name == out_belt_name), None)
+        if out_belt is None:
+            bal_copy.logger.error(f"Error: {out_belt_name} is not an output")
+            continue
+        out_belt.enabled = False
+
+    bal_copy.calc_balance()
+    bal_copy.render(result_filepath)
+
+    bal_copy.logger.debug(f"Done")
+
+    return bal_copy
 
 def makeNxN(num_inputs: int, num_outputs: int):
     pass

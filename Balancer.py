@@ -395,31 +395,6 @@ class Balancer:
             g.edge(str(belt.source), str(belt.dest), label=belt.get_label(), color=belt.get_color())
         g.render(name, format='png', view=(name == Balancer.default_img_filename), cleanup=True)
 
-    # meant to be called as its own thread
-    def calc_and_render(self, filepath: str = default_img_filename) -> Balancer:
-
-        # stop debugs from reaching the console,
-        self.logger.setLevel(logging.WARNING)
-
-        log_filepath = f"{filepath}.log"
-
-        # if not os.path.exists(log_filepath):
-        #     with open(log_filepath, 'w'): pass
-
-        # set this balancer to log to filepath.log
-        fh = logging.FileHandler(log_filepath, mode='w+')
-        if common.debug:
-            fh.setLevel(logging.DEBUG)
-        else:
-            fh.setLevel(logging.INFO)
-
-        self.logger.addHandler(fh)
-
-        self.logger.debug(f"calc_and_render({self}, {filepath})")
-        self.calc_balance()
-        self.render(filepath)
-        return self
-
     def export_to_sat_network(self) -> None:
 
         belt_indices = dict()
