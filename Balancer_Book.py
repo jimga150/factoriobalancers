@@ -4,6 +4,7 @@ import logging
 import os.path
 import shutil
 from concurrent.futures.process import ProcessPoolExecutor
+from tabulate import tabulate
 
 import common
 from Balance import Balance
@@ -77,6 +78,7 @@ def test_balance(
     pp = ProgressPrinter()
 
     threads = []
+    combo_names = []
 
     with ProcessPoolExecutor(max_threads) as executor:
 
@@ -92,96 +94,27 @@ def test_balance(
                 blocked_input_names = [str(x.source) for x in input_set_to_block]
 
                 threads.append(executor.submit(calc_balance_on_copy, balancer, blocked_input_names, blocked_output_names, output_folder_path))
+                combo_names.append(io_test_name(blocked_input_names, blocked_output_names))
+
                 thread_idx += 1
 
         print("Resolving threads...")
+
+        combos_w_issues = []
 
         # process them as they come
         for thread_idx in range(len(threads)):
 
             # wait until this thread completes
-            balancer = threads[thread_idx].result()
+            iter_is_input_balanced, iter_is_output_balanced, iter_is_tu = threads[thread_idx].result()
+            is_input_balanced &= iter_is_input_balanced
+            is_output_balanced &= iter_is_output_balanced
+            is_tu &= iter_is_tu
 
-            # balancer = balancer_copies[thread_idx]
-
-            num_enabled_outputs = balancer.get_num_enabled_outputs()
-            num_enabled_inputs = balancer.get_num_enabled_inputs()
-
-            exp_throughput = min(num_enabled_inputs, num_enabled_outputs)
-            exp_input_flow = exp_throughput / num_enabled_inputs
-            exp_output_flow = exp_throughput / num_enabled_outputs
-
-            exp_output_balance = Balance()
-            for in_belt in balancer.get_inputs():
-                if not in_belt.enabled:
-                    continue
-                exp_output_balance[in_belt.source] = exp_input_flow / num_enabled_outputs
-
-            issue_this_iter = False
-
-            total_throughput = sum([x.flow() for x in balancer.get_outputs()])
-            if abs(total_throughput - exp_throughput) > common.diff_threshold_verif:
-                print(f"Error: expected throughput to be "
-                      f"{exp_throughput:.{common.decimals_iter}f}, "
-                      f"got {total_throughput:.{common.decimals_iter}f} "
-                      f"(diff > {common.diff_threshold_verif})")
-                is_tu = False
-                issue_this_iter = True
-
-            for out_belt in balancer.get_outputs():
-                if not out_belt.enabled:
-                    continue
-                flow = out_belt.flow()
-                if abs(flow - exp_output_flow) > common.diff_threshold_verif:
-                    print(f"Error on {out_belt.dest}: expected flow to be "
-                          f"{exp_output_flow:.{common.decimals_iter}f}, "
-                          f"got {flow:.{common.decimals_iter}f} "
-                          f"(diff > {common.diff_threshold_verif})")
-                    is_output_balanced = False
-                    issue_this_iter = True
-
-                # upon consideration, i realized the balance ratios of each output don't matter.
-                # these metrics would matter if either:
-                # 1. they indicated input balance
-                #       (they dont, and we're checking that anyways by stress testing), or
-                # 2. they indicated item mixing ratios
-                #       (balancers do not mix different input items well--you need circuitry for that)
-                #
-                # we already check the throughput of each input and output. where, in theory, each input goes in the
-                # balancer is of no object to the performance of the balancer.
-
-                # if not out_belt.is_balanced():
-                #     print(f"Error on {out_belt.dest}: expected output to be balanced (balance: {out_belt.balance})")
-                #     is_output_balanced = False
-                #     issue_this_iter = True
-                #
-                # if out_belt.balance != exp_output_balance:
-                #     print(f"Error on {out_belt.dest}: expected balance to be "
-                #           f"{exp_output_balance}, "
-                #           f"got {out_belt.balance} "
-                #           f"(diff > {common.diff_threshold_verif})")
-                #     is_output_balanced = False
-                #     issue_this_iter = True
-
-            for in_belt in balancer.get_inputs():
-                if not in_belt.enabled:
-                    continue
-                flow = in_belt.flow()
-                if abs(flow - exp_input_flow) > common.diff_threshold_verif:
-                    print(f"Error on {in_belt.source}: expected flow to be "
-                          f"{exp_input_flow:.{common.decimals_iter}f}, "
-                          f"got {flow:.{common.decimals_iter}f} "
-                          f"(diff > {common.diff_threshold_verif})")
-                    is_input_balanced = False
-                    issue_this_iter = True
+            issue_this_iter = not (iter_is_input_balanced and iter_is_output_balanced and iter_is_tu)
 
             if issue_this_iter:
-                blocked_output_names = [str(x.dest) for x in balancer.get_outputs() if not x.enabled]
-                blocked_input_names = [str(x.source) for x in balancer.get_inputs() if not x.enabled]
-                print("While blocking outputs:")
-                print(", ".join(blocked_output_names))
-                print("And blocking inputs:")
-                print(", ".join(blocked_input_names))
+                combos_w_issues.append([combo_names[thread_idx], is_input_balanced, is_output_balanced, is_tu])
 
             balancer_combos_tested += 1
             completion = float(balancer_combos_tested) / num_balancer_combos
@@ -190,6 +123,10 @@ def test_balance(
             if exit_on_fail and issue_this_iter:
                 executor.shutdown(wait=True, cancel_futures=True)
                 break
+
+    if len(combos_w_issues) > 0:
+        print("Balancer has issues:")
+        print(tabulate(combos_w_issues, headers=["Name", "Input Balanced", "Output Balanced", "TU"]))
 
     if not is_input_balanced:
         print("Balancer is not input balanced")
@@ -202,31 +139,33 @@ def test_balance(
 
     return is_input_balanced and is_output_balanced and is_tu
 
-def calc_balance_on_copy(balancer: Balancer, in_belt_names_to_block: list[str], out_belt_names_to_block: list[str], output_folder_path: str) -> Balancer:
+def calc_balance_on_copy(
+        balancer: Balancer,
+        in_belt_names_to_block: list[str],
+        out_belt_names_to_block: list[str],
+        output_folder_path: str
+) -> tuple[bool, bool, bool]:
+
     bal_copy = copy.deepcopy(balancer)
 
-    result_filename = "Sans_" + "_".join(out_belt_names_to_block)
-    if len(in_belt_names_to_block) > 0:
-        result_filename += "_"
-    result_filename += "_".join(in_belt_names_to_block)
-
+    result_filename = io_test_name(in_belt_names_to_block, out_belt_names_to_block)
     result_filepath = os.path.join(output_folder_path, result_filename)
 
+    thread_logger = logging.getLogger(result_filename)
+    bal_copy.logger = thread_logger
+
+    log_filepath = f"{result_filepath}.log"
+
+    # if not os.path.exists(log_filepath):
+    #     with open(log_filepath, 'w'): pass
+
+    # set this balancer to log to filepath.log
+    fh = logging.FileHandler(log_filepath, mode='w+')
+    fh.setLevel(logging.DEBUG)
+
+    bal_copy.logger.addHandler(fh)
+
     if common.debug:
-
-        thread_logger = logging.getLogger(result_filename)
-        bal_copy.logger = thread_logger
-
-        log_filepath = f"{result_filepath}.log"
-
-        # if not os.path.exists(log_filepath):
-        #     with open(log_filepath, 'w'): pass
-
-        # set this balancer to log to filepath.log
-        fh = logging.FileHandler(log_filepath, mode='w+')
-        fh.setLevel(logging.DEBUG)
-
-        bal_copy.logger.addHandler(fh)
         bal_copy.logger.setLevel(logging.DEBUG)
     else:
         bal_copy.logger.setLevel(logging.INFO)
@@ -257,11 +196,105 @@ def calc_balance_on_copy(balancer: Balancer, in_belt_names_to_block: list[str], 
         out_belt.enabled = False
 
     bal_copy.calc_balance()
+
+    num_enabled_outputs = bal_copy.get_num_enabled_outputs()
+    num_enabled_inputs = bal_copy.get_num_enabled_inputs()
+
+    exp_throughput = min(num_enabled_inputs, num_enabled_outputs)
+    exp_input_flow = exp_throughput / num_enabled_inputs
+    exp_output_flow = exp_throughput / num_enabled_outputs
+
+    exp_output_balance = Balance()
+    for in_belt in bal_copy.get_inputs():
+        if not in_belt.enabled:
+            continue
+        exp_output_balance[in_belt.source] = exp_input_flow / num_enabled_outputs
+
+    issue_this_iter = False
+
+    # balancer is input balanced (meaning it draws evenly from all inputs no matter what)
+    is_input_balanced = True
+
+    # balancer is output balanced (meaning it supplies evenly to all outputs no matter what)
+    is_output_balanced = True
+
+    # balancer is throughput unlimited (meaning it always provides the maximum throughput possible no matter what)
+    is_tu = True
+
+    total_throughput = sum([x.flow() for x in bal_copy.get_outputs()])
+    if abs(total_throughput - exp_throughput) > common.diff_threshold_verif:
+        bal_copy.logger.error(f"Error: expected throughput to be "
+                              f"{exp_throughput:.{common.decimals_iter}f}, "
+                              f"got {total_throughput:.{common.decimals_iter}f} "
+                              f"(diff > {common.diff_threshold_verif})")
+        is_tu = False
+        issue_this_iter = True
+
+    for out_belt in bal_copy.get_outputs():
+        if not out_belt.enabled:
+            continue
+        flow = out_belt.flow()
+        if abs(flow - exp_output_flow) > common.diff_threshold_verif:
+            bal_copy.logger.error(f"Error on {out_belt.dest}: expected flow to be "
+                                  f"{exp_output_flow:.{common.decimals_iter}f}, "
+                                  f"got {flow:.{common.decimals_iter}f} "
+                                  f"(diff > {common.diff_threshold_verif})")
+            is_output_balanced = False
+            issue_this_iter = True
+
+        # upon consideration, i realized the balance ratios of each output don't matter.
+        # these metrics would matter if either:
+        # 1. they indicated input balance
+        #       (they dont, and we're checking that anyways by stress testing), or
+        # 2. they indicated item mixing ratios
+        #       (balancers do not mix different input items well--you need circuitry for that)
+        #
+        # we already check the throughput of each input and output. where, in theory, each input goes in the
+        # balancer is of no object to the performance of the balancer.
+
+        # if not out_belt.is_balanced():
+        #     bal_copy.logger.error(f"Error on {out_belt.dest}: expected output to be balanced (balance: {out_belt.balance})")
+        #     is_output_balanced = False
+        #     issue_this_iter = True
+        #
+        # if out_belt.balance != exp_output_balance:
+        #     bal_copy.logger.error(f"Error on {out_belt.dest}: expected balance to be "
+        #           f"{exp_output_balance}, "
+        #           f"got {out_belt.balance} "
+        #           f"(diff > {common.diff_threshold_verif})")
+        #     is_output_balanced = False
+        #     issue_this_iter = True
+
+    for in_belt in bal_copy.get_inputs():
+        if not in_belt.enabled:
+            continue
+        flow = in_belt.flow()
+        if abs(flow - exp_input_flow) > common.diff_threshold_verif:
+            bal_copy.logger.error(f"Error on {in_belt.source}: expected flow to be "
+                                  f"{exp_input_flow:.{common.decimals_iter}f}, "
+                                  f"got {flow:.{common.decimals_iter}f} "
+                                  f"(diff > {common.diff_threshold_verif})")
+            is_input_balanced = False
+            issue_this_iter = True
+
+    if issue_this_iter:
+        bal_copy.logger.error("While blocking outputs:")
+        bal_copy.logger.error(", ".join(out_belt_names_to_block))
+        bal_copy.logger.error("And blocking inputs:")
+        bal_copy.logger.error(", ".join(out_belt_names_to_block))
+
     bal_copy.render(result_filepath)
 
-    bal_copy.logger.debug(f"Done")
+    bal_copy.logger.info(f"Done")
 
-    return bal_copy
+    return is_input_balanced, is_output_balanced, is_tu
+
+def io_test_name(in_belt_names_to_block: list[str], out_belt_names_to_block: list[str]) -> str:
+    result_filename = "Sans_" + "_".join(out_belt_names_to_block)
+    if len(in_belt_names_to_block) > 0:
+        result_filename += "_"
+    result_filename += "_".join(in_belt_names_to_block)
+    return result_filename
 
 def makeNxN(num_inputs: int, num_outputs: int):
     pass
