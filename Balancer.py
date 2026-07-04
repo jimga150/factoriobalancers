@@ -247,7 +247,7 @@ class Balancer:
         return list(changed_node_idxs)[0]
 
     # return -1 if no belts changed or index of belt if one did
-    def calc_flow_rate_iter(self, start_idx: int) -> int:
+    def calc_flow_rate_iter(self, start_idx: int, io_preset: bool = False) -> int:
         self.logger.debug(f"calc_flow_rate_iter({start_idx})")
 
         if start_idx >= len(self.nodes):
@@ -266,7 +266,7 @@ class Balancer:
         for i in idx_order:
             node = self.nodes[i]
             try:
-                if self.get_splitter(node).update_check_flow_rate(self.logger):
+                if self.get_splitter(node).update_check_flow_rate(self.logger, io_preset=io_preset):
                     changed_node_idxs.add(i)
                     if common.deep_iteration_debug:
                         break
@@ -304,12 +304,13 @@ class Balancer:
                 pass
         return test_pass
 
-    def calc_balance(self) -> None:
+    def calc_balance(self, io_preset: bool = False) -> None:
 
         self.logger.debug("calc_balance")
 
-        for belt in self.belts:
-            belt.reset()
+        if not io_preset:
+            for belt in self.belts:
+                belt.reset()
 
         iters = 0
         changed_node_idx = -1
@@ -318,7 +319,7 @@ class Balancer:
             iters += 1
             self.logger.debug(f"Trying to converge flow rate, iteration {iters}")
 
-            changed_node_idx = self.calc_flow_rate_iter(changed_node_idx + 1)
+            changed_node_idx = self.calc_flow_rate_iter(changed_node_idx + 1, io_preset=io_preset)
 
             if common.deep_iteration_debug:
                 self.render(f"Flow_Iter{iters}")

@@ -44,7 +44,7 @@ class Splitter:
     def get_enabled_outputs(self) -> list[Belt]:
         return [x for x in self.outputs if x.enabled]
 
-    def update_check_flow_rate(self, logger: Logger):
+    def update_check_flow_rate(self, logger: Logger, io_preset: bool = False):
 
         enabled_inputs = self.get_enabled_inputs()
         enabled_outputs = self.get_enabled_outputs()
@@ -64,7 +64,7 @@ class Splitter:
             logger.debug(f"\t\t{out_belt.get_label()}")
         logger.debug(f"------------------------------------------------")
 
-        self.update_flow_rate(logger)
+        self.update_flow_rate(logger, io_preset=io_preset)
 
         logger.debug(f"------------------------------------------------")
         logger.debug(f"Done with update_check_flow_rate, Splitter: {self}")
@@ -105,7 +105,7 @@ class Splitter:
 
         return is_changed
 
-    def update_flow_rate(self, logger: Logger):
+    def update_flow_rate(self, logger: Logger, io_preset: bool = False):
 
         # -------------------------------------------------------------
         # Weeding out base cases
@@ -114,14 +114,16 @@ class Splitter:
         if self.is_input_proxy():
             # represents an input, just set it to itself
             assert len(self.outputs) == 1
-            self.outputs[0].supply = 1
-            logger.debug(f"Input proxy, setting {self.node} to demand ({self.outputs[0].demand})")
+            if not io_preset:
+                self.outputs[0].supply = 1
+                logger.debug(f"Input proxy, setting {self.node} to supply ({self.outputs[0].supply})")
             return
 
         if self.is_output_proxy():
             assert len(self.inputs) == 1
-            logger.debug(f"Output proxy: setting demand of {self.inputs[0]} to 1")
-            self.inputs[0].demand = 1
+            if not io_preset:
+                logger.debug(f"Output proxy: setting demand of {self.inputs[0]} to 1")
+                self.inputs[0].demand = 1
             return
 
         enabled_inputs = self.get_enabled_inputs()
