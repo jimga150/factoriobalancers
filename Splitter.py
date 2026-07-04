@@ -97,7 +97,7 @@ class Splitter:
             new_supply = new_supplies[i]
             old_supply = old_supplies[i]
             if abs(new_supply - old_supply) > common.diff_threshold_iter:
-                logger.debug(f"\tchange: demand of {enabled_outputs[i]} changed from {old_supply} to {new_supply}")
+                logger.debug(f"\tchange: supply of {enabled_outputs[i]} changed from {old_supply} to {new_supply}")
                 if common.debug:
                     is_changed = True
                 else:
