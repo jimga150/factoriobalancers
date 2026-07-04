@@ -1,6 +1,13 @@
+from enum import Enum
+
 import common
 from Balance import Balance
 from Node import Node
+
+class ColorStrategy(Enum):
+    PRIORITY = 0
+    BACKPRESSURE = 1
+    FLOW = 2
 
 class Belt:
 
@@ -48,15 +55,29 @@ class Belt:
             return ""
         return f"{str(self.balance)} (S: {common.frac_str(self.supply)}, D: {common.frac_str(self.demand)})"
 
-    def get_color(self) -> str:
+    def get_color(self, strat: ColorStrategy = ColorStrategy.PRIORITY) -> str:
         if not self.enabled:
             return "white"
-        if self.source_priority and self.dest_priority:
-            return "green"
-        if self.source_priority:
-            return "red"
-        if self.dest_priority:
-            return "blue"
+
+        if strat == ColorStrategy.BACKPRESSURE:
+            if self.demand > self.supply:
+                return "green"
+            if self.demand < self.supply:
+                return "red"
+
+        if strat == ColorStrategy.FLOW:
+            flow = self.flow()
+            hue = 0.5 - 0.5*flow # start at 0.5 (cyan) for 0 flow, move towards 0 (red) as flow increases
+            return f"{hue} 0.75 0.75"
+
+        if strat == ColorStrategy.PRIORITY:
+            if self.source_priority and self.dest_priority:
+                return "green"
+            if self.source_priority:
+                return "red"
+            if self.dest_priority:
+                return "blue"
+
         return "black"
 
     def is_balanced(self) -> bool:

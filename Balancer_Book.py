@@ -13,7 +13,7 @@ import z3
 import common
 from Balance import Balance
 from Balancer import Balancer
-from Belt import Belt
+from Belt import Belt, ColorStrategy
 from Node import Node
 from ProgressPrinter import ProgressPrinter
 
@@ -235,11 +235,11 @@ def test_balance_z3(balancer: Balancer) -> bool:
             belt.supply = float(z3model[belt_supply_vars[belt]].as_fraction())
             belt.demand = float(z3model[belt_demand_vars[belt]].as_fraction())
             # print(type(z3model[belt_supply_vars[belt]].as_fraction()))
-        balancer.render("Counterexample")
+        balancer.render("Counterexample", color_strat=ColorStrategy.BACKPRESSURE)
 
-        # calculate balance of this counterexample, locking the supply of inputs and demand of outputs in place.
-        balancer.calc_balance(io_preset=True)
-        balancer.render("Counterexample_rebalanced")
+        # # calculate balance of this counterexample, locking the supply of inputs and demand of outputs in place.
+        # balancer.calc_balance(io_preset=True)
+        # balancer.render("Counterexample_rebalanced")
     else:
         z3solver.pop()
 
@@ -274,7 +274,7 @@ def test_balance_z3(balancer: Balancer) -> bool:
                 belt.supply = float(z3model[belt_supply_vars[belt]].as_fraction())
                 belt.demand = float(z3model[belt_demand_vars[belt]].as_fraction())
                 # print(type(z3model[belt_supply_vars[belt]].as_fraction()))
-            balancer.render("Example")
+            balancer.render("Example", color_strat=ColorStrategy.BACKPRESSURE)
         else:
             core = z3solver.unsat_core()
             balancer.logger.debug(f"Unsat core:")

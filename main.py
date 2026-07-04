@@ -5,7 +5,9 @@ from Balancer import Balancer
 
 import z3
 
-# TODO: add tests
+from Belt import ColorStrategy
+
+# TODO: add tests (see factorio sat)
 # TODO: experiment with universal balancer generation
 # TODO: add blueprint parsing (rip from Factorio SAT)
 # TODO: add network optimization
@@ -75,7 +77,7 @@ if __name__ == '__main__':
     #     print("Fail")
     #
     # balancer.calc_balance()
-    balancer.render()
+    # balancer.render()
     # balancer.export_to_sat_network()
 
     if Balancer_Book.test_balance_z3(balancer):
@@ -83,4 +85,6 @@ if __name__ == '__main__':
     else:
         print("Fail (not TU)")
 
-    # balancer.render()
+    balancer.render("pri", color_strat=ColorStrategy.PRIORITY)
+    balancer.render("flow", color_strat=ColorStrategy.FLOW)
+    balancer.render("bp", color_strat=ColorStrategy.BACKPRESSURE)

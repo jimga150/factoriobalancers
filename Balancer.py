@@ -6,7 +6,7 @@ from argparse import ArgumentError
 from types import NoneType
 
 import common
-from Belt import Belt
+from Belt import Belt, ColorStrategy
 from Node import Node
 from Splitter import Splitter
 
@@ -358,7 +358,7 @@ class Balancer:
 
         self.logger.debug(f"Balance took {iters} iterations")
 
-    def render(self, name: str = default_img_filename) -> None:
+    def render(self, name: str = default_img_filename, color_strat: ColorStrategy = ColorStrategy.PRIORITY) -> None:
         g = Digraph(engine='dot', node_attr={'shape': 'rect', 'height': '0.4', 'width': '0.5'},
                     graph_attr={'rankdir': 'BT'})
 
@@ -393,7 +393,7 @@ class Balancer:
         for belt in self.belts:
             if not belt.enabled:
                 continue
-            g.edge(str(belt.source), str(belt.dest), label=belt.get_label(), color=belt.get_color())
+            g.edge(str(belt.source), str(belt.dest), label=belt.get_label(), color=belt.get_color(color_strat))
         g.render(name, format='png', view=(name == Balancer.default_img_filename), cleanup=True)
 
     def export_to_sat_network(self) -> None:
