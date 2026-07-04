@@ -5,7 +5,6 @@ from Balancer import Balancer
 
 import z3
 
-# TODO: support belts with same source/destination
 # TODO: add tests
 # TODO: experiment with universal balancer generation
 # TODO: add blueprint parsing (rip from Factorio SAT)
@@ -46,7 +45,7 @@ if __name__ == '__main__':
 
     # hopefully this makes a TU 8x8
     balancer44 = Balancer_Book.make4x4()
-    balancer44TU = Balancer_Book.make4x4TU()
+    balancer44TU = Balancer.combine_endtoend(balancer44)
     balancer88 = Balancer.combine_sidebyside(balancer44)
     balancer88TU = Balancer.combine_endtoend(balancer88)
     balancer88Uni = Balancer.make_tap_loop(balancer88, balancer88TU)
