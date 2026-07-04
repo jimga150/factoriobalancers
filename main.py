@@ -1,6 +1,12 @@
+import sys
+
 import Balancer_Book
 from Balancer import Balancer
 
+import z3
+
+# TODO: support belts with same source/destination
+# TODO: add tests
 # TODO: experiment with universal balancer generation
 # TODO: add blueprint parsing (rip from Factorio SAT)
 # TODO: add network optimization
@@ -8,6 +14,20 @@ from Balancer import Balancer
 # TODO: add blueprint export
 
 if __name__ == '__main__':
+
+    # p1, p2, p3 = z3.Bools('p1 p2 p3')
+    # x, y = z3.Ints('x y')
+    # s = z3.Solver()
+    # s.add(z3.Implies(p1, x > 0))
+    # s.add(z3.Implies(p2, y > x))
+    # s.add(z3.Implies(p2, y < 1))
+    # s.add(z3.Implies(p3, y > -3))
+    # s.check(p1, p2, p3)
+    # core = s.unsat_core()
+    #
+    # print(f"Unsat core:")
+    # for a in core:
+    #     print(a)
 
     # balancer3x3TU = Balancer.combine_endtoend(Balancer_Book.make3x3(), Balancer_Book.make3x3())
     # balancer = Balancer_Book.combine_endtoend(balancer3x3TU, Balancer_Book.make_3x1())
@@ -26,10 +46,11 @@ if __name__ == '__main__':
 
     # hopefully this makes a TU 8x8
     balancer44 = Balancer_Book.make4x4()
+    balancer44TU = Balancer_Book.make4x4TU()
     balancer88 = Balancer.combine_sidebyside(balancer44)
     balancer88TU = Balancer.combine_endtoend(balancer88)
-    balancer88Uni = Balancer.make_tap_loop(balancer88TU, balancer88)
-    balancer = balancer44
+    balancer88Uni = Balancer.make_tap_loop(balancer88, balancer88TU)
+    balancer = balancer44TU
 
     # balancer44TU = Balancer_Book.make4x4TU()
     # balancer44 = Balancer_Book.make4x4()
@@ -49,11 +70,18 @@ if __name__ == '__main__':
     # two partial TU balancers can be combined to make a full TU balancer
     # A TU balancer rebalancing a non-TU balancer (or vice versa) makes a universal balancer
 
-    if Balancer_Book.test_balance(balancer, exit_on_fail=False, test_input_blocking=True, test_output_blocking=True, max_threads=3):
-        print("Pass")
-    else:
-        print("Fail")
-
-    balancer.calc_balance()
+    # if Balancer_Book.test_balance(balancer, exit_on_fail=False, test_input_blocking=True, test_output_blocking=True, max_threads=3):
+    #     print("Pass")
+    # else:
+    #     print("Fail")
+    #
+    # balancer.calc_balance()
     balancer.render()
-    balancer.export_to_sat_network()
+    # balancer.export_to_sat_network()
+
+    if Balancer_Book.test_balance_z3(balancer):
+        print("Pass (is TU)")
+    else:
+        print("Fail (not TU)")
+
+    # balancer.render()
