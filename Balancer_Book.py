@@ -174,19 +174,14 @@ def test_balance_z3(balancer: Balancer) -> bool:
             )
 
             both_backpressure = z3.And(
-                output_supply_vars[0] >= output_demand_vars[0],
-                output_supply_vars[-1] >= output_demand_vars[-1]
+                z3.If(output_demand_vars[0] == 1, output_supply_vars[0] == 1, output_supply_vars[0] > output_demand_vars[0]),
+                z3.If(output_demand_vars[-1] == 1, output_supply_vars[-1] == 1, output_supply_vars[-1] > output_demand_vars[-1])
             )
 
             uneven_supply_cond = z3.If(
-                total_input_supply_var < total_output_demand_var,
+                total_input_supply_var <= total_output_demand_var,
                 uneven_supply,
-
-                # # TODO: this isnt sometimes possible. see notebook
-                # output_supply_vars[0] - output_demand_vars[0] == output_supply_vars[-1] - output_demand_vars[-1],
-
                 both_backpressure
-
             )
 
             z3solver.assert_and_track(z3.If(
