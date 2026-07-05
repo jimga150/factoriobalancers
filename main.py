@@ -81,9 +81,9 @@ if __name__ == '__main__':
     # balancer.export_to_sat_network()
 
     if Balancer_Book.test_balance_z3(balancer):
-        print("Pass (is TU)")
+        print("Pass")
     else:
-        print("Fail (not TU)")
+        print("Fail")
 
     balancer.render("pri", color_strat=ColorStrategy.PRIORITY)
     balancer.render("flow", color_strat=ColorStrategy.FLOW)
