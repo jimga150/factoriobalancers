@@ -39,13 +39,13 @@ class Belt:
         self.supply = 0
 
     def __str__(self):
-        return f"{self.source}->{self.dest} ({str(id(self))[-4:]})"
+        return f"{self.source}->{self.dest} ({str(hash(self))[-4:]})"
 
     def __hash__(self):
         return hash(id(self))
 
     def varname(self):
-        return f"{self.source}_to_{self.dest}_{str(id(self))[-4:]}"
+        return f"{self.source}_to_{self.dest}_{str(hash(self))[-4:]}"
 
     def flow(self) -> float:
         return min(self.demand, self.supply)
