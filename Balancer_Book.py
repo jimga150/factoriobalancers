@@ -94,8 +94,7 @@ def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckS
 
 # return is_input_balanced, is_output_balanced, is_tu
 def test_balance_z3(balancer: Balancer) -> tuple[bool, bool, bool]:
-
-    balancer.logger.addHandler(logging.StreamHandler(sys.stdout))
+    balancer.logger.debug(f"test_balance_z3 called")
 
     z3solver = z3.Solver()
 
@@ -130,7 +129,7 @@ def test_balance_z3(balancer: Balancer) -> tuple[bool, bool, bool]:
         output_demand_vars = [belt.demand_var() for belt in enabled_outputs]
         total_output_demand_var = z3.Sum(output_demand_vars)
         z3solver.assert_and_track(z3.Sum(input_demand_vars) == common.z3realMin(total_output_demand_var, num_enabled_inputs), f"{str(splitter)}_d_io_eq")
-        balancer.logger.info(f"Adding: {str(splitter)}_d_io_eq")
+        balancer.logger.debug(f"Adding: {str(splitter)}_d_io_eq")
 
         input_supply_vars = [belt.supply_var() for belt in enabled_inputs]
         output_supply_vars = [belt.supply_var() for belt in enabled_outputs]
@@ -516,6 +515,7 @@ def calc_balance_on_copy(
     result_filename = io_test_name(in_belt_names_to_block, out_belt_names_to_block)
     result_filepath = os.path.join(output_folder_path, result_filename)
 
+    # completely replace the objects logger with one with no parents so it only will go to the one file handler
     thread_logger = logging.getLogger(result_filename)
     bal_copy.logger = thread_logger
 

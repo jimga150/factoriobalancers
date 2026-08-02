@@ -16,19 +16,25 @@ except ModuleNotFoundError:
     print('"graphviz" not installed: network rendering will not work')
     sys.exit(1)
 
+balancerLogger = logging.getLogger(__name__)
 
 class Balancer:
 
     default_img_filename = "Network"
+    default_logger = balancerLogger
 
     def __init__(self):
         self.belts = list()
         self.nodes = list()
-        self.logger = logging.getLogger("Balancer")
-        if common.debug:
-            self.logger.setLevel(logging.DEBUG)
-        else:
-            self.logger.setLevel(logging.INFO)
+        self.logger = Balancer.default_logger
+
+        if not self.logger.hasHandlers():
+            if common.debug:
+                self.logger.setLevel(logging.DEBUG)
+            else:
+                self.logger.setLevel(logging.INFO)
+            self.logger.addHandler(logging.StreamHandler(sys.stdout))
+            self.logger.addHandler(logging.FileHandler("main_out.txt", mode='w+'))
 
     def postprocess_nodes(self):
         self.nodes.clear()
