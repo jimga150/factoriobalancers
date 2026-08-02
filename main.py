@@ -80,7 +80,7 @@ if __name__ == '__main__':
     # balancer.render()
     # balancer.export_to_sat_network()
 
-    if Balancer_Book.test_balance_z3(balancer):
+    if Balancer_Book.test_total_balance_z3(balancer):
         print("Pass")
     else:
         print("Fail")
