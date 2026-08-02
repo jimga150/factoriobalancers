@@ -1,9 +1,10 @@
 import copy
 import logging
-import os
 import sys
 from argparse import ArgumentError
 from types import NoneType
+
+import z3
 
 import common
 from Belt import Belt, ColorStrategy
@@ -26,6 +27,9 @@ class Balancer:
     def __init__(self):
         self.belts = list()
         self.nodes = list()
+
+        self.z3solver = None
+
         self.logger = Balancer.default_logger
 
         if not self.logger.hasHandlers():
@@ -38,6 +42,7 @@ class Balancer:
 
     def postprocess_nodes(self):
         self.nodes.clear()
+        self.z3solver = None
 
         input_char = ord('A')
         output_idx = 1
@@ -175,6 +180,182 @@ class Balancer:
 
         ans.postprocess_nodes()
         return ans
+
+    def get_solver(self) -> z3.Solver:
+
+        if self.z3solver is not None:
+            return self.z3solver
+
+        self.z3solver = z3.Solver()
+        self.logger.debug("populating z3 model of balancer...")
+
+        for belt in self.belts:
+            self.logger.debug(f"Belt {belt}")
+
+            self.z3solver.assert_and_track(belt.supply_var() <= 1, f"{str(belt)}_s_lte_1")
+            self.z3solver.assert_and_track(belt.supply_var() >= 0, f"{str(belt)}_s_gte_0")
+            self.z3solver.assert_and_track(belt.demand_var() <= 1, f"{str(belt)}_d_lte_1")
+            self.z3solver.assert_and_track(belt.demand_var() >= 0, f"{str(belt)}_d_gte_0")
+
+        for node in self.nodes:
+            try:
+                splitter = self.get_splitter(node)
+            except ArgumentError:
+                self.logger.debug(f"Node {node} could not access splitter")
+                continue
+
+            self.logger.debug(f"Splitter {splitter}")
+
+            if splitter.is_input_proxy() or splitter.is_output_proxy():
+                self.logger.debug(f"Proxy, skipping...")
+                continue
+
+            enabled_inputs = splitter.get_enabled_inputs()
+            enabled_outputs = splitter.get_enabled_outputs()
+
+            num_enabled_inputs = len(enabled_inputs)
+            num_enabled_outputs = len(enabled_outputs)
+
+            input_demand_vars = [belt.demand_var() for belt in enabled_inputs]
+            output_demand_vars = [belt.demand_var() for belt in enabled_outputs]
+            total_output_demand_var = z3.Sum(output_demand_vars)
+            self.logger.debug(f"Adding: {str(splitter)}_d_io_eq")
+            self.z3solver.assert_and_track(
+                z3.Sum(input_demand_vars) == common.z3realMin(total_output_demand_var, num_enabled_inputs),
+                f"{str(splitter)}_d_io_eq")
+
+            input_supply_vars = [belt.supply_var() for belt in enabled_inputs]
+            output_supply_vars = [belt.supply_var() for belt in enabled_outputs]
+            total_input_supply_var = z3.Sum(input_supply_vars)
+            self.z3solver.assert_and_track(
+                common.z3realMin(total_input_supply_var, num_enabled_outputs) == z3.Sum(output_supply_vars),
+                f"{str(splitter)}_s_io_eq")
+
+            # -------------------------------------------------------------
+            # Handle demand of inputs
+            # -------------------------------------------------------------
+
+            has_priority_input = any([x.dest_priority for x in enabled_inputs])
+
+            if has_priority_input:
+                self.logger.debug(f"Has priority input")
+
+                priority_belt = next(x for x in enabled_inputs if x.dest_priority)
+                priority_belt_demand_var = priority_belt.demand_var()
+                self.z3solver.assert_and_track(priority_belt_demand_var == common.z3realMin(total_output_demand_var, 1),
+                                          f"{str(splitter)}_pri_o")
+
+                # if len(enabled_inputs) > 1:
+                #     nonpriority_belt = next(x for x in enabled_inputs if not x.dest_priority)
+                #     nonpriority_belt_demand_var = nonpriority_belt.demand_var()
+                #     priority_belt_supply_var = priority_belt.supply_var()
+                #     self.z3solver.assert_and_track(
+                #         nonpriority_belt_demand_var ==
+                #         total_output_demand_var - z3RealBound(total_output_demand_var - priority_belt_supply_var, 0, 1),
+                #         f"{str(splitter)}_nonpri_o")
+            else:
+                self.logger.debug(f"No priority input")
+
+                # overall equation:
+                # if min_supply * num_enabled_inputs >= total_demand:
+                #   apply backpressure evenly
+                # elif total_supply > total_demand:
+                #   (belt with min input)'s demand = its supply
+                #   other belt demand = total demand - former's demand
+                # else (no backpressure)
+                #   both demands >= their supply
+
+                min_input_supply_var = common.z3realMin(input_supply_vars[0], input_supply_vars[-1])
+
+                uneven_backpressure = z3.And(
+                    input_demand_vars[0] <= input_supply_vars[0],
+                    input_demand_vars[-1] <= input_supply_vars[-1],
+                    input_demand_vars[0] >= min_input_supply_var,
+                    input_demand_vars[-1] >= min_input_supply_var
+                )
+
+                no_backpressure = z3.And(
+                    z3.If(input_supply_vars[0] == 1, input_demand_vars[0] == 1,
+                          input_demand_vars[0] > input_supply_vars[0]),
+                    z3.If(input_supply_vars[-1] == 1, input_demand_vars[-1] == 1,
+                          input_demand_vars[-1] > input_supply_vars[-1])
+                )
+
+                uneven_backpressure_cond = z3.If(
+                    total_input_supply_var >= total_output_demand_var,
+                    uneven_backpressure,
+                    # input_demand_vars[0] - input_supply_vars[0] == input_demand_vars[-1] - input_supply_vars[-1]
+                    no_backpressure
+                )
+
+                to_add = z3.If(
+                    min_input_supply_var * num_enabled_inputs >= total_output_demand_var,
+                    input_demand_vars[0] == input_demand_vars[-1],
+                    uneven_backpressure_cond
+                )
+
+                self.logger.debug(f"to_add: {str(to_add)}")
+
+                self.z3solver.assert_and_track(to_add, f"{str(splitter)}_nonpri_i")
+
+            # -------------------------------------------------------------
+            # Handle supply of outputs
+            # -------------------------------------------------------------
+
+            has_priority_output = any(x.source_priority for x in enabled_outputs)
+
+            if has_priority_output:
+                self.logger.debug("Has priority output")
+                priority_belt = next(x for x in enabled_outputs if x.source_priority)
+                priority_belt_supply_var = priority_belt.supply_var()
+                self.z3solver.assert_and_track(priority_belt_supply_var == common.z3realMin(total_input_supply_var, 1),
+                                          f"{str(splitter)}_pri_i")
+            else:
+                self.logger.debug("No priority output")
+
+                # overall equation:
+                # if min_demand * num_enabled_outputs >= total_supply:
+                #   apply supply evenly
+                # elif total_supply < total_demand:
+                #   (belt with min demand)'s supply = its demand
+                #   other belt supply = total supply - former's supply
+                # else (backpressure necessary from both outputs)
+                #   both supply >= their demands
+
+                min_output_demand_var = common.z3realMin(output_demand_vars[0], output_demand_vars[-1])
+
+                uneven_supply = z3.And(
+                    output_supply_vars[0] <= output_demand_vars[0],
+                    output_supply_vars[-1] <= output_demand_vars[-1],
+                    output_supply_vars[0] >= min_output_demand_var,
+                    output_supply_vars[-1] >= min_output_demand_var
+                )
+
+                both_backpressure = z3.And(
+                    z3.If(output_demand_vars[0] == 1, output_supply_vars[0] == 1,
+                          output_supply_vars[0] > output_demand_vars[0]),
+                    z3.If(output_demand_vars[-1] == 1, output_supply_vars[-1] == 1,
+                          output_supply_vars[-1] > output_demand_vars[-1])
+                )
+
+                uneven_supply_cond = z3.If(
+                    total_input_supply_var <= total_output_demand_var,
+                    uneven_supply,
+                    both_backpressure
+                )
+
+                self.z3solver.assert_and_track(z3.If(
+                    min_output_demand_var * num_enabled_outputs >= total_input_supply_var,
+                    output_supply_vars[0] == output_supply_vars[-1],
+                    uneven_supply_cond),
+                    f"{str(splitter)}_nonpri_o"
+                )
+
+        self.logger.debug(f"Assertions:")
+        for a in self.z3solver.assertions():
+            self.logger.debug(a)
+
+        return self.z3solver
 
     def get_splitter(self, node) -> Splitter:
         inputs = [x for x in self.belts if x.dest == node]
