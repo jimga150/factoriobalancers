@@ -1,3 +1,5 @@
+import z3
+
 decimals_iter = 5
 decimals_verif = decimals_iter-2
 
@@ -59,3 +61,12 @@ def term_str(name, frac: float) -> str:
 
 def frac_str(frac: float) -> str:
     return term_str("", frac)
+
+def z3realMin(a: z3.ArithRef, b: z3.ArithRef) -> z3.ArithRef:
+    return z3.If(a < b, a, b)
+
+def z3realMax(a: z3.ArithRef, b: z3.ArithRef) -> z3.ArithRef:
+    return z3.If(a < b, b, a)
+
+def z3RealBound(arg: z3.ArithRef, min: z3.ArithRef, max: z3.ArithRef) -> z3.ArithRef:
+    return z3realMax(min, z3realMin(arg, max))

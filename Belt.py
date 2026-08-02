@@ -1,5 +1,7 @@
 from enum import Enum
 
+import z3
+
 import common
 from Balance import Balance
 from Node import Node
@@ -46,6 +48,15 @@ class Belt:
 
     def varname(self):
         return f"{self.source}_to_{self.dest}_{str(hash(self))[-4:]}"
+
+    def supply_var(self):
+        return z3.Real(self.varname() + "_s")
+
+    def demand_var(self):
+        return z3.Real(self.varname() + "_d")
+
+    def flow_var(self):
+        return common.z3realMin(self.supply_var(), self.demand_var())
 
     def flow(self) -> float:
         return min(self.demand, self.supply)

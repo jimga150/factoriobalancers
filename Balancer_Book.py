@@ -13,40 +13,99 @@ import z3
 import common
 from Balance import Balance
 from Balancer import Balancer
-from Belt import Belt
+from Belt import Belt, ColorStrategy
 from Node import Node
 from ProgressPrinter import ProgressPrinter
 
-def z3realMin(a: z3.ArithRef, b: z3.ArithRef) -> z3.ArithRef:
-    return z3.If(a < b, a, b)
+def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckSatResult, condition_name: str):
 
-def z3realMax(a: z3.ArithRef, b: z3.ArithRef) -> z3.ArithRef:
-    return z3.If(a < b, b, a)
+    if not common.debug:
+        z3solver.pop()
+        return
 
-def z3RealBound(arg: z3.ArithRef, min: z3.ArithRef, max: z3.ArithRef) -> z3.ArithRef:
-    return z3realMax(min, z3realMin(arg, max))
+    # assumes push was used before the critical condition
 
-def test_balance_z3(balancer: Balancer) -> bool:
+    balancer.logger.info("Assertions:")
+    for a in z3solver.assertions():
+        balancer.logger.info(a)
+
+    if check_result == z3.sat:
+        z3model = z3solver.model()
+        balancer.logger.info(f"{condition_name} Counterexample:")
+        for belt in balancer.belts:
+            belt.supply = float(z3model[belt.supply_var()].as_fraction())
+            belt.demand = float(z3model[belt.demand_var()].as_fraction())
+            # print(type(z3model[belt].supply_var().as_fraction()))
+        balancer.render(f"{condition_name} Counterexample", color_strat=ColorStrategy.BACKPRESSURE)
+
+        balancer.logger.info("Full model:")
+        balancer.logger.info(z3model)
+        # for a in z3solver.assertions():
+        #     balancer.logger.info(a)
+
+        # # calculate balance of this counterexample, locking the supply of inputs and demand of outputs in place.
+        # balancer.calc_balance(io_preset=True)
+        # balancer.render("Counterexample_rebalanced")
+    else:
+
+        # remove critical condition so we can get a model that would violate it
+        z3solver.pop()
+        z3solver.push()
+
+        # balancer.logger.debug(f"Assertions:")
+        # for a in z3solver.assertions():
+        #     balancer.logger.debug(a)
+
+        outputs = balancer.get_outputs()
+        inputs = balancer.get_inputs()
+
+        for i in range(len(outputs)):
+            belt = outputs[i]
+            if i < len(outputs) / 2:
+                z3solver.assert_and_track(belt.demand_var() == 1, f"{str(belt.dest)}_d_1")
+            else:
+                z3solver.assert_and_track(belt.demand_var() == 0, f"{str(belt.dest)}_d_0")
+
+        for i in range(len(inputs)):
+            belt = inputs[i]
+            if i < len(inputs) / 2:
+                z3solver.assert_and_track(belt.supply_var() == 0, f"{str(belt.source)}_s_0")
+            else:
+                z3solver.assert_and_track(belt.supply_var() == 1, f"{str(belt.source)}_s_1")
+
+        # z3solver.assert_and_track(total_throughput_var == exp_full_throughput_rate_var, "can_be_TU")
+        sat_check = z3solver.check()
+
+        if sat_check == z3.sat:
+            z3model = z3solver.model()
+            balancer.logger.info(f"{condition_name} Example:")
+            for belt in balancer.belts:
+                belt.supply = float(z3model[belt.supply_var()].as_fraction())
+                belt.demand = float(z3model[belt.demand_var()].as_fraction())
+                # print(type(z3model[belt].supply_var().as_fraction()))
+            balancer.render(f"{condition_name} Example", color_strat=ColorStrategy.BACKPRESSURE)
+        else:
+            core = z3solver.unsat_core()
+            balancer.logger.info(f"{condition_name} Unsat core:")
+            for a in core:
+                balancer.logger.info(a)
+
+    z3solver.pop()
+
+# return is_input_balanced, is_output_balanced, is_tu
+def test_balance_z3(balancer: Balancer) -> tuple[bool, bool, bool]:
 
     balancer.logger.addHandler(logging.StreamHandler(sys.stdout))
-
-    belt_supply_vars = dict()
-    belt_demand_vars = dict()
-    belt_flow_vars = dict()
 
     z3solver = z3.Solver()
 
     for belt in balancer.belts:
         balancer.logger.debug(f"Belt {belt}")
 
-        belt_supply_vars[belt] = z3.Real(belt.varname() + "_s")
-        belt_demand_vars[belt] = z3.Real(belt.varname() + "_d")
-        belt_flow_vars[belt] = z3realMin(belt_supply_vars[belt], belt_demand_vars[belt])
-
-        z3solver.assert_and_track(belt_supply_vars[belt] <= 1, f"{str(belt)}_s_lte_1")
-        z3solver.assert_and_track(belt_supply_vars[belt] >= 0, f"{str(belt)}_s_gte_0")
-        z3solver.assert_and_track(belt_demand_vars[belt] <= 1, f"{str(belt)}_d_lte_1")
-        z3solver.assert_and_track(belt_demand_vars[belt] >= 0, f"{str(belt)}_d_gte_0")
+        z3solver.assert_and_track(belt.supply_var() <= 1, f"{str(belt)}_s_lte_1")
+        z3solver.assert_and_track(belt.supply_var() >= 0, f"{str(belt)}_s_gte_0")
+        z3solver.assert_and_track(belt.demand_var() <= 1, f"{str(belt)}_d_lte_1")
+        z3solver.assert_and_track(belt.demand_var() >= 0, f"{str(belt)}_d_gte_0")
 
     for node in balancer.nodes:
         try:
@@ -67,15 +126,16 @@ def test_balance_z3(balancer: Balancer) -> bool:
         num_enabled_inputs = len(enabled_inputs)
         num_enabled_outputs = len(enabled_outputs)
 
-        input_demand_vars = [belt_demand_vars[belt] for belt in enabled_inputs]
-        output_demand_vars = [belt_demand_vars[belt] for belt in enabled_outputs]
+        input_demand_vars = [belt.demand_var() for belt in enabled_inputs]
+        output_demand_vars = [belt.demand_var() for belt in enabled_outputs]
         total_output_demand_var = z3.Sum(output_demand_vars)
-        z3solver.assert_and_track(z3.Sum(input_demand_vars) == z3realMin(total_output_demand_var, num_enabled_inputs), f"{str(splitter)}_d_io_eq")
+        z3solver.assert_and_track(z3.Sum(input_demand_vars) == common.z3realMin(total_output_demand_var, num_enabled_inputs), f"{str(splitter)}_d_io_eq")
+        balancer.logger.info(f"Adding: {str(splitter)}_d_io_eq")
 
-        input_supply_vars = [belt_supply_vars[belt] for belt in enabled_inputs]
-        output_supply_vars = [belt_supply_vars[belt] for belt in enabled_outputs]
+        input_supply_vars = [belt.supply_var() for belt in enabled_inputs]
+        output_supply_vars = [belt.supply_var() for belt in enabled_outputs]
         total_input_supply_var = z3.Sum(input_supply_vars)
-        z3solver.assert_and_track(z3realMin(total_input_supply_var, num_enabled_outputs) == z3.Sum(output_supply_vars), f"{str(splitter)}_s_io_eq")
+        z3solver.assert_and_track(common.z3realMin(total_input_supply_var, num_enabled_outputs) == z3.Sum(output_supply_vars), f"{str(splitter)}_s_io_eq")
 
         # -------------------------------------------------------------
         # Handle demand of inputs
@@ -87,13 +147,13 @@ def test_balance_z3(balancer: Balancer) -> bool:
             balancer.logger.debug(f"Has priority input")
 
             priority_belt = next(x for x in enabled_inputs if x.dest_priority)
-            priority_belt_demand_var = belt_demand_vars[priority_belt]
-            z3solver.assert_and_track(priority_belt_demand_var == z3realMin(total_output_demand_var, 1), f"{str(splitter)}_pri_o")
+            priority_belt_demand_var = priority_belt.demand_var()
+            z3solver.assert_and_track(priority_belt_demand_var == common.z3realMin(total_output_demand_var, 1), f"{str(splitter)}_pri_o")
 
             # if len(enabled_inputs) > 1:
             #     nonpriority_belt = next(x for x in enabled_inputs if not x.dest_priority)
-            #     nonpriority_belt_demand_var = belt_demand_vars[nonpriority_belt]
-            #     priority_belt_supply_var = belt_supply_vars[priority_belt]
+            #     nonpriority_belt_demand_var = nonpriority_belt.demand_var()
+            #     priority_belt_supply_var = priority_belt.supply_var()
             #     z3solver.assert_and_track(
             #         nonpriority_belt_demand_var ==
             #         total_output_demand_var - z3RealBound(total_output_demand_var - priority_belt_supply_var, 0, 1),
@@ -110,7 +170,7 @@ def test_balance_z3(balancer: Balancer) -> bool:
             # else (no backpressure)
             #   both demands >= their supply
 
-            min_input_supply_var = z3realMin(input_supply_vars[0], input_supply_vars[-1])
+            min_input_supply_var = common.z3realMin(input_supply_vars[0], input_supply_vars[-1])
 
             uneven_backpressure = z3.And(
                 input_demand_vars[0] <= input_supply_vars[0],
@@ -150,8 +210,8 @@ def test_balance_z3(balancer: Balancer) -> bool:
         if has_priority_output:
             balancer.logger.debug("Has priority output")
             priority_belt = next(x for x in enabled_outputs if x.source_priority)
-            priority_belt_supply_var = belt_supply_vars[priority_belt]
-            z3solver.assert_and_track(priority_belt_supply_var == z3realMin(total_input_supply_var, 1), f"{str(splitter)}_pri_i")
+            priority_belt_supply_var = priority_belt.supply_var()
+            z3solver.assert_and_track(priority_belt_supply_var == common.z3realMin(total_input_supply_var, 1), f"{str(splitter)}_pri_i")
         else:
             balancer.logger.debug("No priority output")
 
@@ -164,7 +224,7 @@ def test_balance_z3(balancer: Balancer) -> bool:
             # else (backpressure necessary from both outputs)
             #   both supply >= their demands
 
-            min_output_demand_var = z3realMin(output_demand_vars[0], output_demand_vars[-1])
+            min_output_demand_var = common.z3realMin(output_demand_vars[0], output_demand_vars[-1])
 
             uneven_supply = z3.And(
                 output_supply_vars[0] <= output_demand_vars[0],
@@ -191,57 +251,69 @@ def test_balance_z3(balancer: Balancer) -> bool:
                 f"{str(splitter)}_nonpri_o"
             )
 
-    balancer.logger.debug(f"Assertions:")
-    for a in z3solver.assertions():
-        balancer.logger.debug(a)
+    # balancer.logger.debug(f"Assertions:")
+    # for a in z3solver.assertions():
+    #     balancer.logger.debug(a)
 
     # if theres any scenario in which the total flow rate is less than the min of (input supply, output demand), the balancer is not TU
 
-    total_input_supply_var = z3.Sum([belt_supply_vars[x] for x in balancer.get_inputs()])
-    total_output_demand_var = z3.Sum([belt_demand_vars[x] for x in balancer.get_outputs()])
-    exp_full_throughput_rate_var = z3realMin(total_input_supply_var, total_output_demand_var)
+    total_input_supply_var = z3.Sum([x.supply_var() for x in balancer.get_inputs()])
+    total_output_demand_var = z3.Sum([x.demand_var() for x in balancer.get_outputs()])
+    exp_full_throughput_rate_var = common.z3realMin(total_input_supply_var, total_output_demand_var)
 
-    total_throughput_var = z3.Sum([belt_flow_vars[x] for x in balancer.get_outputs()])
+    total_throughput_var = z3.Sum([x.flow_var() for x in balancer.get_outputs()])
 
     z3solver.push()
 
     z3solver.assert_and_track(total_throughput_var != exp_full_throughput_rate_var, "non_TU")
 
-    is_tu = z3solver.check() == z3.unsat
+    check_result = z3solver.check()
 
-    z3solver.pop()
+    is_tu = check_result == z3.unsat
+
+    debug_proof(balancer, z3solver, check_result, "TU")
+
 
     # if theres any scenario in which any two input belts have supply > demand != average demand of blocked inputs
     # then the balancer is not input balanced
 
     z3solver.push()
 
-    total_blocked_input_var = total_throughput_var
-    num_blocked_inputs_var = 0
+    total_blocked_input_expr = total_throughput_var
+    num_blocked_inputs_expr = 0
 
-    for belt in balancer.get_outputs():
-        supply_var = belt_supply_vars[belt]
-        demand_var = belt_demand_vars[belt]
-        total_blocked_input_var = z3.If(supply_var < demand_var, total_blocked_input_var - supply_var,
-                                           total_blocked_input_var)
-        num_blocked_inputs_var = z3.If(supply_var >= demand_var, num_blocked_inputs_var + 1,
-                                          num_blocked_inputs_var)
+    for belt in balancer.get_inputs():
+        supply_var = belt.supply_var()
+        demand_var = belt.demand_var()
+        total_blocked_input_expr = z3.If(supply_var <= demand_var, total_blocked_input_expr - supply_var,
+                                           total_blocked_input_expr)
+        num_blocked_inputs_expr = z3.If(supply_var > demand_var, num_blocked_inputs_expr + 1,
+                                          num_blocked_inputs_expr)
+
+    num_blocked_inputs_var = z3.Real("num_blocked_inputs")
+    z3solver.assert_and_track(num_blocked_inputs_var == num_blocked_inputs_expr, "num_blocked_inputs_assert")
+
+    total_blocked_input_var = z3.Real("total_blocked_input")
+    z3solver.assert_and_track(total_blocked_input_var == total_blocked_input_expr, "total_blocked_input_assert")
 
     input_unbalanced_var = False
 
-    for belt in balancer.get_outputs():
-        supply_var = belt_supply_vars[belt]
-        demand_var = belt_demand_vars[belt]
+    for belt in balancer.get_inputs():
+        supply_var = belt.supply_var()
+        demand_var = belt.demand_var()
         input_unbalanced_var = z3.Or(
             input_unbalanced_var,
-            z3.And(supply_var >= demand_var, demand_var != total_blocked_input_var / num_blocked_inputs_var)
+            z3.And(supply_var > demand_var, demand_var != total_blocked_input_var / num_blocked_inputs_var)
         )
 
     z3solver.assert_and_track(input_unbalanced_var, "input_unbalanced")
 
-    is_input_balanced = z3solver.check() == z3.unsat
+    check_result = z3solver.check()
 
-    z3solver.pop()
+    is_input_balanced = check_result == z3.unsat
+
+    debug_proof(balancer, z3solver, check_result, "input_balanced")
+
 
     # if in any scenario, an output has demand > supply != average supply of unblocked outputs
     # then the balancer is not output balanced
@@ -252,8 +324,8 @@ def test_balance_z3(balancer: Balancer) -> bool:
     num_unblocked_outputs_var = 0
 
     for belt in balancer.get_outputs():
-        supply_var = belt_supply_vars[belt]
-        demand_var = belt_demand_vars[belt]
+        supply_var = belt.supply_var()
+        demand_var = belt.demand_var()
         total_unblocked_output_var = z3.If(supply_var >= demand_var, total_unblocked_output_var - demand_var,
                                                total_unblocked_output_var)
         num_unblocked_outputs_var = z3.If(supply_var < demand_var, num_unblocked_outputs_var + 1,
@@ -262,8 +334,8 @@ def test_balance_z3(balancer: Balancer) -> bool:
     output_unbalanced_var = False
 
     for belt in balancer.get_outputs():
-        supply_var = belt_supply_vars[belt]
-        demand_var = belt_demand_vars[belt]
+        supply_var = belt.supply_var()
+        demand_var = belt.demand_var()
         output_unbalanced_var = z3.Or(
             output_unbalanced_var,
             z3.And(supply_var < demand_var, supply_var != total_unblocked_output_var / num_unblocked_outputs_var)
@@ -271,9 +343,12 @@ def test_balance_z3(balancer: Balancer) -> bool:
 
     z3solver.assert_and_track(output_unbalanced_var, "output_unbalanced")
 
-    is_output_balanced = z3solver.check() == z3.unsat
+    check_result = z3solver.check()
 
-    z3solver.pop()
+    is_output_balanced = check_result == z3.unsat
+
+    debug_proof(balancer, z3solver, check_result, "output_balanced")
+
 
     # TODO
     # if, assuming all output demands are 1, the supply of each output is always the same, then its at least partially output balanced
@@ -282,58 +357,7 @@ def test_balance_z3(balancer: Balancer) -> bool:
     # if, assuming all input supplies are 1, the demand of each input is always the same, then its at least partially input balanced
 
     #
-    # if not test_pass:
-    #     z3model = z3solver.model()
-    #     balancer.logger.debug("Counterexample:")
-    #     for belt in balancer.belts:
-    #         belt.supply = float(z3model[belt_supply_vars[belt]].as_fraction())
-    #         belt.demand = float(z3model[belt_demand_vars[belt]].as_fraction())
-    #         # print(type(z3model[belt_supply_vars[belt]].as_fraction()))
-    #     balancer.render("Counterexample", color_strat=ColorStrategy.BACKPRESSURE)
-    #
-    #     # # calculate balance of this counterexample, locking the supply of inputs and demand of outputs in place.
-    #     # balancer.calc_balance(io_preset=True)
-    #     # balancer.render("Counterexample_rebalanced")
-    # else:
-    #     z3solver.pop()
-    #
-    #     # balancer.logger.debug(f"Assertions:")
-    #     # for a in z3solver.assertions():
-    #     #     balancer.logger.debug(a)
-    #
-    #     outputs = balancer.get_outputs()
-    #     inputs = balancer.get_inputs()
-    #
-    #     for i in range(len(outputs)):
-    #         belt = outputs[i]
-    #         if i < len(outputs) / 2:
-    #             z3solver.assert_and_track(belt_demand_vars[belt] == 1, f"{str(belt.dest)}_d_1")
-    #         else:
-    #             z3solver.assert_and_track(belt_demand_vars[belt] == 0, f"{str(belt.dest)}_d_0")
-    #
-    #     for i in range(len(inputs)):
-    #         belt = inputs[i]
-    #         if i < len(inputs) / 2:
-    #             z3solver.assert_and_track(belt_supply_vars[belt] == 0, f"{str(belt.source)}_s_0")
-    #         else:
-    #             z3solver.assert_and_track(belt_supply_vars[belt] == 1, f"{str(belt.source)}_s_1")
-    #
-    #     # z3solver.assert_and_track(total_throughput_var == exp_full_throughput_rate_var, "can_be_TU")
-    #     sat_check = z3solver.check()
-    #
-    #     if sat_check == z3.sat:
-    #         z3model = z3solver.model()
-    #         balancer.logger.debug("Example:")
-    #         for belt in balancer.belts:
-    #             belt.supply = float(z3model[belt_supply_vars[belt]].as_fraction())
-    #             belt.demand = float(z3model[belt_demand_vars[belt]].as_fraction())
-    #             # print(type(z3model[belt_supply_vars[belt]].as_fraction()))
-    #         balancer.render("Example", color_strat=ColorStrategy.BACKPRESSURE)
-    #     else:
-    #         core = z3solver.unsat_core()
-    #         balancer.logger.debug(f"Unsat core:")
-    #         for a in core:
-    #             balancer.logger.debug(a)
+
 
     if not is_input_balanced:
         print("Balancer is not input balanced")
@@ -344,8 +368,11 @@ def test_balance_z3(balancer: Balancer) -> bool:
     if not is_tu:
         print("Balancer is not TU")
 
-    return is_input_balanced and is_output_balanced and is_tu
+    return is_input_balanced, is_output_balanced, is_tu
 
+def test_total_balance_z3(balancer: Balancer) -> bool:
+    i, o, t = test_balance_z3(balancer)
+    return i and o and t
 
 # return true if balancer passes test
 def test_balance(
