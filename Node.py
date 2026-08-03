@@ -9,4 +9,4 @@ class Node:
         return str(hash(self))[-4:]
 
     def __hash__(self):
-        return hash(id(self))
+        return hash(str(id(self)))
