@@ -1,10 +1,53 @@
+import copy
 import unittest
+from multiprocessing.dummy import Pool
 
 from Balancer import Balancer
 import Balancer_Book
+from Node import Node
+import Node as NodeModule
 
+class NodeTests(unittest.TestCase):
 
-class MyTestCase(unittest.TestCase):
+    def setUp(self):
+        num_nodes = 1000
+        self.nodes = []
+        for i in range(num_nodes):
+            self.nodes.append(Node())
+
+    def test_node_collision(self):
+        self.check_collisions(self.nodes)
+
+    def test_node_copying(self):
+        new_nodes = copy.deepcopy(self.nodes)
+        new_nodes.extend(copy.deepcopy(self.nodes))
+        self.check_collisions(new_nodes)
+
+    def test_node_threadsafe(self):
+
+        NodeModule.copy_delay = 0.01
+
+        result_nodes = []
+        with Pool() as pool:
+            results = pool.imap_unordered(copy.deepcopy, self.nodes, chunksize=10)
+            for result in results:
+                result_nodes.append(result)
+
+        self.check_collisions(result_nodes)
+
+    def check_collisions(self, nodes: list[Node]):
+        for node in nodes:
+            same_names = [x for x in nodes if str(x) == str(node)]
+            if len(same_names) > 1:
+                print(f"Error: {node} has a duplicate in the node list. Nodes:")
+                for node in nodes:
+                    print(f"{str(node)} ({hash(node)}) ({id(node)})")
+                print("same_names:")
+                for node in same_names:
+                    print(f"{str(node)} ({hash(node)}) ({id(node)})")
+                self.assertEqual(len(same_names), 1)
+
+class BalancerTests(unittest.TestCase):
 
     def setUp(self):
         self.balancer22 = Balancer_Book.make_2x2()
