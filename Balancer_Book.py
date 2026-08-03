@@ -24,23 +24,24 @@ def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckS
 
     # assumes push was used before the critical condition
 
-    balancer.logger.info("Assertions:")
+    balancer.logger.debug("Assertions:")
     for a in z3solver.assertions():
-        balancer.logger.info(a)
+        balancer.logger.debug(a)
 
     if check_result == z3.sat:
         z3model = z3solver.model()
-        balancer.logger.info(f"{condition_name} Counterexample:")
+
+        balancer.logger.debug("Full model:")
+        balancer.logger.debug(z3model)
+        # for a in z3solver.assertions():
+        #     balancer.logger.debug(a)
+
+        balancer.logger.debug(f"{condition_name} Counterexample:")
         for belt in balancer.belts:
             belt.supply = float(z3model[belt.supply_var()].as_fraction())
             belt.demand = float(z3model[belt.demand_var()].as_fraction())
             # print(type(z3model[belt].supply_var().as_fraction()))
         balancer.render(f"{condition_name} Counterexample", color_strat=ColorStrategy.BACKPRESSURE)
-
-        balancer.logger.info("Full model:")
-        balancer.logger.info(z3model)
-        # for a in z3solver.assertions():
-        #     balancer.logger.info(a)
 
         # # calculate balance of this counterexample, locking the supply of inputs and demand of outputs in place.
         # balancer.calc_balance(io_preset=True)
@@ -77,7 +78,7 @@ def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckS
 
         if sat_check == z3.sat:
             z3model = z3solver.model()
-            balancer.logger.info(f"{condition_name} Example:")
+            balancer.logger.debug(f"{condition_name} Example:")
             for belt in balancer.belts:
                 belt.supply = float(z3model[belt.supply_var()].as_fraction())
                 belt.demand = float(z3model[belt.demand_var()].as_fraction())
@@ -85,9 +86,9 @@ def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckS
             balancer.render(f"{condition_name} Example", color_strat=ColorStrategy.BACKPRESSURE)
         else:
             core = z3solver.unsat_core()
-            balancer.logger.info(f"{condition_name} Unsat core:")
+            balancer.logger.debug(f"{condition_name} Unsat core:")
             for a in core:
-                balancer.logger.info(a)
+                balancer.logger.debug(a)
 
     z3solver.pop()
 
