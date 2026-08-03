@@ -29,11 +29,21 @@ class MyTestCase(unittest.TestCase):
         self.runtest_balancer(self.balancer44loop, True, True, True, True, True)
 
     def runtest_balancer(self, balancer: Balancer, tu: bool, pi: bool, fi: bool, po: bool, fo: bool):
-        self.assertEqual(Balancer_Book.test_tu_z3(balancer), tu)
-        self.assertEqual(Balancer_Book.test_partial_input_balanced_z3(balancer), pi)
-        self.assertEqual(Balancer_Book.test_input_balanced_z3(balancer), fi)
-        self.assertEqual(Balancer_Book.test_partial_output_balanced_z3(balancer), po)
-        self.assertEqual(Balancer_Book.test_output_balanced_z3(balancer), fo)
+
+        with self.subTest(msg="TU"):
+            self.assertEqual(Balancer_Book.test_tu_z3(balancer), tu)
+
+        with self.subTest(msg="Partially Input Balanced"):
+            self.assertEqual(Balancer_Book.test_partial_input_balanced_z3(balancer), pi)
+
+        with self.subTest(msg="Input balanced"):
+            self.assertEqual(Balancer_Book.test_input_balanced_z3(balancer), fi)
+
+        with self.subTest(msg="Partially Output Balanced"):
+            self.assertEqual(Balancer_Book.test_partial_output_balanced_z3(balancer), po)
+
+        with self.subTest(msg="Output Balanced"):
+            self.assertEqual(Balancer_Book.test_output_balanced_z3(balancer), fo)
 
 
 if __name__ == '__main__':
