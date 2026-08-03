@@ -1,3 +1,4 @@
+import copy
 import threading
 import time
 
@@ -21,10 +22,32 @@ class UniqueIDObj:
     def __str__(self):
         return str(self.id)
 
-    def __setstate__(self, state):
-        # called when this object is copied
-        self.__dict__.update(state)
+    def __copy__(self):
+        cls = type(self)
+        new = cls.__new__(cls)
+        new.__dict__ = self.__dict__.copy()
         self.get_new_id()
+        return new
+
+    def __deepcopy__(self, memo):
+
+        # get type of object invoking copier (this would be the child object if a child instance was copied)
+        cls = type(self)
+
+        # use __new__, and not __init__, to make a bare instance without side effects
+        new = cls.__new__(cls)
+        
+        # memo stuff for deepcopy
+        memo[id(self)] = new
+
+        # populate attributes (this adapts to all attributes of the child class. yay!)
+        new.__dict__ = copy.deepcopy(self.__dict__, memo)
+
+        # custom code to ensure this object is uniquely identifiable
+        self.get_new_id()
+
+        # must return the copy
+        return new
 
     def __hash__(self):
         return hash(id(self))
