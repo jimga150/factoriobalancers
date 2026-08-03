@@ -5,15 +5,19 @@ import z3
 import common
 from Balance import Balance
 from Node import Node
+from UniqueIDObj import UniqueIDObj
+
 
 class ColorStrategy(Enum):
     PRIORITY = 0
     BACKPRESSURE = 1
     FLOW = 2
 
-class Belt:
+class Belt(UniqueIDObj):
 
     def __init__(self, source: Node, dest: Node, source_priority: bool = False, dest_priority: bool = False):
+
+        super().__init__()
 
         self.source = source
         self.dest = dest
@@ -41,10 +45,7 @@ class Belt:
         self.supply = 0
 
     def __str__(self):
-        return f"{self.source}->{self.dest} ({str(hash(self))[-4:]})"
-
-    def __hash__(self):
-        return hash(id(self))
+        return f"{self.source}->{self.dest} ({self.id})"
 
     def varname(self):
         return f"{self.source}_to_{self.dest}_{str(hash(self))[-4:]}"
