@@ -239,22 +239,33 @@ class Balancer:
 
             has_priority_input = any([x.dest_priority for x in enabled_inputs])
 
+            no_backpressure = z3.And(
+                z3.If(input_supply_vars[0] == 1, input_demand_vars[0] == 1,
+                      input_demand_vars[0] > input_supply_vars[0]),
+                z3.If(input_supply_vars[-1] == 1, input_demand_vars[-1] == 1,
+                      input_demand_vars[-1] > input_supply_vars[-1])
+            )
+
             if has_priority_input:
                 self.logger.debug(f"Has priority input")
 
+                # overall equation:
+                # if total_demand > total_supply:
+                #   both demands > their supply
+                # else
+                #   priority input demand = min(total demand, pri supply)
+                #   (demand of other input derivable from splitter _d_io_eq rule)
+
                 priority_belt = next(x for x in enabled_inputs if x.dest_priority)
                 priority_belt_demand_var = priority_belt.demand_var()
-                self.z3solver.assert_and_track(priority_belt_demand_var == common.z3realMin(total_output_demand_var, 1),
-                                          f"{str(splitter)}_pri_o")
+                priority_belt_supply_var = priority_belt.supply_var()
 
-                # if len(enabled_inputs) > 1:
-                #     nonpriority_belt = next(x for x in enabled_inputs if not x.dest_priority)
-                #     nonpriority_belt_demand_var = nonpriority_belt.demand_var()
-                #     priority_belt_supply_var = priority_belt.supply_var()
-                #     self.z3solver.assert_and_track(
-                #         nonpriority_belt_demand_var ==
-                #         total_output_demand_var - z3RealBound(total_output_demand_var - priority_belt_supply_var, 0, 1),
-                #         f"{str(splitter)}_nonpri_o")
+                self.z3solver.assert_and_track(z3.If(
+                    total_output_demand_var > total_input_supply_var,
+                    no_backpressure,
+                    priority_belt_demand_var == common.z3realMin(total_output_demand_var, priority_belt_supply_var)
+                ), f"{str(splitter)}_pri_i")
+
             else:
                 self.logger.debug(f"No priority input")
 
@@ -265,7 +276,7 @@ class Balancer:
                 #   (belt with min input)'s demand = its supply
                 #   other belt demand = total demand - former's demand
                 # else (no backpressure)
-                #   both demands >= their supply
+                #   both demands > their supply
 
                 min_input_supply_var = common.z3realMin(input_supply_vars[0], input_supply_vars[-1])
 
@@ -274,13 +285,6 @@ class Balancer:
                     input_demand_vars[-1] <= input_supply_vars[-1],
                     input_demand_vars[0] >= min_input_supply_var,
                     input_demand_vars[-1] >= min_input_supply_var
-                )
-
-                no_backpressure = z3.And(
-                    z3.If(input_supply_vars[0] == 1, input_demand_vars[0] == 1,
-                          input_demand_vars[0] > input_supply_vars[0]),
-                    z3.If(input_supply_vars[-1] == 1, input_demand_vars[-1] == 1,
-                          input_demand_vars[-1] > input_supply_vars[-1])
                 )
 
                 uneven_backpressure_cond = z3.If(
@@ -306,12 +310,35 @@ class Balancer:
 
             has_priority_output = any(x.source_priority for x in enabled_outputs)
 
+            both_backpressure = z3.And(
+                z3.If(output_demand_vars[0] == 1, output_supply_vars[0] == 1,
+                      output_supply_vars[0] > output_demand_vars[0]),
+                z3.If(output_demand_vars[-1] == 1, output_supply_vars[-1] == 1,
+                      output_supply_vars[-1] > output_demand_vars[-1])
+            )
+
             if has_priority_output:
                 self.logger.debug("Has priority output")
+
+                # overall equation:
+                # if total_supply > total_demand:
+                #   both supply > their demands
+                # else
+                #   priority output supply = min(total supply, pri demand)
+                #   (supply of other output derivable from splitter _s_io_eq rule)
+
                 priority_belt = next(x for x in enabled_outputs if x.source_priority)
                 priority_belt_supply_var = priority_belt.supply_var()
-                self.z3solver.assert_and_track(priority_belt_supply_var == common.z3realMin(total_input_supply_var, 1),
-                                          f"{str(splitter)}_pri_i")
+                priority_belt_demand_var = priority_belt.demand_var()
+
+                self.z3solver.assert_and_track(
+                    z3.If(
+                        total_input_supply_var > total_output_demand_var,
+                        both_backpressure,
+                        priority_belt_supply_var == common.z3realMin(total_input_supply_var, priority_belt_demand_var)
+                    ),
+                    f"{str(splitter)}_pri_o")
+
             else:
                 self.logger.debug("No priority output")
 
@@ -322,7 +349,7 @@ class Balancer:
                 #   (belt with min demand)'s supply = its demand
                 #   other belt supply = total supply - former's supply
                 # else (backpressure necessary from both outputs)
-                #   both supply >= their demands
+                #   both supply > their demands
 
                 min_output_demand_var = common.z3realMin(output_demand_vars[0], output_demand_vars[-1])
 
@@ -331,13 +358,6 @@ class Balancer:
                     output_supply_vars[-1] <= output_demand_vars[-1],
                     output_supply_vars[0] >= min_output_demand_var,
                     output_supply_vars[-1] >= min_output_demand_var
-                )
-
-                both_backpressure = z3.And(
-                    z3.If(output_demand_vars[0] == 1, output_supply_vars[0] == 1,
-                          output_supply_vars[0] > output_demand_vars[0]),
-                    z3.If(output_demand_vars[-1] == 1, output_supply_vars[-1] == 1,
-                          output_supply_vars[-1] > output_demand_vars[-1])
                 )
 
                 uneven_supply_cond = z3.If(
