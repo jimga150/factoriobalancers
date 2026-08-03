@@ -5,7 +5,7 @@ from multiprocessing.dummy import Pool
 from Balancer import Balancer
 import Balancer_Book
 from Node import Node
-import Node as NodeModule
+import UniqueIDObj
 
 class NodeTests(unittest.TestCase):
 
@@ -23,9 +23,20 @@ class NodeTests(unittest.TestCase):
         new_nodes.extend(copy.deepcopy(self.nodes))
         self.check_collisions(new_nodes)
 
+    def test_node_attr_copying(self):
+        new_nodes = copy.deepcopy(self.nodes)
+        i = 0
+        prefix = "node_"
+        for node in new_nodes:
+            node.name = f"{prefix}{i}"
+        new_nodes2 = copy.deepcopy(new_nodes)
+
+        for node in new_nodes2:
+            self.assertEqual(prefix in str(node), True)
+
     def test_node_threadsafe(self):
 
-        NodeModule.copy_delay = 0.01
+        UniqueIDObj.copy_delay = 0.01
 
         result_nodes = []
         with Pool() as pool:
