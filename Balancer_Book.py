@@ -115,7 +115,7 @@ def test_tu_z3(balancer: Balancer) -> bool:
     is_tu = check_result == z3.unsat
 
     if not is_tu:
-        balancer.logger.debug("Balancer is not TU")
+        balancer.logger.info("Balancer is not TU")
 
     debug_proof(balancer, z3solver, check_result, "TU")
 
