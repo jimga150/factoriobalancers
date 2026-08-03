@@ -72,10 +72,10 @@ class Balancer:
             if len(same_names) > 1:
                 self.logger.error(f"Error: {node} has a duplicate in the node list. Nodes:")
                 for node in self.nodes:
-                    self.logger.error(f"{str(node)} ({hash(node)})")
+                    self.logger.error(f"{str(node)} ({hash(node)}) ({id(node)})")
                 self.logger.error("same_names:")
                 for node in same_names:
-                    self.logger.error(f"{str(node)} ({hash(node)})")
+                    self.logger.error(f"{str(node)} ({hash(node)}) ({id(node)})")
                 raise AssertionError(f"{node} has a duplicate in the node list.")
 
         for node in self.nodes:
