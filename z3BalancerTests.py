@@ -25,8 +25,14 @@ class MyTestCase(unittest.TestCase):
     def test_2x2_TU(self):
         self.assertEqual(Balancer_Book.test_tu_z3(self.balancer22), True)
 
+    def test_2x2_pi_balanced(self):
+        self.assertEqual(Balancer_Book.test_partial_input_balanced_z3(self.balancer22), True)
+
     def test_2x2_input_balanced(self):
         self.assertEqual(Balancer_Book.test_input_balanced_z3(self.balancer22), True)
+
+    def test_2x2_po_balanced(self):
+        self.assertEqual(Balancer_Book.test_partial_output_balanced_z3(self.balancer22), True)
 
     def test_2x2_output_balanced(self):
         self.assertEqual(Balancer_Book.test_output_balanced_z3(self.balancer22), True)

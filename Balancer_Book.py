@@ -55,22 +55,22 @@ def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckS
         # for a in z3solver.assertions():
         #     balancer.logger.debug(a)
 
-        outputs = balancer.get_outputs()
-        inputs = balancer.get_inputs()
-
-        for i in range(len(outputs)):
-            belt = outputs[i]
-            if i < len(outputs) / 2:
-                z3solver.assert_and_track(belt.demand_var() == 1, f"{str(belt.dest)}_d_1")
-            else:
-                z3solver.assert_and_track(belt.demand_var() == 0, f"{str(belt.dest)}_d_0")
-
-        for i in range(len(inputs)):
-            belt = inputs[i]
-            if i < len(inputs) / 2:
-                z3solver.assert_and_track(belt.supply_var() == 0, f"{str(belt.source)}_s_0")
-            else:
-                z3solver.assert_and_track(belt.supply_var() == 1, f"{str(belt.source)}_s_1")
+        # outputs = balancer.get_outputs()
+        # inputs = balancer.get_inputs()
+        #
+        # for i in range(len(outputs)):
+        #     belt = outputs[i]
+        #     if i < len(outputs) / 2:
+        #         z3solver.assert_and_track(belt.demand_var() == 1, f"{str(belt.dest)}_d_1")
+        #     else:
+        #         z3solver.assert_and_track(belt.demand_var() == 0, f"{str(belt.dest)}_d_0")
+        #
+        # for i in range(len(inputs)):
+        #     belt = inputs[i]
+        #     if i < len(inputs) / 2:
+        #         z3solver.assert_and_track(belt.supply_var() == 0, f"{str(belt.source)}_s_0")
+        #     else:
+        #         z3solver.assert_and_track(belt.supply_var() == 1, f"{str(belt.source)}_s_1")
 
         # z3solver.assert_and_track(total_throughput_var == exp_full_throughput_rate_var, "can_be_TU")
         sat_check = z3solver.check()
@@ -118,6 +118,43 @@ def test_tu_z3(balancer: Balancer) -> bool:
     debug_proof(balancer, z3solver, check_result, "TU")
 
     return is_tu
+
+def test_partial_input_balanced_z3(balancer: Balancer) -> bool:
+    balancer.logger.debug(f"{inspect.stack()[0][3]} called")
+
+    z3solver = balancer.get_solver()
+
+    # if, assuming all inputs are saturated, the demand of each input is always the same
+    # then the balancer is at least partially input balanced
+
+    total_throughput_var = z3.Sum([x.flow_var() for x in balancer.get_outputs()])
+    num_inputs = balancer.get_num_inputs()
+
+    input_unbalanced_var = False
+
+    for belt in balancer.get_inputs():
+        demand_var = belt.demand_var()
+        supply_var = belt.supply_var()
+        z3solver.assert_and_track(demand_var < supply_var, f"{str(belt)}_saturated")
+        input_unbalanced_var = z3.Or(
+            input_unbalanced_var,
+            demand_var != total_throughput_var / num_inputs
+        )
+
+    z3solver.push()
+
+    z3solver.assert_and_track(input_unbalanced_var, f"input_unbalanced")
+
+    check_result = z3solver.check()
+
+    is_pi_balanced = check_result == z3.unsat
+
+    debug_proof(balancer, z3solver, check_result, "pi_balanced")
+
+    if not is_pi_balanced:
+        balancer.logger.info("Balancer is not even partially input balanced")
+
+    return is_pi_balanced
 
 def test_input_balanced_z3(balancer: Balancer) -> bool:
     balancer.logger.debug(f"{inspect.stack()[0][3]} called")
@@ -170,6 +207,44 @@ def test_input_balanced_z3(balancer: Balancer) -> bool:
 
     return is_input_balanced
 
+def test_partial_output_balanced_z3(balancer: Balancer) -> bool:
+    balancer.logger.debug(f"{inspect.stack()[0][3]} called")
+
+    z3solver = balancer.get_solver()
+
+    # if, assuming all outputs are unblocked, the supply of each output is always the same
+    # then the balancer is at least partially output balanced
+
+    total_throughput_var = z3.Sum([x.flow_var() for x in balancer.get_outputs()])
+    num_outputs = balancer.get_num_outputs()
+
+    output_unbalanced_var = False
+
+    for belt in balancer.get_outputs():
+        demand_var = belt.demand_var()
+        supply_var = belt.supply_var()
+        z3solver.assert_and_track(demand_var > supply_var, f"{str(belt)}_unblocked")
+        output_unbalanced_var = z3.Or(
+            output_unbalanced_var,
+            supply_var != total_throughput_var / num_outputs
+        )
+
+    z3solver.push()
+
+    z3solver.assert_and_track(output_unbalanced_var, f"output_unbalanced")
+
+    check_result = z3solver.check()
+
+    is_po_balanced = check_result == z3.unsat
+
+    debug_proof(balancer, z3solver, check_result, "po_balanced")
+
+    if not is_po_balanced:
+        balancer.logger.info("Balancer is not even partially output balanced")
+
+    return is_po_balanced
+
+
 def test_output_balanced_z3(balancer: Balancer) -> bool:
     balancer.logger.debug(f"{inspect.stack()[0][3]} called")
 
@@ -209,12 +284,6 @@ def test_output_balanced_z3(balancer: Balancer) -> bool:
     is_output_balanced = check_result == z3.unsat
 
     debug_proof(balancer, z3solver, check_result, "output_balanced")
-
-    # TODO
-    # if, assuming all output demands are 1, the supply of each output is always the same, then its at least partially output balanced
-
-    # TODO
-    # if, assuming all input supplies are 1, the demand of each input is always the same, then its at least partially input balanced
 
     if not is_output_balanced:
         balancer.logger.info("Balancer is not fully output balanced")
