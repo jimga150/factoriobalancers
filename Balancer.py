@@ -68,6 +68,17 @@ class Balancer:
                 belt.dest.name = ""
 
         for node in self.nodes:
+            same_names = [x for x in self.nodes if str(x) == str(node)]
+            if len(same_names) > 1:
+                self.logger.error(f"Error: {node} has a duplicate in the node list. Nodes:")
+                for node in self.nodes:
+                    self.logger.error(f"{str(node)} ({hash(node)})")
+                self.logger.error("same_names:")
+                for node in same_names:
+                    self.logger.error(f"{str(node)} ({hash(node)})")
+                raise AssertionError(f"{node} has a duplicate in the node list.")
+
+        for node in self.nodes:
             splitter = self.get_splitter(node)
             if len(splitter.get_enabled_inputs()) > 2:
                 self.logger.error(f"Error: {node} has more than 2 inputs. This balancer is illegal.")
