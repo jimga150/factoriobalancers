@@ -551,6 +551,10 @@ class Balancer:
 
         self.logger.debug(f"Balance took {iters} iterations")
 
+    def render_all_methods(self, name: str = default_img_filename) -> None:
+        for cs in ColorStrategy:
+            self.render(f"{name} ({ColorStrategy(cs)})", cs)
+
     def render(self, name: str = default_img_filename, color_strat: ColorStrategy = ColorStrategy.PRIORITY) -> None:
         g = Digraph(engine='dot', node_attr={'shape': 'rect', 'height': '0.4', 'width': '0.5'},
                     graph_attr={'rankdir': 'BT'})
