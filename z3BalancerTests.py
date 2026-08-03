@@ -10,16 +10,16 @@ class MyTestCase(unittest.TestCase):
     balancer44 = Balancer.combine_sidebyside(balancer22)
     balancer44TU = Balancer.combine_endtoend(balancer44)
 
-    def test_TU(self):
+    def test_4x4TU(self):
         self.assertEqual(Balancer_Book.test_tu_z3(self.balancer44TU), True)
 
-    def test_not_TU(self):
+    def test_4x4_not_TU(self):
         self.assertEqual(Balancer_Book.test_tu_z3(self.balancer44), False)
 
-    def test_not_input_balanced(self):
+    def test_4x4_not_input_balanced(self):
         self.assertEqual(Balancer_Book.test_input_balanced_z3(self.balancer44), False)
 
-    def test_not_output_balanced(self):
+    def test_4x4_not_output_balanced(self):
         self.assertEqual(Balancer_Book.test_output_balanced_z3(self.balancer44), False)
 
     def test_2x2_TU(self):
