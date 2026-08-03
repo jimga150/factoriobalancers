@@ -4,6 +4,7 @@ import logging
 import os.path
 import shutil
 from concurrent.futures.process import ProcessPoolExecutor
+import inspect
 
 from tabulate import tabulate
 import z3
@@ -91,7 +92,7 @@ def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckS
     z3solver.pop()
 
 def test_tu_z3(balancer: Balancer) -> bool:
-    balancer.logger.debug(f"{__name__} called")
+    balancer.logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
 
@@ -119,7 +120,7 @@ def test_tu_z3(balancer: Balancer) -> bool:
     return is_tu
 
 def test_input_balanced_z3(balancer: Balancer) -> bool:
-    balancer.logger.debug(f"{__name__} called")
+    balancer.logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
 
@@ -163,14 +164,14 @@ def test_input_balanced_z3(balancer: Balancer) -> bool:
     is_input_balanced = check_result == z3.unsat
 
     if not is_input_balanced:
-        balancer.logger.debug("Balancer is not input balanced")
+        balancer.logger.info("Balancer is not fully input balanced")
 
     debug_proof(balancer, z3solver, check_result, "input_balanced")
 
     return is_input_balanced
 
 def test_output_balanced_z3(balancer: Balancer) -> bool:
-    balancer.logger.debug(f"test_balance_z3 called")
+    balancer.logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
 
@@ -216,7 +217,7 @@ def test_output_balanced_z3(balancer: Balancer) -> bool:
     # if, assuming all input supplies are 1, the demand of each input is always the same, then its at least partially input balanced
 
     if not is_output_balanced:
-        balancer.logger.debug("Balancer is not output balanced")
+        balancer.logger.info("Balancer is not fully output balanced")
 
     return is_output_balanced
 
