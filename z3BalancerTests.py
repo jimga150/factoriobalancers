@@ -6,9 +6,11 @@ import Balancer_Book
 
 class MyTestCase(unittest.TestCase):
 
-    balancer22 = Balancer_Book.make_2x2()
-    balancer44 = Balancer.combine_sidebyside(balancer22)
-    balancer44TU = Balancer.combine_endtoend(balancer44)
+    def setUp(self):
+        self.balancer22 = Balancer_Book.make_2x2()
+        self.balancer44 = Balancer.combine_sidebyside(self.balancer22)
+        self.balancer44TU = Balancer.combine_endtoend(self.balancer44)
+        self.balancer44loop = Balancer.make_tap_loop(self.balancer44TU, self.balancer44TU)
 
     # def test_play(self):
     #     self.assertTrue(True)
@@ -22,6 +24,9 @@ class MyTestCase(unittest.TestCase):
 
     def test_4x4TU(self):
         self.runtest_balancer(self.balancer44TU, True, True, False, True, False)
+
+    def test_4x4Universal(self):
+        self.runtest_balancer(self.balancer44loop, True, True, True, True, True)
 
     def runtest_balancer(self, balancer: Balancer, tu: bool, pi: bool, fi: bool, po: bool, fo: bool):
         self.assertEqual(Balancer_Book.test_tu_z3(balancer), tu)
