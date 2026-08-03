@@ -29,6 +29,7 @@ class Balancer:
         self.nodes = list()
 
         self.z3solver = None
+        self.total_throughput_var = None
 
         self.logger = Balancer.default_logger
 
@@ -43,6 +44,7 @@ class Balancer:
     def postprocess_nodes(self):
         self.nodes.clear()
         self.z3solver = None
+        self.total_throughput_var = None
 
         input_char = ord('A')
         output_idx = 1
@@ -350,6 +352,10 @@ class Balancer:
                     uneven_supply_cond),
                     f"{str(splitter)}_nonpri_o"
                 )
+
+        total_throughput_expr = z3.Sum([x.flow_var() for x in self.get_outputs()])
+        self.total_throughput_var = z3.Real("total_throughput")
+        self.z3solver.assert_and_track(total_throughput_expr == self.total_throughput_var, "total_throughput_expr")
 
         self.logger.debug(f"Assertions:")
         for a in self.z3solver.assertions():

@@ -102,7 +102,7 @@ def test_tu_z3(balancer: Balancer) -> bool:
     total_output_demand_var = z3.Sum([x.demand_var() for x in balancer.get_outputs()])
     exp_full_throughput_rate_var = common.z3realMin(total_input_supply_var, total_output_demand_var)
 
-    total_throughput_var = z3.Sum([x.flow_var() for x in balancer.get_outputs()])
+    total_throughput_var = balancer.total_throughput_var
 
     z3solver.push()
 
@@ -127,7 +127,7 @@ def test_partial_input_balanced_z3(balancer: Balancer) -> bool:
     # if, assuming all inputs are saturated, the demand of each input is always the same
     # then the balancer is at least partially input balanced
 
-    total_throughput_var = z3.Sum([x.flow_var() for x in balancer.get_outputs()])
+    total_throughput_var = balancer.total_throughput_var
     num_inputs = balancer.get_num_inputs()
 
     input_unbalanced_var = False
@@ -166,7 +166,7 @@ def test_input_balanced_z3(balancer: Balancer) -> bool:
 
     z3solver.push()
 
-    total_throughput_var = z3.Sum([x.flow_var() for x in balancer.get_outputs()])
+    total_throughput_var = balancer.total_throughput_var
     total_blocked_input_expr = total_throughput_var
     num_blocked_inputs_expr = 0
 
@@ -215,7 +215,7 @@ def test_partial_output_balanced_z3(balancer: Balancer) -> bool:
     # if, assuming all outputs are unblocked, the supply of each output is always the same
     # then the balancer is at least partially output balanced
 
-    total_throughput_var = z3.Sum([x.flow_var() for x in balancer.get_outputs()])
+    total_throughput_var = balancer.total_throughput_var
     num_outputs = balancer.get_num_outputs()
 
     output_unbalanced_var = False
@@ -255,7 +255,7 @@ def test_output_balanced_z3(balancer: Balancer) -> bool:
 
     z3solver.push()
 
-    total_throughput_var = z3.Sum([x.flow_var() for x in balancer.get_outputs()])
+    total_throughput_var = balancer.total_throughput_var
     total_unblocked_output_var = total_throughput_var
     num_unblocked_outputs_var = 0
 
