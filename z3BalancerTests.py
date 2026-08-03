@@ -7,7 +7,7 @@ import Balancer_Book
 class MyTestCase(unittest.TestCase):
 
     balancer22 = Balancer_Book.make_2x2()
-    balancer44 = Balancer_Book.make4x4()
+    balancer44 = Balancer.combine_sidebyside(balancer22)
     balancer44TU = Balancer.combine_endtoend(balancer44)
 
     def test_TU(self):
