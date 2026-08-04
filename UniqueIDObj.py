@@ -36,7 +36,7 @@ class UniqueIDObj:
 
         # use __new__, and not __init__, to make a bare instance without side effects
         new = cls.__new__(cls)
-        
+
         # memo stuff for deepcopy
         memo[id(self)] = new
 
