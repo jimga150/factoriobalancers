@@ -78,12 +78,28 @@ class Balancer:
                     self.logger.error(f"{str(node)} ({hash(node)}) ({id(node)})")
                 raise AssertionError(f"{node} has a duplicate in the node list.")
 
+        nodes_to_remove = []
+        belts_to_remove = []
         for node in self.nodes:
             splitter = self.get_splitter(node)
             if len(splitter.get_enabled_inputs()) > 2:
-                self.logger.error(f"Error: {node} has more than 2 inputs. This balancer is illegal.")
+                raise AssertionError(f"Error: {node} has more than 2 inputs. This balancer is illegal.")
             if len(splitter.get_enabled_outputs()) > 2:
-                self.logger.error(f"Error: {node} has more than 2 outputs. This balancer is illegal.")
+                raise AssertionError(f"Error: {node} has more than 2 outputs. This balancer is illegal.")
+
+            outputs = splitter.get_enabled_outputs()
+            if len(outputs) == 2 and outputs[0].dest == outputs[1].dest:
+                nodes_to_remove.append(outputs[0].dest)
+                belts_to_remove.extend(outputs)
+                splitter_to_remove = self.get_splitter(outputs[0].dest)
+                for b in splitter_to_remove.get_enabled_outputs():
+                    b.source = node
+
+        for node in nodes_to_remove:
+            self.nodes.remove(node)
+        for belt in belts_to_remove:
+            self.belts.remove(belt)
+
 
     @staticmethod
     def combine_endtoend(upstream: Balancer, downstream: Balancer | NoneType = None) -> Balancer:
