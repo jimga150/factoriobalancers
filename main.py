@@ -7,11 +7,10 @@ import z3
 
 from Belt import ColorStrategy
 
-# TODO: add tests (see factorio sat)
-# TODO: revisit common library
-# TODO: experiment with universal balancer generation
-# TODO: add blueprint parsing (rip from Factorio SAT)
 # TODO: add network optimization
+# TODO: add tests for 8x8
+# TODO: generate universal NxM balancers
+# TODO: add blueprint parsing (rip from Factorio SAT)
 # TODO: add P&R
 # TODO: add blueprint export
 
