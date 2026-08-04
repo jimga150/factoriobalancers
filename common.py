@@ -26,7 +26,7 @@ def term_str(name, frac: float) -> str:
     if frac < diff_threshold_verif:
         return ""
     if frac == 1:
-        return str(name) if name != "" else "1"
+        return name if name != "" else "1"
 
     for numerator_candidate in range(1, 10):
         # print(f"numerator_candidate: {numerator_candidate}")
@@ -48,11 +48,12 @@ def term_str(name, frac: float) -> str:
             # other_diff = abs(numerator_candidate / frac - denominator_candidate)
             # print(f"diff the other way: {other_diff}")
             if numerator_candidate == denominator_candidate:
-                return name
+                return name if name != "" else "1"
             if name == "":
                 return f"{numerator_candidate}/{denominator_candidate}"
             if numerator_candidate == 1:
-                return f"{name}/{denominator_candidate}"
+                num_str = name if name != "" else "1"
+                return f"{num_str}/{denominator_candidate}"
             return f"{numerator_candidate}{name}/{denominator_candidate}"
 
     # print("no fraction")
