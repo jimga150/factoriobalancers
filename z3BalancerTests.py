@@ -64,7 +64,7 @@ class BalancerTests(unittest.TestCase):
         self.balancer22 = Balancer_Book.make_2x2()
         self.balancer44 = Balancer.combine_sidebyside(self.balancer22)
         self.balancer44TU = Balancer.combine_endtoend(self.balancer44)
-        self.balancer44loop = Balancer.make_tap_loop(self.balancer44TU, self.balancer44TU)
+        self.balancer44loop = Balancer.make_tap_loop(self.balancer44TU, self.balancer44)
 
     # def test_play(self):
     #     self.assertTrue(True)
