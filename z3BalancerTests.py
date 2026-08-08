@@ -2,6 +2,8 @@ import copy
 import unittest
 from multiprocessing.dummy import Pool
 
+import z3
+
 from Balancer import Balancer
 import Balancer_Book
 from Node import Node
@@ -9,11 +11,12 @@ import UniqueIDObj
 
 class NodeTests(unittest.TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         num_nodes = 1000
-        self.nodes = []
+        cls.nodes = []
         for i in range(num_nodes):
-            self.nodes.append(Node())
+            cls.nodes.append(Node())
 
     def test_node_collision(self):
         self.check_collisions(self.nodes)
@@ -60,16 +63,17 @@ class NodeTests(unittest.TestCase):
 
 class BalancerTests(unittest.TestCase):
 
-    def setUp(self):
-        self.balancer22 = Balancer_Book.make_2x2()
-        self.balancer44 = Balancer.combine_sidebyside(self.balancer22)
-        self.balancer44TU = Balancer.combine_endtoend(self.balancer44)
-        # self.balancer44TU.render_all_methods("balancer44TU")
-        self.balancer44loop = Balancer.make_tap_loop(self.balancer44TU, self.balancer44)
-        # self.balancer44loop.render_all_methods("balancer44loop")
-        self.balancer88 = Balancer.combine_sidebyside(self.balancer44)
-        self.balancer88TU = Balancer.combine_endtoend(self.balancer88)
-        # self.balancer88TU2 = Balancer.combine_endtoend(self.balancer88TU)
+    @classmethod
+    def setUpClass(cls):
+        cls.balancer22 = Balancer_Book.make_2x2()
+        cls.balancer44 = Balancer.combine_sidebyside(cls.balancer22)
+        cls.balancer44TU = Balancer.combine_endtoend(cls.balancer44)
+        # cls.balancer44TU.render_all_methods("balancer44TU")
+        cls.balancer44loop = Balancer.make_tap_loop(cls.balancer44TU, cls.balancer44)
+        # cls.balancer44loop.render_all_methods("balancer44loop")
+        cls.balancer88 = Balancer.combine_sidebyside(cls.balancer44)
+        cls.balancer88TU = Balancer.combine_endtoend(cls.balancer88)
+        # cls.balancer88TU2 = Balancer.combine_endtoend(cls.balancer88TU)
 
     # def test_play(self):
     #     self.assertTrue(True)
@@ -113,6 +117,88 @@ class BalancerTests(unittest.TestCase):
         with self.subTest(msg="Output Balanced"):
             self.assertEqual(Balancer_Book.test_output_balanced_z3(balancer), fo)
 
+class SplitterTests(unittest.TestCase):
+    # test various configurations of supply and demand against actual data in factorio
+
+    @classmethod
+    def setUpClass(cls):
+        cls.balancer22 = Balancer_Book.make_2x2()
+        cls.solver = cls.balancer22.get_solver()
+
+    def setUp(self):
+        self.solver.push()
+
+    def tearDown(self):
+        self.solver.pop()
+
+    def runtest_splitter(self, in_supplies: list[float], in_demands: list[float|str], out_supplies: list[float|str], out_demands: list[float]):
+
+        self.assertEqual(len(in_supplies), 2)
+        self.assertEqual(len(in_demands), 2)
+        self.assertEqual(len(out_supplies), 2)
+        self.assertEqual(len(out_demands), 2)
+
+        for belt, supply in zip(self.balancer22.get_inputs(), in_supplies):
+            self.solver.assert_and_track(belt.supply_var() == supply, f"{belt}_s_eq_{supply}")
+
+        for belt, demand in zip(self.balancer22.get_outputs(), out_demands):
+            self.solver.assert_and_track(belt.demand_var() == demand, f"{belt}_d_eq_{demand}")
+
+        self.assertEqual(self.solver.check(), z3.sat)
+
+        self.balancer22.set_to_model()
+
+        for belt, demand in zip(self.balancer22.get_inputs(), in_demands):
+            self.compareVals(belt.demand, demand)
+
+        for belt, supply in zip(self.balancer22.get_outputs(), out_supplies):
+            self.compareVals(belt.supply, supply)
+
+    def compareVals(self, actual: float, expected: float|str):
+        if expected == "X":
+            return
+        elif type(expected) is int or type(expected) is float:
+            self.assertEqual(actual, expected)
+        elif expected[:2] == '<=':
+            self.assertLessEqual(actual, float(expected[2:]))
+        elif expected[:1] == '<':
+            self.assertLess(actual, float(expected[1:]))
+        elif expected[:2] == '>=':
+            self.assertGreaterEqual(actual, float(expected[2:]))
+        elif expected[:1] == '>':
+            self.assertGreater(actual, float(expected[1:]))
+        else:
+            self.assertTrue(False, msg="value check failed all type/formatting checks")
+
+    def runtest_splitter_bothways(self, in_supplies: list[float], in_demands: list[float|str], out_supplies: list[float|str], out_demands: list[float]):
+        # run a splitter test, both in the intended way, and reversing supply and demand parameters. should produce the same result both times
+
+        # normal way
+        self.runtest_splitter(in_supplies, in_demands, out_supplies, out_demands)
+
+        # clear asserts from last test
+        self.solver.pop()
+        self.solver.push()
+
+        # reverse
+        self.runtest_splitter(out_demands, out_supplies, in_demands, in_supplies)
+
+    def test_even_supply(self):
+        # distributes supply evenly among higher demands
+        self.runtest_splitter_bothways([0, 1], ["X", 1], [0.5, 0.5], [1, 1])
+
+    def test_uneven_unsaturated_supply(self):
+        # total supply is still less than total demand, but one supply gets higher to meet higher demand
+        # while the other one caps out at its lower demand
+        self.runtest_splitter_bothways([0.25, 1], [">0.25", 1], [0.5, 0.75], [0.5, 1])
+
+    def test_uneven_saturated_supply(self):
+        # total supply = total demand, but the numbers change so we can see its redistributing
+        self.runtest_splitter_bothways([0.25, 1], [0.25, 1], [0.5, 0.75], [0.5, 0.75])
+
+    def test_oversupply(self):
+        # total supply > total demand, so both supplies just need to saturate demand
+        self.runtest_splitter_bothways([0.75, 0.75], [0.375, 0.375], [">=0.5", ">=0.25"], [0.5, 0.25])
 
 if __name__ == '__main__':
     unittest.main()

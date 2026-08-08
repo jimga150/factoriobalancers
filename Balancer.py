@@ -410,6 +410,13 @@ class Balancer:
 
         return self.z3solver
 
+    def set_to_model(self):
+        solver = self.get_solver()
+        model = solver.model()
+        for belt in self.belts:
+            belt.supply = float(model[belt.supply_var()].as_fraction())
+            belt.demand = float(model[belt.demand_var()].as_fraction())
+
     def get_splitter(self, node) -> Splitter:
         inputs = [x for x in self.belts if x.dest == node]
         outputs = [x for x in self.belts if x.source == node]
