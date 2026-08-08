@@ -50,4 +50,4 @@ class UniqueIDObj:
         return new
 
     def __hash__(self):
-        return hash(id(self))
+        return hash(self.id)
