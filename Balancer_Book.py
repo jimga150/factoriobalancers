@@ -92,6 +92,72 @@ def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckS
 
     z3solver.pop()
 
+# raynquist refers to this as "regular"
+def test_partial_tu_z3(balancer: Balancer) -> bool:
+    balancer.logger.debug(f"{inspect.stack()[0][3]} called")
+
+    z3solver = balancer.get_solver()
+    z3solver.push()
+
+    # assuming one of the large sides of the balancer is fully saturated,
+    # if theres any scenario in which the total flow rate is less than the min of (input supply, output demand),
+    # the balancer is not even partially TU
+
+    # make symbol for if all inputs are saturated (we may or may not care)
+    input_all_saturated_expr = True
+    for belt in balancer.get_inputs():
+        demand_var = belt.demand_var()
+        supply_var = belt.supply_var()
+        input_all_saturated_expr = z3.And(input_all_saturated_expr, demand_var < supply_var)
+
+    input_all_saturated_var = z3.Bool("input_all_saturated")
+    z3solver.assert_and_track(input_all_saturated_var == input_all_saturated_expr, "input_all_saturated_expr")
+
+    # make symbol for if all outputs are saturated (we may or may not care)
+    output_all_saturated_expr = True
+    for belt in balancer.get_outputs():
+        demand_var = belt.demand_var()
+        supply_var = belt.supply_var()
+        output_all_saturated_expr = z3.And(output_all_saturated_expr, demand_var < supply_var)
+
+    output_all_saturated_var = z3.Bool("output_all_saturated")
+    z3solver.assert_and_track(output_all_saturated_var == output_all_saturated_expr, "output_all_saturated_expr")
+
+    num_inputs = balancer.get_num_enabled_inputs()
+    num_outputs = balancer.get_num_enabled_outputs()
+    if num_inputs > num_outputs:
+        # input is bigger, we only care about input saturation
+        z3solver.assert_and_track(input_all_saturated_var == True, "bigger_input_all_saturated")
+    elif num_outputs > num_inputs:
+        # output is bigger, we only care about output saturation
+        z3solver.assert_and_track(output_all_saturated_var == True, "bigger_output_all_saturated")
+    else:
+        # NxN balancer, either needs to be true
+        z3solver.assert_and_track(z3.Or(input_all_saturated_var, output_all_saturated_var), "one_side_saturated")
+
+    total_input_supply_var = z3.Sum([x.supply_var() for x in balancer.get_inputs()])
+    total_output_demand_var = z3.Sum([x.demand_var() for x in balancer.get_outputs()])
+    exp_full_throughput_rate_var = common.z3realMin(total_input_supply_var, total_output_demand_var)
+
+    total_throughput_var = balancer.total_throughput_var
+
+    z3solver.push()
+
+    z3solver.assert_and_track(total_throughput_var != exp_full_throughput_rate_var, "non_TU")
+
+    check_result = z3solver.check()
+
+    is_tu = check_result == z3.unsat
+
+    if not is_tu:
+        balancer.logger.info("Balancer is not even partially TU")
+
+    debug_proof(balancer, z3solver, check_result, "partially TU")
+
+    z3solver.pop()
+
+    return is_tu
+
 def test_tu_z3(balancer: Balancer) -> bool:
     balancer.logger.debug(f"{inspect.stack()[0][3]} called")
 
