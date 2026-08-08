@@ -9,11 +9,12 @@ import UniqueIDObj
 
 class NodeTests(unittest.TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         num_nodes = 1000
-        self.nodes = []
+        cls.nodes = []
         for i in range(num_nodes):
-            self.nodes.append(Node())
+            cls.nodes.append(Node())
 
     def test_node_collision(self):
         self.check_collisions(self.nodes)
@@ -60,11 +61,12 @@ class NodeTests(unittest.TestCase):
 
 class BalancerTests(unittest.TestCase):
 
-    def setUp(self):
-        self.balancer22 = Balancer_Book.make_2x2()
-        self.balancer44 = Balancer.combine_sidebyside(self.balancer22)
-        self.balancer44TU = Balancer.combine_endtoend(self.balancer44)
-        self.balancer44loop = Balancer.make_tap_loop(self.balancer44TU, self.balancer44)
+    @classmethod
+    def setUpClass(cls):
+        cls.balancer22 = Balancer_Book.make_2x2()
+        cls.balancer44 = Balancer.combine_sidebyside(cls.balancer22)
+        cls.balancer44TU = Balancer.combine_endtoend(cls.balancer44)
+        cls.balancer44loop = Balancer.make_tap_loop(cls.balancer44TU, cls.balancer44)
 
     # def test_play(self):
     #     self.assertTrue(True)
