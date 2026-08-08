@@ -20,7 +20,7 @@ class UniqueIDObj:
             unique_idx += 1
 
     def __str__(self):
-        return str(self.id)
+        return hex(self.id)[2:]
 
     def __copy__(self):
         cls = type(self)
