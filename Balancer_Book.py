@@ -37,10 +37,9 @@ def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckS
         #     balancer.logger.debug(a)
 
         balancer.logger.debug(f"{condition_name} Counterexample:")
-        for belt in balancer.belts:
-            belt.supply = float(z3model[belt.supply_var()].as_fraction())
-            belt.demand = float(z3model[belt.demand_var()].as_fraction())
-            # print(type(z3model[belt].supply_var().as_fraction()))
+
+        balancer.set_to_model()
+
         balancer.render_all_methods(f"{condition_name} Counterexample")
 
         # # calculate balance of this counterexample, locking the supply of inputs and demand of outputs in place.
