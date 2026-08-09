@@ -81,8 +81,8 @@ class BalancerTests(unittest.TestCase):
         cls.balancer44loop = Balancer.make_tap_loop(cls.balancer44TU, cls.balancer44)
         # cls.balancer44loop.render_all_methods("balancer44loop")
         cls.balancer88 = Balancer.combine_sidebyside(cls.balancer44)
-        cls.balancer88TU = Balancer.combine_endtoend(cls.balancer88)
-        # cls.balancer88TU2 = Balancer.combine_endtoend(cls.balancer88TU)
+        # cls.balancer88TU = Balancer.combine_endtoend(cls.balancer88)
+        cls.balancer88TU = Balancer_Book.make_8x8_TU()
 
     # def test_play(self):
     #     self.assertTrue(True)
@@ -104,7 +104,7 @@ class BalancerTests(unittest.TestCase):
         self.runtest_balancer(self.balancer88, True, False, True, False, True, False)
 
     def test_8x8TU(self):
-        self.runtest_balancer(self.balancer88TU, True, False, True, False, True, False)
+        self.runtest_balancer(self.balancer88TU, True, True, True, False, True, False)
 
     def runtest_balancer(self, balancer: Balancer, ptu: bool, tu: bool, pi: bool, fi: bool, po: bool, fo: bool):
 
