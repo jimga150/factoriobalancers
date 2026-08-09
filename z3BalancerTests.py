@@ -65,6 +65,15 @@ class BalancerTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+
+        # remove all PNGs
+        dir_name = "."
+        test = os.listdir(dir_name)
+
+        for item in test:
+            if item.endswith(".png"):
+                os.remove(os.path.join(dir_name, item))
+
         cls.balancer22 = Balancer_Book.make_2x2()
         cls.balancer44 = Balancer.combine_sidebyside(cls.balancer22)
         cls.balancer44TU = Balancer.combine_endtoend(cls.balancer44)
