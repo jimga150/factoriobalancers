@@ -7,7 +7,6 @@ import z3
 
 from Belt import ColorStrategy
 
-# TODO: add tests for splitter behavior, get real data from factorio
 # TODO: add tests for 8x8
 # TODO: generate universal NxM balancers
 # TODO: add blueprint parsing (rip from Factorio SAT)
