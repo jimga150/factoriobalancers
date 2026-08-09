@@ -1099,3 +1099,64 @@ def make_4x4_universal_blocked() -> Balancer:
     outputs[2].enabled = False
 
     return ans
+
+def make_8x8_TU() -> Balancer:
+    ans = Balancer()
+
+    input_nodes = [Node() for _ in range(8)]
+    output_nodes = [Node() for _ in range(8)]
+    int_nodes = [Node() for _ in range(20)]
+
+    ans.belts.append(Belt(input_nodes[0], int_nodes[0]))
+    ans.belts.append(Belt(input_nodes[1], int_nodes[0]))
+    ans.belts.append(Belt(input_nodes[2], int_nodes[1]))
+    ans.belts.append(Belt(input_nodes[3], int_nodes[1]))
+    ans.belts.append(Belt(input_nodes[4], int_nodes[2]))
+    ans.belts.append(Belt(input_nodes[5], int_nodes[2]))
+    ans.belts.append(Belt(input_nodes[6], int_nodes[3]))
+    ans.belts.append(Belt(input_nodes[7], int_nodes[3]))
+
+    ans.belts.append(Belt(int_nodes[0], int_nodes[4]))
+    ans.belts.append(Belt(int_nodes[0], int_nodes[7]))
+    ans.belts.append(Belt(int_nodes[1], int_nodes[4]))
+    ans.belts.append(Belt(int_nodes[1], int_nodes[5]))
+    ans.belts.append(Belt(int_nodes[2], int_nodes[5]))
+    ans.belts.append(Belt(int_nodes[2], int_nodes[6]))
+    ans.belts.append(Belt(int_nodes[3], int_nodes[6]))
+    ans.belts.append(Belt(int_nodes[3], int_nodes[7]))
+    ans.belts.append(Belt(int_nodes[4], int_nodes[12]))
+    ans.belts.append(Belt(int_nodes[4], int_nodes[13]))
+    ans.belts.append(Belt(int_nodes[5], int_nodes[8]))
+    ans.belts.append(Belt(int_nodes[5], int_nodes[9]))
+    ans.belts.append(Belt(int_nodes[6], int_nodes[12]))
+    ans.belts.append(Belt(int_nodes[6], int_nodes[13]))
+    ans.belts.append(Belt(int_nodes[7], int_nodes[8]))
+    ans.belts.append(Belt(int_nodes[7], int_nodes[9]))
+    ans.belts.append(Belt(int_nodes[8], int_nodes[10]))
+    ans.belts.append(Belt(int_nodes[8], int_nodes[11]))
+    ans.belts.append(Belt(int_nodes[9], int_nodes[10]))
+    ans.belts.append(Belt(int_nodes[9], int_nodes[11]))
+    ans.belts.append(Belt(int_nodes[10], int_nodes[17]))
+    ans.belts.append(Belt(int_nodes[10], int_nodes[18]))
+    ans.belts.append(Belt(int_nodes[11], int_nodes[16]))
+    ans.belts.append(Belt(int_nodes[11], int_nodes[19]))
+    ans.belts.append(Belt(int_nodes[12], int_nodes[14]))
+    ans.belts.append(Belt(int_nodes[12], int_nodes[15]))
+    ans.belts.append(Belt(int_nodes[13], int_nodes[14]))
+    ans.belts.append(Belt(int_nodes[13], int_nodes[15]))
+    ans.belts.append(Belt(int_nodes[14], int_nodes[16]))
+    ans.belts.append(Belt(int_nodes[14], int_nodes[17]))
+    ans.belts.append(Belt(int_nodes[15], int_nodes[18]))
+    ans.belts.append(Belt(int_nodes[15], int_nodes[19]))
+
+    ans.belts.append(Belt(int_nodes[16], output_nodes[0]))
+    ans.belts.append(Belt(int_nodes[16], output_nodes[1]))
+    ans.belts.append(Belt(int_nodes[17], output_nodes[2]))
+    ans.belts.append(Belt(int_nodes[17], output_nodes[3]))
+    ans.belts.append(Belt(int_nodes[18], output_nodes[4]))
+    ans.belts.append(Belt(int_nodes[18], output_nodes[5]))
+    ans.belts.append(Belt(int_nodes[19], output_nodes[6]))
+    ans.belts.append(Belt(int_nodes[19], output_nodes[7]))
+
+    ans.postprocess_nodes()
+    return ans
