@@ -76,6 +76,8 @@ class BalancerTests(unittest.TestCase):
                 os.remove(os.path.join(dir_name, item))
 
         cls.balancer22 = Balancer_Book.make_2x2()
+        cls.balancer22d = Balancer_Book.make_2x2_double()
+        cls.balancer31 = Balancer_Book.make_3x1()
         cls.balancer44 = Balancer.combine_sidebyside(cls.balancer22)
         cls.balancer44TU = Balancer.combine_endtoend(cls.balancer44)
         # cls.balancer44TU.render_all_methods("balancer44TU")
@@ -91,6 +93,16 @@ class BalancerTests(unittest.TestCase):
 
     def test_2x2(self):
         self.runtest_balancer(self.balancer22, True, True, True, True, True, True)
+
+    def test_2x2d(self):
+
+        s = self.balancer22d.get_solver()
+        s.assert_and_track(z3.Sum([x.supply_var() for x in self.balancer22d.get_outputs()]) == z3.Sum([x.demand_var() for x in self.balancer22d.get_outputs()]), "all_equal")
+
+        self.runtest_balancer(self.balancer22d, True, True, True, True, True, True)
+
+    def test_3x1(self):
+        self.runtest_balancer(self.balancer31, True, True, True, False, True, True)
 
     def test_4x4(self):
         self.runtest_balancer(self.balancer44, True, False, True, False, True, False)
