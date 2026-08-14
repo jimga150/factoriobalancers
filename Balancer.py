@@ -221,9 +221,9 @@ class Balancer:
         for belt in self.belts:
             self.logger.debug(f"Belt {belt}")
 
-            self.z3solver.assert_and_track(belt.supply_var() <= 1, f"{str(belt)}_s_lte_1")
+            self.z3solver.assert_and_track(belt.supply_var() <= Belt.max_belt_val, f"{str(belt)}_s_lte_10")
             self.z3solver.assert_and_track(belt.supply_var() >= 0, f"{str(belt)}_s_gte_0")
-            self.z3solver.assert_and_track(belt.demand_var() <= 1, f"{str(belt)}_d_lte_1")
+            self.z3solver.assert_and_track(belt.demand_var() <= Belt.max_belt_val, f"{str(belt)}_d_lte_10")
             self.z3solver.assert_and_track(belt.demand_var() >= 0, f"{str(belt)}_d_gte_0")
 
         for node in self.nodes:
@@ -250,14 +250,14 @@ class Balancer:
             total_output_demand_var = z3.Sum(output_demand_vars)
             self.logger.debug(f"Adding: {str(splitter)}_d_io_eq")
             self.z3solver.assert_and_track(
-                z3.Sum(input_demand_vars) == common.z3realMin(total_output_demand_var, num_enabled_inputs),
+                z3.Sum(input_demand_vars) == common.z3realMin(total_output_demand_var, num_enabled_inputs*Belt.max_belt_val),
                 f"{str(splitter)}_d_io_eq")
 
             input_supply_vars = [belt.supply_var() for belt in enabled_inputs]
             output_supply_vars = [belt.supply_var() for belt in enabled_outputs]
             total_input_supply_var = z3.Sum(input_supply_vars)
             self.z3solver.assert_and_track(
-                common.z3realMin(total_input_supply_var, num_enabled_outputs) == z3.Sum(output_supply_vars),
+                common.z3realMin(total_input_supply_var, num_enabled_outputs*Belt.max_belt_val) == z3.Sum(output_supply_vars),
                 f"{str(splitter)}_s_io_eq")
 
             # -------------------------------------------------------------
@@ -267,9 +267,9 @@ class Balancer:
             has_priority_input = any([x.dest_priority for x in enabled_inputs])
 
             no_backpressure = z3.And(
-                z3.If(input_supply_vars[0] == 1, input_demand_vars[0] == 1,
+                z3.If(input_supply_vars[0] == Belt.max_belt_val, input_demand_vars[0] == Belt.max_belt_val,
                       input_demand_vars[0] > input_supply_vars[0]),
-                z3.If(input_supply_vars[-1] == 1, input_demand_vars[-1] == 1,
+                z3.If(input_supply_vars[-1] == Belt.max_belt_val, input_demand_vars[-1] == Belt.max_belt_val,
                       input_demand_vars[-1] > input_supply_vars[-1])
             )
 
@@ -338,9 +338,9 @@ class Balancer:
             has_priority_output = any(x.source_priority for x in enabled_outputs)
 
             both_backpressure = z3.And(
-                z3.If(output_demand_vars[0] == 1, output_supply_vars[0] == 1,
+                z3.If(output_demand_vars[0] == Belt.max_belt_val, output_supply_vars[0] == Belt.max_belt_val,
                       output_supply_vars[0] > output_demand_vars[0]),
-                z3.If(output_demand_vars[-1] == 1, output_supply_vars[-1] == 1,
+                z3.If(output_demand_vars[-1] == Belt.max_belt_val, output_supply_vars[-1] == Belt.max_belt_val,
                       output_supply_vars[-1] > output_demand_vars[-1])
             )
 

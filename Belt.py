@@ -14,6 +14,7 @@ class ColorStrategy(Enum):
     FLOW = 2
 
 class Belt(UniqueIDObj):
+    max_belt_val = 4
 
     def __init__(self, source: Node, dest: Node, source_priority: bool = False, dest_priority: bool = False):
 
@@ -79,7 +80,7 @@ class Belt(UniqueIDObj):
 
         if strat == ColorStrategy.FLOW:
             flow = self.flow()
-            hue = 0.5 - 0.5*flow # start at 0.5 (cyan) for 0 flow, move towards 0 (red) as flow increases
+            hue = 0.5 - 0.5*flow/Belt.max_belt_val # start at 0.5 (cyan) for 0 flow, move towards 0 (red) as flow increases
             return f"{hue} 0.75 0.75"
 
         if strat == ColorStrategy.PRIORITY:
