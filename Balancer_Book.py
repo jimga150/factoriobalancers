@@ -163,7 +163,7 @@ def test_tu_z3(balancer: Balancer) -> bool:
     z3solver = balancer.get_solver()
     z3solver.push()
 
-    # if theres any scenario in which the total flow rate is less than the min of (input supply, output demand), the balancer is not TU
+    # if there's any scenario in which the total flow rate is less than the min of (input supply, output demand), the balancer is not TU
 
     total_input_supply_var = z3.Sum([x.supply_var() for x in balancer.get_inputs()])
     total_output_demand_var = z3.Sum([x.demand_var() for x in balancer.get_outputs()])
