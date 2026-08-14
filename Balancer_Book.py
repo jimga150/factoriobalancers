@@ -859,6 +859,9 @@ def make_2x2() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
+def make_2x2_double() -> Balancer:
+    return Balancer.combine_endtoend(make_2x2())
+
 def make_2x2_pri_out() -> Balancer:
 
     ans = Balancer()
