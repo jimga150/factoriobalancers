@@ -107,7 +107,7 @@ def test_partial_tu_z3(balancer: Balancer) -> bool:
     for belt in balancer.get_inputs():
         demand_var = belt.demand_var()
         supply_var = belt.supply_var()
-        input_all_saturated_expr = z3.And(input_all_saturated_expr, demand_var < supply_var)
+        input_all_saturated_expr = z3.And(input_all_saturated_expr, demand_var <= supply_var)
 
     input_all_saturated_var = z3.Bool("input_all_saturated")
     z3solver.assert_and_track(input_all_saturated_var == input_all_saturated_expr, "input_all_saturated_expr")
@@ -117,7 +117,7 @@ def test_partial_tu_z3(balancer: Balancer) -> bool:
     for belt in balancer.get_outputs():
         demand_var = belt.demand_var()
         supply_var = belt.supply_var()
-        output_all_saturated_expr = z3.And(output_all_saturated_expr, demand_var < supply_var)
+        output_all_saturated_expr = z3.And(output_all_saturated_expr, demand_var <= supply_var)
 
     output_all_saturated_var = z3.Bool("output_all_saturated")
     z3solver.assert_and_track(output_all_saturated_var == output_all_saturated_expr, "output_all_saturated_expr")
