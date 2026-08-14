@@ -41,7 +41,7 @@ class Balancer:
             self.logger.addHandler(logging.StreamHandler(sys.stdout))
             self.logger.addHandler(logging.FileHandler("main_out.txt", mode='w+'))
 
-    def postprocess_nodes(self):
+    def postprocess_nodes(self, optimize: bool = True):
         self.nodes.clear()
         self.z3solver = None
         self.total_throughput_var = None
@@ -84,11 +84,12 @@ class Balancer:
             splitter = self.get_splitter(node)
             if len(splitter.get_enabled_inputs()) > 2:
                 raise AssertionError(f"Error: {node} has more than 2 inputs. This balancer is illegal.")
-            if len(splitter.get_enabled_outputs()) > 2:
-                raise AssertionError(f"Error: {node} has more than 2 outputs. This balancer is illegal.")
 
             outputs = splitter.get_enabled_outputs()
-            if len(outputs) == 2 and outputs[0].dest == outputs[1].dest:
+            if len(outputs) > 2:
+                raise AssertionError(f"Error: {node} has more than 2 outputs. This balancer is illegal.")
+
+            if optimize and len(outputs) == 2 and outputs[0].dest == outputs[1].dest:
                 nodes_to_remove.append(outputs[0].dest)
                 belts_to_remove.extend(outputs)
                 splitter_to_remove = self.get_splitter(outputs[0].dest)
@@ -102,7 +103,7 @@ class Balancer:
 
 
     @staticmethod
-    def combine_endtoend(upstream: Balancer, downstream: Balancer | NoneType = None) -> Balancer:
+    def combine_endtoend(upstream: Balancer, downstream: Balancer | NoneType = None, optimize: bool = True) -> Balancer:
 
         if downstream is None:
             downstream = upstream
@@ -129,7 +130,7 @@ class Balancer:
                 continue
             ans.belts.append(belt)
 
-        ans.postprocess_nodes()
+        ans.postprocess_nodes(optimize)
         return ans
 
     @staticmethod

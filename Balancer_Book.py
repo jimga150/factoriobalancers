@@ -860,7 +860,7 @@ def make_2x2() -> Balancer:
     return ans
 
 def make_2x2_double() -> Balancer:
-    return Balancer.combine_endtoend(make_2x2())
+    return Balancer.combine_endtoend(make_2x2(), optimize=False)
 
 def make_2x2_pri_out() -> Balancer:
 
