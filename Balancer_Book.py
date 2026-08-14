@@ -76,12 +76,7 @@ def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckS
         sat_check = z3solver.check()
 
         if sat_check == z3.sat:
-            z3model = z3solver.model()
-            balancer.logger.debug(f"{condition_name} Example:")
-            for belt in balancer.belts:
-                belt.supply = float(z3model[belt.supply_var()].as_fraction())
-                belt.demand = float(z3model[belt.demand_var()].as_fraction())
-                # print(type(z3model[belt].supply_var().as_fraction()))
+            balancer.set_to_model()
             balancer.render(f"{condition_name} Example", color_strat=ColorStrategy.BACKPRESSURE)
         else:
             core = z3solver.unsat_core()
