@@ -3,7 +3,7 @@ import threading
 import time
 
 threadLock = threading.Lock()
-unique_idx = 0
+unique_idx = 0x10
 copy_delay = 0
 
 class UniqueIDObj:
