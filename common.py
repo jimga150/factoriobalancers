@@ -50,11 +50,11 @@ def term_str(name, frac: float) -> str:
             if numerator_candidate == denominator_candidate:
                 return name if name != "" else "1"
             if name == "":
-                return f"{numerator_candidate}/{denominator_candidate}"
+                return f"{numerator_candidate}/{denominator_candidate}" if denominator_candidate != 1 else f"{numerator_candidate}"
             if numerator_candidate == 1:
                 num_str = name if name != "" else "1"
-                return f"{num_str}/{denominator_candidate}"
-            return f"{numerator_candidate}{name}/{denominator_candidate}"
+                return f"{num_str}/{denominator_candidate}" if denominator_candidate != 1 else f"{num_str}"
+            return f"{numerator_candidate}{name}/{denominator_candidate}" if denominator_candidate != 1 else f"{numerator_candidate}{name}"
 
     # print("no fraction")
     frac_str = f"{frac:.{decimals_verif}f}"
