@@ -9,6 +9,8 @@ diff_threshold_verif = 10 ** (-decimals_verif)
 # print extremely verbose iteration updates
 debug = False
 
+use_int_ext_vars = False
+
 # Limit each iteration to one splitter update and render network on each iteration.
 # This is liable to generate hundreds of MBs of images for each balancer calculation.
 deep_iteration_debug = False

@@ -426,6 +426,16 @@ class Balancer:
                     f"{str(splitter)}_nonpri_o"
                 )
 
+        if common.use_int_ext_vars:
+            # force all input supplies and output demands to integers
+            for belt in self.get_inputs():
+                int_supply = z3.Int(f"{belt.varname()}_supply_int")
+                self.z3solver.assert_and_track(int_supply == belt.supply_var(), f"{belt}_s_int")
+
+            for belt in self.get_outputs():
+                int_demand = z3.Int(f"{belt.varname()}_demand_int")
+                self.z3solver.assert_and_track(int_demand == belt.demand_var(), f"{belt}_d_int")
+
         total_throughput_expr = z3.Sum([x.flow_var() for x in self.get_outputs()])
         self.total_throughput_var = z3.Real("total_throughput")
         self.z3solver.assert_and_track(total_throughput_expr == self.total_throughput_var, "total_throughput_expr")
