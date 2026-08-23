@@ -439,6 +439,8 @@ class Balancer:
     def set_to_model(self):
         solver = self.get_solver()
         model = solver.model()
+        self.logger.debug("Full model:")
+        self.logger.debug(model)
         for belt in self.belts:
             belt.supply = float(model[belt.supply_var()].as_fraction())
             belt.demand = float(model[belt.demand_var()].as_fraction())
