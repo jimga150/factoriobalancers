@@ -464,6 +464,24 @@ class Balancer:
 
         return Splitter(inputs, outputs)
 
+    # returns all vars that are determined outside the balancer: supplies of inputs and demand of outputs
+    def get_external_vars(self) -> list[z3.ArithRef]:
+        ans = [x.supply_var() for x in self.get_inputs()]
+        ans.extend([x.demand_var() for x in self.get_outputs()])
+        return ans
+
+    def get_internal_vars(self) -> list[z3.ArithRef]:
+        ext_vars = self.get_external_vars()
+        ans = []
+        for belt in self.belts:
+            s = belt.supply_var()
+            d = belt.demand_var()
+            if s not in ext_vars:
+                ans.append(s)
+            if d not in ext_vars:
+                ans.append(d)
+        return ans
+
     def get_inputs(self) -> list[Belt]:
         return [x for x in self.belts if self.is_input(x)]
 
