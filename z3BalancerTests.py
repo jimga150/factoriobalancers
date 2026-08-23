@@ -166,9 +166,22 @@ class SplitterTests(unittest.TestCase):
         for belt, demand in zip(self.balancer22.get_outputs(), out_demands):
             self.solver.assert_and_track(belt.demand_var() == demand, f"{belt}_d_eq_{demand}")
 
-        self.assertEqual(self.solver.check(), z3.sat)
+        check_result = self.solver.check()
+
+        if check_result == z3.unsat:
+            self.balancer22.logger.error("Unsat core:")
+            self.balancer22.logger.error(self.solver.unsat_core())
+
+        self.assertEqual(check_result, z3.sat)
 
         self.balancer22.set_to_model()
+        if common.debug:
+            test_dbg_name = ""
+            test_dbg_name += "[" + (", ".join(str(x) for x in in_supplies)) + "], "
+            test_dbg_name += "[" + (", ".join(str(x) for x in in_demands)) + "], "
+            test_dbg_name += "[" + (", ".join(str(x) for x in out_supplies)) + "], "
+            test_dbg_name += "[" + (", ".join(str(x) for x in out_demands)) + "]"
+            self.balancer22.render(test_dbg_name, ColorStrategy.BACKPRESSURE)
 
         for belt, demand in zip(self.balancer22.get_inputs(), in_demands):
             self.compareVals(belt.demand, demand)
