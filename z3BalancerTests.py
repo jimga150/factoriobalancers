@@ -193,7 +193,7 @@ class SplitterTests(unittest.TestCase):
         if expected == "X":
             return
         elif type(expected) is int or type(expected) is float:
-            self.assertEqual(actual, expected)
+            self.assertEqual(expected, actual)
         elif expected[:2] == '<=':
             self.assertLessEqual(actual, float(expected[2:]))
         elif expected[:1] == '<':
