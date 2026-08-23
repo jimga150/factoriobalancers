@@ -29,10 +29,6 @@ def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckS
         balancer.logger.debug(a)
 
     if check_result == z3.sat:
-        z3model = z3solver.model()
-
-        balancer.logger.debug("Full model:")
-        balancer.logger.debug(z3model)
         # for a in z3solver.assertions():
         #     balancer.logger.debug(a)
 
