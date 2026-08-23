@@ -96,10 +96,13 @@ class BalancerTests(unittest.TestCase):
 
     def test_2x2d(self):
 
-        s = self.balancer22d.get_solver()
-        s.assert_and_track(z3.Sum([x.supply_var() for x in self.balancer22d.get_outputs()]) == z3.Sum([x.demand_var() for x in self.balancer22d.get_outputs()]), "all_equal")
+        # s = self.balancer22d.get_solver()
+        # s.push()
+        # s.assert_and_track(z3.Sum([x.supply_var() for x in self.balancer22d.get_outputs()]) == z3.Sum([x.demand_var() for x in self.balancer22d.get_outputs()]), "all_equal")
 
         self.runtest_balancer(self.balancer22d, True, True, True, True, True, True)
+
+        # s.pop()
 
     def test_3x1(self):
         self.runtest_balancer(self.balancer31, True, True, True, False, True, True)
