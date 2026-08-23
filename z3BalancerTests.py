@@ -192,6 +192,9 @@ class SplitterTests(unittest.TestCase):
         else:
             self.assertTrue(False, msg="value check failed all type/formatting checks")
 
+    # depreciated--with the way supply is currently handled (generating oversupply when reacting to demand),
+    # splitters no longer are totally reversible the way this test checks them.
+    # the flow is still reversible, but this test makes supply imperative
     def runtest_splitter_bothways(self, in_supplies: list[float], in_demands: list[float|str], out_supplies: list[float|str], out_demands: list[float]):
         # run a splitter test, both in the intended way, and reversing supply and demand parameters. should produce the same result both times
 
@@ -207,20 +210,20 @@ class SplitterTests(unittest.TestCase):
 
     def test_even_supply(self):
         # distributes supply evenly among higher demands
-        self.runtest_splitter_bothways([0, 1], ["X", 1], [0.5, 0.5], [1, 1])
+        self.runtest_splitter([0, 1], [">=0", ">=1"], [0.5, 0.5], [1, 1])
 
     def test_uneven_unsaturated_supply(self):
         # total supply is still less than total demand, but one supply gets higher to meet higher demand
         # while the other one caps out at its lower demand
-        self.runtest_splitter_bothways([0.25, 1], [">0.25", 1], [0.5, 0.75], [0.5, 1])
+        self.runtest_splitter([0.25, 1], [">=0.25", ">=1"], [">=0.5", 0.75], [0.5, 1])
 
     def test_uneven_saturated_supply(self):
         # total supply = total demand, but the numbers change so we can see its redistributing
-        self.runtest_splitter_bothways([0.25, 1], [0.25, 1], [0.5, 0.75], [0.5, 0.75])
+        self.runtest_splitter([0.25, 1], [0.25, 1], [">=0.5", ">=0.75"], [0.5, 0.75])
 
     def test_oversupply(self):
         # total supply > total demand, so both supplies just need to saturate demand
-        self.runtest_splitter_bothways([0.75, 0.75], [0.375, 0.375], [">=0.5", ">=0.25"], [0.5, 0.25])
+        self.runtest_splitter([0.75, 0.75], [0.375, 0.375], [">=0.5", ">=0.25"], [0.5, 0.25])
 
 if __name__ == '__main__':
     unittest.main()
