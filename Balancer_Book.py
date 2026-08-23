@@ -158,13 +158,16 @@ def test_tu_z3(balancer: Balancer) -> bool:
 
     total_input_supply_var = z3.Sum([x.supply_var() for x in balancer.get_inputs()])
     total_output_demand_var = z3.Sum([x.demand_var() for x in balancer.get_outputs()])
-    exp_full_throughput_rate_var = common.z3realMin(total_input_supply_var, total_output_demand_var)
+    exp_full_throughput_rate_expr = common.z3realMin(total_input_supply_var, total_output_demand_var)
+
+    exp_full_throughput_rate_var = z3.Real("exp_full_throughput_rate")
+    z3solver.assert_and_track(exp_full_throughput_rate_var == exp_full_throughput_rate_expr, "exp_full_throughput_rate_expr")
 
     total_throughput_var = balancer.total_throughput_var
 
     z3solver.push()
 
-    z3solver.assert_and_track(total_throughput_var != exp_full_throughput_rate_var, "non_TU")
+    z3solver.assert_and_track(balancer.total_throughput_var != exp_full_throughput_rate_var, "non_TU")
 
     check_result = z3solver.check()
 

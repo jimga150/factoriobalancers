@@ -222,10 +222,16 @@ class Balancer:
         for belt in self.belts:
             self.logger.debug(f"Belt {belt}")
 
-            self.z3solver.assert_and_track(belt.supply_var() <= Belt.max_belt_val, f"{str(belt)}_s_lte_10")
+            # removed since oversupply logic can force supply to be greater than belt capacity
+            # self.z3solver.assert_and_track(belt.supply_var() <= Belt.max_belt_val, f"{str(belt)}_s_lte_{Belt.max_belt_val}")
+
             self.z3solver.assert_and_track(belt.supply_var() >= 0, f"{str(belt)}_s_gte_0")
-            self.z3solver.assert_and_track(belt.demand_var() <= Belt.max_belt_val, f"{str(belt)}_d_lte_10")
+            self.z3solver.assert_and_track(belt.demand_var() <= Belt.max_belt_val, f"{str(belt)}_d_lte_{Belt.max_belt_val}")
             self.z3solver.assert_and_track(belt.demand_var() >= 0, f"{str(belt)}_d_gte_0")
+
+        for belt in self.get_inputs():
+            # gotta assert them on the input supplies since they will not be driven from our oversupply rules
+            self.z3solver.assert_and_track(belt.supply_var() <= Belt.max_belt_val, f"{str(belt)}_s_lte_{Belt.max_belt_val}")
 
         for node in self.nodes:
             try:
@@ -249,17 +255,28 @@ class Balancer:
             input_demand_vars = [belt.demand_var() for belt in enabled_inputs]
             output_demand_vars = [belt.demand_var() for belt in enabled_outputs]
             total_output_demand_var = z3.Sum(output_demand_vars)
-            self.logger.debug(f"Adding: {str(splitter)}_d_io_eq")
             self.z3solver.assert_and_track(
                 z3.Sum(input_demand_vars) == common.z3realMin(total_output_demand_var, num_enabled_inputs*Belt.max_belt_val),
-                f"{str(splitter)}_d_io_eq")
+                f"{str(splitter)}_d_io_eq"
+            )
 
             input_supply_vars = [belt.supply_var() for belt in enabled_inputs]
             output_supply_vars = [belt.supply_var() for belt in enabled_outputs]
             total_input_supply_var = z3.Sum(input_supply_vars)
+            # removed because supply will now be created to force backpressure
+            # self.z3solver.assert_and_track(
+            #     common.z3realMin(total_input_supply_var, num_enabled_outputs*Belt.max_belt_val) == z3.Sum(output_supply_vars),
+            #     f"{str(splitter)}_s_io_eq"
+            # )
+
+            input_flow_vars = [belt.flow_var() for belt in enabled_inputs]
+            total_input_flow_var = z3.Sum(input_flow_vars)
+            output_flow_vars = [belt.flow_var() for belt in enabled_outputs]
+            total_output_flow_var = z3.Sum(output_flow_vars)
             self.z3solver.assert_and_track(
-                common.z3realMin(total_input_supply_var, num_enabled_outputs*Belt.max_belt_val) == z3.Sum(output_supply_vars),
-                f"{str(splitter)}_s_io_eq")
+                common.z3realMin(total_input_flow_var, num_enabled_outputs*Belt.max_belt_val) == total_output_flow_var,
+                f"{str(splitter)}_f_io_eq"
+            )
 
             # -------------------------------------------------------------
             # Handle demand of inputs
@@ -338,6 +355,7 @@ class Balancer:
 
             has_priority_output = any(x.source_priority for x in enabled_outputs)
 
+            # both supply > their demands
             both_backpressure = z3.And(
                 z3.If(output_demand_vars[0] == Belt.max_belt_val, output_supply_vars[0] == Belt.max_belt_val,
                       output_supply_vars[0] > output_demand_vars[0]),
@@ -351,41 +369,48 @@ class Balancer:
                 # overall equation:
                 # if total_supply > total_demand:
                 #   both supply > their demands
-                # else
-                #   priority output supply = min(total supply, pri demand)
-                #   (supply of other output derivable from splitter _s_io_eq rule)
+                # if priority demand < total flow (nonpriority output overflow):
+                #   pressure on priority belt (oversupply)
+                #   rest to nonpriority belt (by flow equality rule)
+                # else (only priority output flowing)
+                #   priority output supply = total flow
 
                 priority_belt = next(x for x in enabled_outputs if x.source_priority)
                 priority_belt_supply_var = priority_belt.supply_var()
                 priority_belt_demand_var = priority_belt.demand_var()
 
-                self.z3solver.assert_and_track(
-                    z3.If(
-                        total_input_supply_var > total_output_demand_var,
-                        both_backpressure,
-                        priority_belt_supply_var == common.z3realMin(total_input_supply_var, priority_belt_demand_var)
-                    ),
-                    f"{str(splitter)}_pri_o")
+                one_or_no_backpressure = z3.If(
+                    priority_belt_demand_var < total_input_flow_var,
+                    priority_belt_supply_var == priority_belt_demand_var*1.1,
+                    priority_belt_supply_var == total_input_flow_var
+                )
+
+                self.z3solver.assert_and_track(z3.If(
+                    total_input_supply_var > total_output_demand_var,
+                    both_backpressure,
+                    one_or_no_backpressure
+                ), f"{str(splitter)}_pri_o")
 
             else:
                 self.logger.debug("No priority output")
 
                 # overall equation:
-                # if min_demand * num_enabled_outputs >= total_supply:
+                # if min_demand * num_enabled_outputs >= total_supply (no backpressure on either):
                 #   apply supply evenly
-                # elif total_supply < total_demand:
-                #   (belt with min demand)'s supply = its demand
-                #   other belt supply = total supply - former's supply
+                # elif total_supply < total_demand (backpressure on one):
+                #   (belt with min demand)'s supply > its demand
+                #   other belt supply = total flow - former's demand
                 # else (backpressure necessary from both outputs)
                 #   both supply > their demands
 
                 min_output_demand_var = common.z3realMin(output_demand_vars[0], output_demand_vars[-1])
+                max_output_demand_var = common.z3realMax(output_demand_vars[0], output_demand_vars[-1])
 
                 uneven_supply = z3.And(
-                    output_supply_vars[0] <= output_demand_vars[0],
-                    output_supply_vars[-1] <= output_demand_vars[-1],
-                    output_supply_vars[0] >= min_output_demand_var,
-                    output_supply_vars[-1] >= min_output_demand_var
+                    output_supply_vars[0] <= max_output_demand_var,
+                    output_supply_vars[-1] <= max_output_demand_var,
+                    output_supply_vars[0] > min_output_demand_var,
+                    output_supply_vars[-1] > min_output_demand_var
                 )
 
                 uneven_supply_cond = z3.If(
