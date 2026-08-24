@@ -147,12 +147,17 @@ class BalancerTests(unittest.TestCase):
 class SplitterTests(unittest.TestCase):
     # test various configurations of supply and demand against actual data in factorio
 
+    # all external vars are of the form n/denominator
+    denominator = 4
+
     @classmethod
     def setUpClass(cls):
         cls.balancer22 = Balancer_Book.make_2x2()
         cls.solver = cls.balancer22.get_solver()
 
     def setUp(self):
+        if common.use_quant_ext_vars:
+            self.assertGreaterEqual(common.ext_var_quant_denom, self.denominator)
         self.solver.push()
 
     def tearDown(self):
@@ -164,6 +169,10 @@ class SplitterTests(unittest.TestCase):
         self.assertEqual(2, len(in_demands))
         self.assertEqual(2, len(out_supplies))
         self.assertEqual(2, len(out_demands))
+
+        if common.use_quant_ext_vars:
+            in_supplies = [x*self.denominator for x in in_supplies]
+            out_demands = [x*self.denominator for x in out_demands]
 
         for belt, supply in zip(self.balancer22.get_inputs(), in_supplies):
             self.solver.assert_and_track(belt.supply_var() == supply, f"{belt}_s_eq_{supply}")
@@ -189,10 +198,10 @@ class SplitterTests(unittest.TestCase):
             self.balancer22.render(test_dbg_name, ColorStrategy.BACKPRESSURE)
 
         for belt, demand in zip(self.balancer22.get_inputs(), in_demands):
-            self.compareVals(belt.demand, demand)
+            self.compareVals(float(belt.demand)/self.denominator, demand)
 
         for belt, supply in zip(self.balancer22.get_outputs(), out_supplies):
-            self.compareVals(belt.supply, supply)
+            self.compareVals(float(belt.supply)/self.denominator, supply)
 
     def compareVals(self, actual: float, expected: float|str):
         if expected == "X":

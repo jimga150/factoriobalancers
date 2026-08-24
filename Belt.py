@@ -14,7 +14,7 @@ class ColorStrategy(Enum):
     FLOW = 2
 
 class Belt(UniqueIDObj):
-    max_belt_val = 4 if common.use_int_ext_vars else 1
+    max_belt_val = common.ext_var_quant_denom if common.use_quant_ext_vars else 1
 
     def __init__(self, source: Node, dest: Node, source_priority: bool = False, dest_priority: bool = False):
 

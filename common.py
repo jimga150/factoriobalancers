@@ -9,7 +9,10 @@ diff_threshold_verif = 10 ** (-decimals_verif)
 # print extremely verbose iteration updates
 debug = False
 
-use_int_ext_vars = False
+# use quantized external variables
+# when true, input supplies and output demands must be of the form N/ext_var_quant_denom
+use_quant_ext_vars = False
+ext_var_quant_denom = 4
 
 # Limit each iteration to one splitter update and render network on each iteration.
 # This is liable to generate hundreds of MBs of images for each balancer calculation.
