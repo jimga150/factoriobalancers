@@ -62,7 +62,7 @@ class NodeTests(unittest.TestCase):
                 print("same_names:")
                 for node in same_names:
                     print(f"{str(node)} ({hash(node)}) ({id(node)})")
-                self.assertEqual(len(same_names), 1)
+                self.assertEqual(1, len(same_names))
 
 class BalancerTests(unittest.TestCase):
 
@@ -91,7 +91,7 @@ class BalancerTests(unittest.TestCase):
 
     # def test_play(self):
     #     self.assertTrue(True)
-    #     self.assertEqual(Balancer_Book.test_input_balanced_z3(self.balancer44), False)
+    #     self.assertEqual(False, Balancer_Book.test_input_balanced_z3(self.balancer44))
 
     def test_2x2(self):
         self.runtest_balancer(self.balancer22, True, True, True, True, True, True)
@@ -127,22 +127,22 @@ class BalancerTests(unittest.TestCase):
     def runtest_balancer(self, balancer: Balancer, ptu: bool, tu: bool, pi: bool, fi: bool, po: bool, fo: bool):
 
         with self.subTest(msg="Partially TU"):
-            self.assertEqual(Balancer_Book.test_partial_tu_z3(balancer), ptu)
+            self.assertEqual(ptu, Balancer_Book.test_partial_tu_z3(balancer))
 
         with self.subTest(msg="TU"):
-            self.assertEqual(Balancer_Book.test_tu_z3(balancer), tu)
+            self.assertEqual(tu, Balancer_Book.test_tu_z3(balancer))
 
         with self.subTest(msg="Partially Input Balanced"):
-            self.assertEqual(Balancer_Book.test_partial_input_balanced_z3(balancer), pi)
+            self.assertEqual(pi, Balancer_Book.test_partial_input_balanced_z3(balancer))
 
         with self.subTest(msg="Input balanced"):
-            self.assertEqual(Balancer_Book.test_input_balanced_z3(balancer), fi)
+            self.assertEqual(fi, Balancer_Book.test_input_balanced_z3(balancer))
 
         with self.subTest(msg="Partially Output Balanced"):
-            self.assertEqual(Balancer_Book.test_partial_output_balanced_z3(balancer), po)
+            self.assertEqual(po, Balancer_Book.test_partial_output_balanced_z3(balancer))
 
         with self.subTest(msg="Output Balanced"):
-            self.assertEqual(Balancer_Book.test_output_balanced_z3(balancer), fo)
+            self.assertEqual(fo, Balancer_Book.test_output_balanced_z3(balancer))
 
 class SplitterTests(unittest.TestCase):
     # test various configurations of supply and demand against actual data in factorio
@@ -160,10 +160,10 @@ class SplitterTests(unittest.TestCase):
 
     def runtest_splitter(self, in_supplies: list[float], in_demands: list[float|str], out_supplies: list[float|str], out_demands: list[float]):
 
-        self.assertEqual(len(in_supplies), 2)
-        self.assertEqual(len(in_demands), 2)
-        self.assertEqual(len(out_supplies), 2)
-        self.assertEqual(len(out_demands), 2)
+        self.assertEqual(2, len(in_supplies))
+        self.assertEqual(2, len(in_demands))
+        self.assertEqual(2, len(out_supplies))
+        self.assertEqual(2, len(out_demands))
 
         for belt, supply in zip(self.balancer22.get_inputs(), in_supplies):
             self.solver.assert_and_track(belt.supply_var() == supply, f"{belt}_s_eq_{supply}")
@@ -177,7 +177,7 @@ class SplitterTests(unittest.TestCase):
             self.balancer22.logger.error("Unsat core:")
             self.balancer22.logger.error(self.solver.unsat_core())
 
-        self.assertEqual(check_result, z3.sat)
+        self.assertEqual(z3.sat, check_result)
 
         self.balancer22.set_to_model()
         if common.debug:
