@@ -246,7 +246,7 @@ class SplitterTests(unittest.TestCase):
 
     def test_uneven_saturated_supply(self):
         # total supply = total demand, but the numbers change so we can see its redistributing
-        self.runtest_splitter([0.25, 1], [0.25, 1], [">=0.5", ">=0.75"], [0.5, 0.75])
+        self.runtest_splitter([0.25, 1], [0.25, 1], [">=0.5", 0.75], [0.5, 0.75])
 
     def test_oversupply(self):
         # total supply > total demand, so both supplies just need to saturate demand
