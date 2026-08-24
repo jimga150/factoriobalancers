@@ -24,6 +24,9 @@ class Balancer:
     default_img_filename = "Network"
     default_logger = balancerLogger
 
+    # when generating false oversupply, go over by this amount
+    oversupply_amt = common.diff_threshold_iter
+
     def __init__(self):
         self.belts = list()
         self.nodes = list()
@@ -357,10 +360,15 @@ class Balancer:
 
             # both supply > their demands
             both_backpressure = z3.And(
+
+                # oversupply on both outputs
                 z3.If(output_demand_vars[0] == Belt.max_belt_val, output_supply_vars[0] == Belt.max_belt_val,
                       output_supply_vars[0] > output_demand_vars[0]),
                 z3.If(output_demand_vars[-1] == Belt.max_belt_val, output_supply_vars[-1] == Belt.max_belt_val,
-                      output_supply_vars[-1] > output_demand_vars[-1])
+                      output_supply_vars[-1] > output_demand_vars[-1]),
+
+                # enforce supply in/out equality for this since we don't have to oversupply artificially
+                z3.Sum(output_supply_vars) == total_input_supply_var
             )
 
             if has_priority_output:
@@ -381,7 +389,7 @@ class Balancer:
 
                 one_or_no_backpressure = z3.If(
                     priority_belt_demand_var < total_input_flow_var,
-                    priority_belt_supply_var == priority_belt_demand_var*1.1,
+                    priority_belt_supply_var == priority_belt_demand_var + Balancer.oversupply_amt,
                     priority_belt_supply_var == total_input_flow_var
                 )
 
@@ -410,7 +418,9 @@ class Balancer:
                     output_supply_vars[0] <= max_output_demand_var,
                     output_supply_vars[-1] <= max_output_demand_var,
                     output_supply_vars[0] > min_output_demand_var,
-                    output_supply_vars[-1] > min_output_demand_var
+                    output_supply_vars[-1] > min_output_demand_var,
+                    # set in/out supply equality to account for oversupply amount to lower demand output belt
+                    z3.Sum(output_supply_vars) == total_input_supply_var + Balancer.oversupply_amt
                 )
 
                 uneven_supply_cond = z3.If(
