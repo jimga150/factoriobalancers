@@ -231,14 +231,13 @@ def test_input_balanced_z3(balancer: Balancer) -> bool:
     # if theres any scenario in which any two input belts have supply > demand != average demand of blocked inputs
     # then the balancer is not input balanced
 
-    total_throughput_var = balancer.total_throughput_var
-    total_blocked_input_expr = total_throughput_var
+    total_blocked_input_expr = 0
     num_blocked_inputs_expr = 0
 
     for belt in balancer.get_inputs():
         supply_var = belt.supply_var()
         demand_var = belt.demand_var()
-        total_blocked_input_expr = z3.If(supply_var <= demand_var, total_blocked_input_expr - supply_var,
+        total_blocked_input_expr = z3.If(supply_var > demand_var, total_blocked_input_expr + demand_var,
                                          total_blocked_input_expr)
         num_blocked_inputs_expr = z3.If(supply_var > demand_var, num_blocked_inputs_expr + 1,
                                         num_blocked_inputs_expr)
@@ -322,14 +321,13 @@ def test_output_balanced_z3(balancer: Balancer) -> bool:
     # if in any scenario, an output has demand > supply != average supply of unblocked outputs
     # then the balancer is not output balanced
 
-    total_throughput_var = balancer.total_throughput_var
-    total_unblocked_output_var = total_throughput_var
+    total_unblocked_output_var = 0
     num_unblocked_outputs_var = 0
 
     for belt in balancer.get_outputs():
         supply_var = belt.supply_var()
         demand_var = belt.demand_var()
-        total_unblocked_output_var = z3.If(supply_var >= demand_var, total_unblocked_output_var - demand_var,
+        total_unblocked_output_var = z3.If(supply_var < demand_var, total_unblocked_output_var + supply_var,
                                                total_unblocked_output_var)
         num_unblocked_outputs_var = z3.If(supply_var < demand_var, num_unblocked_outputs_var + 1,
                                          num_unblocked_outputs_var)
