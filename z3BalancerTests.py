@@ -148,7 +148,7 @@ class SplitterTests(unittest.TestCase):
     # test various configurations of supply and demand against actual data in factorio
 
     # all external vars are of the form n/denominator
-    denominator = 4
+    denominator = common.ext_var_quant_denom if common.use_quant_ext_vars else 1
 
     @classmethod
     def setUpClass(cls):
