@@ -8,6 +8,7 @@ import z3
 import common
 from Balancer import Balancer
 import Balancer_Book
+import BalancerTests
 from Belt import ColorStrategy
 from Node import Node
 import UniqueIDObj
@@ -64,7 +65,7 @@ class NodeTests(unittest.TestCase):
                     print(f"{str(node)} ({hash(node)}) ({id(node)})")
                 self.assertEqual(1, len(same_names))
 
-class BalancerTests(unittest.TestCase):
+class Z3BalancerTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -127,22 +128,22 @@ class BalancerTests(unittest.TestCase):
     def runtest_balancer(self, balancer: Balancer, ptu: bool, tu: bool, pi: bool, fi: bool, po: bool, fo: bool):
 
         with self.subTest(msg="Partially TU"):
-            self.assertEqual(ptu, Balancer_Book.test_partial_tu_z3(balancer))
+            self.assertEqual(ptu, BalancerTests.test_partial_tu_z3(balancer))
 
         with self.subTest(msg="TU"):
-            self.assertEqual(tu, Balancer_Book.test_tu_z3(balancer))
+            self.assertEqual(tu, BalancerTests.test_tu_z3(balancer))
 
         with self.subTest(msg="Partially Input Balanced"):
-            self.assertEqual(pi, Balancer_Book.test_partial_input_balanced_z3(balancer))
+            self.assertEqual(pi, BalancerTests.test_partial_input_balanced_z3(balancer))
 
         with self.subTest(msg="Input balanced"):
-            self.assertEqual(fi, Balancer_Book.test_input_balanced_z3(balancer))
+            self.assertEqual(fi, BalancerTests.test_input_balanced_z3(balancer))
 
         with self.subTest(msg="Partially Output Balanced"):
-            self.assertEqual(po, Balancer_Book.test_partial_output_balanced_z3(balancer))
+            self.assertEqual(po, BalancerTests.test_partial_output_balanced_z3(balancer))
 
         with self.subTest(msg="Output Balanced"):
-            self.assertEqual(fo, Balancer_Book.test_output_balanced_z3(balancer))
+            self.assertEqual(fo, BalancerTests.test_output_balanced_z3(balancer))
 
 class SplitterTests(unittest.TestCase):
     # test various configurations of supply and demand against actual data in factorio
