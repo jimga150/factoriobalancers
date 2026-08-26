@@ -45,18 +45,16 @@ def fetch_assets():
         game_directories.append(path_str)
         i = i + 1
 
-    # factorio_installs = [x for x in game_directories if path.exists(path(x) / 'steamapps' / 'common' / 'Factorio')]
-    factorio_installs = []
+    game_directory = None
     for x in game_directories:
         path_to_check = path(x) / 'steamapps' / 'common' / 'Factorio'
-        print(f"Checking {path_to_check}")
+        print(f"Checking for factorio install at {path_to_check}")
         if path.exists(path_to_check):
-            factorio_installs.append(path_to_check)
+            game_directory = path_to_check
+            break
 
-    if len(factorio_installs) == 0:
+    if game_directory is None:
         raise RuntimeError("No Factorio installation found")
-
-    game_directory = factorio_installs[0]
 
     entity_dirs = [
         "base",
