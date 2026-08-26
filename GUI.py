@@ -1,11 +1,97 @@
+import os
+import shutil
 import sys
+from pathlib import Path as path
 
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QPainter, QImage
+from vdfparse import VDFParse
 
 from Blueprint import Blueprint, Direction
 
+
+def fetch_assets():
+
+    # taken from Factorio-SAT
+
+    if sys.platform.startswith('linux'):
+        steam_directory = os.path.expanduser('~/.steam')
+    elif sys.platform.startswith('win32'):
+        steam_directory = 'C:\\Program Files (x86)\\Steam'
+    elif sys.platform.startswith('darwin'):
+        steam_directory = os.path.expanduser('~/Library/Application Support/Steam')
+    else:
+        raise RuntimeError('Unknown platform: {}'.format(sys.platform))
+
+    steam_directory = path(steam_directory)
+
+    if not path.exists(steam_directory):
+        raise RuntimeError('No steam installation found at: {}'.format(steam_directory))
+
+    game_directories = []
+
+    lib_folders_file = steam_directory / "steamapps" / "libraryfolders.vdf"
+    vdf = VDFParse(str(lib_folders_file))
+    lib_folders = vdf["libraryfolders"]
+
+    i = 0
+    while True:
+        lib_node = lib_folders[f"{i}"]
+        if not lib_node.GetNode():
+            break
+        path_str = lib_node["path"].ToString().replace("\"", "")
+        print(f"Found Steam library at {path_str}")
+        game_directories.append(path_str)
+        i = i + 1
+
+    # factorio_installs = [x for x in game_directories if path.exists(path(x) / 'steamapps' / 'common' / 'Factorio')]
+    factorio_installs = []
+    for x in game_directories:
+        path_to_check = path(x) / 'steamapps' / 'common' / 'Factorio'
+        print(f"Checking {path_to_check}")
+        if path.exists(path_to_check):
+            factorio_installs.append(path_to_check)
+
+    if len(factorio_installs) == 0:
+        raise RuntimeError("No Factorio installation found")
+
+    game_directory = factorio_installs[0]
+
+    entity_dirs = [
+        "base",
+        "space-age"
+    ]
+    entity_dirs = [game_directory / 'data' / x / "graphics" / "entity" for x in entity_dirs]
+
+    spritesheet_paths = [
+        path("transport-belt") / "transport-belt.png",
+        path("splitter") / "splitter-east.png",
+        path("splitter") / "splitter-east-top_patch.png",
+        path("splitter") / "splitter-north.png",
+        path("splitter") / "splitter-south.png",
+        path("splitter") / "splitter-west.png",
+        path("splitter") / "splitter-west-top_patch.png",
+        path("underground-belt") / "underground-belt-structure.png",
+    ]
+
+    for ss_path in spritesheet_paths:
+        found_ss = False
+        for entity_dir in entity_dirs:
+            full_ss_path = entity_dir / ss_path
+            if not path.exists(full_ss_path):
+                continue
+            dest_ss_path = path("assets") / ss_path.name
+            source_file = str(full_ss_path)
+            print('Copying: {} -> {}'.format(source_file, dest_ss_path))
+            found_ss = True
+
+            if full_ss_path.is_file():
+                shutil.copyfile(source_file, dest_ss_path)
+            else:
+                shutil.copy(source_file, dest_ss_path)
+        if not found_ss:
+            print('No sprite sheet found for {}'.format(ss_path))
 
 class GUI(QtWidgets.QMainWindow):
     def __init__(self, bp: Blueprint):
