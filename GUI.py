@@ -1,0 +1,63 @@
+import sys
+
+from PySide6 import QtWidgets, QtCore
+from PySide6.QtCore import QSize
+from PySide6.QtGui import QPainter, QImage
+
+from Blueprint import Blueprint, Direction
+
+
+class GUI(QtWidgets.QMainWindow):
+    def __init__(self, bp: Blueprint):
+        super().__init__()
+        self.img = QImage("assets/transport-belt.png")
+        self.sprite_size = QSize(64, 64)
+        self.init_sprite_loc = QtCore.QPoint(30, 38)
+        self.sprite_spacing = QtCore.QPoint(158, 166) - self.init_sprite_loc
+        self.bp = bp
+
+    @staticmethod
+    def ss_y_offset(direction: Direction) -> int:
+        if direction == Direction.RIGHT:
+            return 0
+        if direction == Direction.LEFT:
+            return 1
+        if direction == Direction.UP:
+            return 2
+        if direction == Direction.DOWN:
+            return 3
+        raise ValueError("Invalid direction")
+
+    def paintEvent(self, event):
+        print("Paint")
+        with QPainter(self) as p:
+            img = QImage("assets/transport-belt.png")
+
+            for entity in self.bp.entities():
+
+                bp_pos_x = int(entity["position"]["x"])
+                bp_pos_y = int(entity["position"]["y"])
+                r_x = bp_pos_x - self.bp.min_x
+                r_y = bp_pos_y - self.bp.min_y
+
+                try:
+                    bp_dir = entity["direction"]
+                except KeyError:
+                    bp_dir = 0
+
+                # print(r_x, r_y)
+                sprite_rect = QtCore.QRect(
+                    self.init_sprite_loc + QtCore.QPoint(self.sprite_spacing.x() * 1, self.sprite_spacing.y() * self.ss_y_offset(self.bp.dir_from_int(bp_dir))),
+                    self.sprite_size)
+                p.drawImage(QtCore.QPoint(r_x, r_y) * self.sprite_size.width(), img, sprite_rect)
+
+if __name__ == '__main__':
+
+    app = QtWidgets.QApplication([])
+
+    # widget = GUI(Blueprint("0eJylkstugzAQRX+lumuDeBjTeNkv6L6KKkhG7UjGINtpgpD/vQIWbdp0UbKc0dwzdx4TWnOiwbEN0BP40FsP/TLB85ttzJwL40DQ4EAdBGzTzVFwjfVD70LSkgmIAmyPdIHOo9guLu4Rl/eIZdwLkA0cmNYFLMH4ak9dSw46/4shMPSeA/d27nqBTqTM0kpghE5KlVZx9vWDVmyj1WkVBY7s6LCWFDfY5T/Y5e7K6RVb3WDLbexfvpd1L6fR3x5QwDQtGWg8kQkPz2zP70QGAh/k/DrwYy5ruatVnWeqUl8HzOInTeLqGg=="))
+    widget = GUI(Blueprint("0eJydmttu4zYQhl9F4FULKIFISzz4MRbZq2JRyDGbCFAkQ6aSdQO/e2G7ieiE9PDnpYPo03DOM+I72/Sz3U3d4Nj6nW3t/nHqdq4bB7ZmD8/TOD8972Z3Nw9999I5uy3+ePj5Z7Fp+3Z4tNO+aPu39rAvdtP42m1t8c/c94X7fO6+KH7Yp7lvJ/+RyRbj0B+Kp7md2sFZuy3cGEMUb892KNq+L7phN7t9MU7nX+Pszj9PtNl1ffev3d6zknWP47Bn67/e2b57Gtr+dCx32Fm2Zq/d5Oa2ZyUb2pfTHy7/cafZsWTdsLW/2Zofy8wnBfTkwfb9+OY9voIef/CerI+/SmYH17nOXk5+/nH4e5hfNnZia/75tJvaYb8bJ3e3sb1jJduN++5i7Xf2m62Vau6bkh3YWtTqvjmeZPoCEwBMUbAVAJMUrAZghoI1AExTMJkO05yCKQBWUTANwAQFM4uX7vrOOTsF7fg/RIchvMryVhOh8SSZNCGTSKIoQpZVCkVXhCyIm2tSP4ifG5Imk04oiBOqJAonZMlz7RjN5HhlU0VyaJaPNzxCW3x8HrZ2eprGedjSSfksXflRaS71lIX4AuJLmJ9VBc7aKNm2m+zj5T+4CMGRcFEoPKtKRO0IlAmPFvMxoE4skR2VDYgmjxaTzSAetVSxVI9aVRCfw3ygo/Lo35yqDrGBBsvTTBobiLQlJ8asuAJCy6NFPGyFxNKSE1dJ50Yia2GLr2wdYidVq48O48wMUZD4UlenD9GQaiUxXdZQbHn0b9o8dVVkqNVJDdxH0xRTb42VMPNFJbSUK4ivYT4SahXlHjUQal76+uYewZpYy8zce8s/zqN/UDHINCRuvSsEz2oho1rPayHrlKBs8hrKJjL7IgsDRdKw2FNfTk55QIOFnrwSNwFfZ+K/2y3hZXn9ZJPkzQ1SBA0KV5kdXaIVkEjkVzYI0XLbzxs2jedumduMpqlGIr2ooFQjke5TUKEvkzYeHxuhRkYoyAi3JLfYLg6JMXVFI9OwhGqflyxUWhsg82a6mCaQnlODmkjaBX62bRHLKyx0KlSfKq25FISUUIHzAjxVyrypLbY+zosmkzILqbwZLrIHVFg0qSteil6RaJJxTQQLotKZqUBnjUkKaS4VeBaNjXw6bIhoBdPY/tKg+LTlvfFUEqIgQchvWTMER8Y7fmW9EK3JzJq3XC+uXuTjVhX3vFAV0XnTXSSf6LxxLqblrHFOVinnNlnjnEzaARos2uQNyWnnMGmxp71XhCjIBwJ1pY4QDSmAElRug7Q90fNmTWrR8yJlTpM0qK4tyeqW+8TLmgGCzHtX2tcbXgFhtqSumGZ4lTWJxZyAV1mjWPLZkZhaUkxkv8qrrK5SRlZlvIJKmBelIqkl4FVma5nMT/sooCg1ZH11ixsJKVmGNBJ0U0OT0nFk66hp6TKnslQTc2jv6KWPVH6dVEo4pQZk1y9oIyHdnqCNhNSmJW1E1k3cu/ORsG+SkR0Yhy57SFIq6LaHonHQlaboIQVykU/TUiH1xNC4NO+vqEMi3l/RUmVd5Ivj0i46CeqQWXPNRapfJeucfWFr7x5wyfp2Y3u2ZvpOF5eLqsXDz88bvKxkr3ban6mNFKY2plGmXgkjvXu05vgf8zhUBg=="))
+    widget.resize(800, 600)
+    widget.show()
+
+    sys.exit(app.exec())
