@@ -72,6 +72,12 @@ class Blueprint:
         for entity in entities:
             pos_x = int(entity["position"]["x"])
             pos_y = int(entity["position"]["y"])
+
+            try:
+                bp_dir = entity["direction"]
+            except KeyError:
+                entity["direction"] = 0
+
             self.min_x = min(self.min_x, pos_x)
             self.min_y = min(self.min_y, pos_y)
             self.max_x = max(self.max_x, pos_x)
