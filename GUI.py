@@ -112,10 +112,31 @@ class GUI(QtWidgets.QMainWindow):
             return 3
         raise ValueError("Invalid direction")
 
+    def get_tbelt_sprite(self, entity) -> QImage:
+
+        sprite_rect = QtCore.QRect(
+            self.init_sprite_loc + QtCore.QPoint(self.sprite_spacing.x() * 1,
+                                                 self.sprite_spacing.y() * self.ss_y_offset(
+                                                     self.bp.dir_from_int(entity["direction"]))),
+            self.sprite_size)
+
+        return self.img.copy(sprite_rect)
+
+    def get_entity_sprite(self, entity) -> QImage:
+        e_name = entity["name"]
+
+        if e_name == "transport-belt":
+            return self.get_tbelt_sprite(entity)
+
+        return QImage()
+
     def paintEvent(self, event):
         print("Paint")
         with QPainter(self) as p:
-            img = QImage("assets/transport-belt.png")
+
+            # p.setPen(QColor(0, 0, 0))
+            # p.setBrush(QtCore.Qt.BrushStyle.SolidPattern)
+            # p.drawRect(QtCore.QRect(0, 0, 800, 800))
 
             for entity in self.bp.entities():
 
@@ -124,18 +145,12 @@ class GUI(QtWidgets.QMainWindow):
                 r_x = bp_pos_x - self.bp.min_x
                 r_y = bp_pos_y - self.bp.min_y
 
-                try:
-                    bp_dir = entity["direction"]
-                except KeyError:
-                    bp_dir = 0
-
                 # print(r_x, r_y)
-                sprite_rect = QtCore.QRect(
-                    self.init_sprite_loc + QtCore.QPoint(self.sprite_spacing.x() * 1, self.sprite_spacing.y() * self.ss_y_offset(self.bp.dir_from_int(bp_dir))),
-                    self.sprite_size)
-                p.drawImage(QtCore.QPoint(r_x, r_y) * self.sprite_size.width(), img, sprite_rect)
+                p.drawImage(QtCore.QPoint(r_x, r_y) * self.sprite_size.width(), self.get_entity_sprite(entity))
 
 if __name__ == '__main__':
+
+    fetch_assets()
 
     app = QtWidgets.QApplication([])
 
