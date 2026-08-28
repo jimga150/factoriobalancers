@@ -94,33 +94,43 @@ def fetch_assets():
 class GUI(QtWidgets.QMainWindow):
     def __init__(self, bp: Blueprint):
         super().__init__()
-        self.img = QImage("assets/transport-belt.png")
         self.sprite_size = QSize(64, 64)
-        self.init_sprite_loc = QtCore.QPoint(30, 38)
-        self.sprite_spacing = QtCore.QPoint(158, 166) - self.init_sprite_loc
         self.bp = bp
 
-    @staticmethod
-    def ss_y_offset(direction: Direction) -> int:
-        if direction == Direction.RIGHT:
-            return 0
-        if direction == Direction.LEFT:
-            return 1
-        if direction == Direction.UP:
-            return 2
-        if direction == Direction.DOWN:
-            return 3
-        raise ValueError("Invalid direction")
+        asset_dir = "assets"
+        self.ss_imgs = {}
+
+        for file in os.listdir(asset_dir):
+            filename = os.fsdecode(file)
+            if filename.endswith(".png"):
+                # print(os.path.join(asset_dir, filename))
+                self.ss_imgs[filename] = QImage(os.path.join(asset_dir, filename))
+
+        self.sprites = {}
 
     def get_tbelt_sprite(self, entity) -> QImage:
 
-        sprite_rect = QtCore.QRect(
-            self.init_sprite_loc + QtCore.QPoint(self.sprite_spacing.x() * 1,
-                                                 self.sprite_spacing.y() * self.ss_y_offset(
-                                                     self.bp.dir_from_int(entity["direction"]))),
-            self.sprite_size)
+        if entity["name"] not in self.sprites:
+            self.sprites[entity["name"]] = {}
 
-        return self.img.copy(sprite_rect)
+        bp_dir = self.bp.dir_from_int(entity["direction"])
+
+        if bp_dir not in self.sprites[entity["name"]]:
+
+            ss_y_offsets = [Direction.RIGHT, Direction.LEFT, Direction.UP, Direction.DOWN]
+            ss_y_offset = ss_y_offsets.index(bp_dir)
+
+            init_sprite_loc = QtCore.QPoint(30, 38)
+            sprite_spacing = QtCore.QPoint(158, 166) - init_sprite_loc
+
+            sprite_rect = QtCore.QRect(
+                init_sprite_loc + QtCore.QPoint(sprite_spacing.x(), sprite_spacing.y() * ss_y_offset),
+                self.sprite_size
+            )
+
+            self.sprites[entity["name"]][bp_dir] = self.ss_imgs["transport-belt.png"].copy(sprite_rect)
+
+        return self.sprites[entity["name"]][bp_dir]
 
     def get_entity_sprite(self, entity) -> QImage:
         e_name = entity["name"]
