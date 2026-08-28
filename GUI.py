@@ -108,37 +108,43 @@ class GUI(QtWidgets.QMainWindow):
 
         self.sprites = {}
 
-    def get_tbelt_sprite(self, entity) -> QImage:
+    def get_tbelt_sprite(self, bp_dir: Direction) -> QImage:
 
-        if entity["name"] not in self.sprites:
-            self.sprites[entity["name"]] = {}
+        ss_y_offsets = [Direction.RIGHT, Direction.LEFT, Direction.UP, Direction.DOWN]
+        ss_y_offset = ss_y_offsets.index(bp_dir)
+
+        init_sprite_loc = QtCore.QPoint(30, 38)
+        sprite_spacing = QtCore.QPoint(158, 166) - init_sprite_loc
+
+        sprite_rect = QtCore.QRect(
+            init_sprite_loc + QtCore.QPoint(sprite_spacing.x(), sprite_spacing.y() * ss_y_offset),
+            self.sprite_size
+        )
+
+        return self.ss_imgs["transport-belt.png"].copy(sprite_rect)
+
+    def get_splitter_sprite(self, bp_dir: Direction) -> QImage:
+        return QImage()
+
+    def get_entity_sprite(self, entity) -> QImage:
+        e_name = entity["name"]
+
+        if e_name not in self.sprites:
+            self.sprites[e_name] = {}
 
         bp_dir = self.bp.dir_from_int(entity["direction"])
 
         if bp_dir not in self.sprites[entity["name"]]:
 
-            ss_y_offsets = [Direction.RIGHT, Direction.LEFT, Direction.UP, Direction.DOWN]
-            ss_y_offset = ss_y_offsets.index(bp_dir)
+            self.sprites[entity["name"]][bp_dir] = QImage()
 
-            init_sprite_loc = QtCore.QPoint(30, 38)
-            sprite_spacing = QtCore.QPoint(158, 166) - init_sprite_loc
+            if e_name == "transport-belt":
+                self.sprites[entity["name"]][bp_dir] = self.get_tbelt_sprite(bp_dir)
 
-            sprite_rect = QtCore.QRect(
-                init_sprite_loc + QtCore.QPoint(sprite_spacing.x(), sprite_spacing.y() * ss_y_offset),
-                self.sprite_size
-            )
-
-            self.sprites[entity["name"]][bp_dir] = self.ss_imgs["transport-belt.png"].copy(sprite_rect)
+            if e_name == "splitter":
+                self.sprites[entity["name"]][bp_dir] = self.get_splitter_sprite(bp_dir)
 
         return self.sprites[entity["name"]][bp_dir]
-
-    def get_entity_sprite(self, entity) -> QImage:
-        e_name = entity["name"]
-
-        if e_name == "transport-belt":
-            return self.get_tbelt_sprite(entity)
-
-        return QImage()
 
     def paintEvent(self, event):
         print("Paint")
