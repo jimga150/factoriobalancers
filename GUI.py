@@ -99,6 +99,9 @@ def fetch_assets():
                 shutil.copyfile(source_file, dest_ss_path)
             else:
                 shutil.copy(source_file, dest_ss_path)
+
+            break
+            
         if not found_ss:
             print('No sprite sheet found for {}'.format(ss_path))
 
