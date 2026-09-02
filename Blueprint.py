@@ -13,6 +13,31 @@ class Direction(enum.Enum):
     DOWN = 2
     LEFT = 3
 
+    @staticmethod
+    def reverse(arg: Direction):
+        if arg == Direction.UP:
+            return Direction.DOWN
+        elif arg == Direction.DOWN:
+            return Direction.UP
+        elif arg == Direction.RIGHT:
+            return Direction.LEFT
+        elif arg == Direction.LEFT:
+            return Direction.RIGHT
+        raise RuntimeError('Invalid direction')
+
+class IOType(enum.Enum):
+    INPUT = 0
+    OUTPUT = 1
+    NONE = 2
+
+    @staticmethod
+    def from_type(bp_str: str):
+        if bp_str == "input":
+            return IOType.INPUT
+        elif bp_str == "output":
+            return IOType.OUTPUT
+        return IOType.NONE
+
 major_version_offset_bits = 6*8
 
 class BPEntity:
@@ -20,6 +45,11 @@ class BPEntity:
         self.entity = entity
 
 class Blueprint:
+
+    entity_keys_to_ensure = {
+        "direction": 0,
+        "type": "none"
+    }
 
     def __init__(self, bp_str: str):
         self.max_y = None
@@ -73,10 +103,11 @@ class Blueprint:
             pos_x = int(entity["position"]["x"])
             pos_y = int(entity["position"]["y"])
 
-            try:
-                bp_dir = entity["direction"]
-            except KeyError:
-                entity["direction"] = 0
+            for k, dv in self.entity_keys_to_ensure.items():
+                try:
+                    x = entity[k]
+                except KeyError:
+                    entity[k] = dv
 
             self.min_x = min(self.min_x, pos_x)
             self.min_y = min(self.min_y, pos_y)
