@@ -91,6 +91,11 @@ def fetch_assets():
         if not found_ss:
             print('No sprite sheet found for {}'.format(ss_path))
 
+class Sprite:
+    def __init__(self, img: QImage = QImage(), offset: QtCore.QPoint = QtCore.QPoint(0, 0)):
+        self.img = img
+        self.offset = offset
+
 class GUI(QtWidgets.QMainWindow):
     def __init__(self, bp: Blueprint):
         super().__init__()
@@ -108,7 +113,7 @@ class GUI(QtWidgets.QMainWindow):
 
         self.sprites = {}
 
-    def get_tbelt_sprite(self, bp_dir: Direction) -> QImage:
+    def get_tbelt_sprite(self, bp_dir: Direction) -> Sprite:
 
         ss_y_offsets = [Direction.RIGHT, Direction.LEFT, Direction.UP, Direction.DOWN]
         ss_y_offset = ss_y_offsets.index(bp_dir)
@@ -121,12 +126,12 @@ class GUI(QtWidgets.QMainWindow):
             self.sprite_size
         )
 
-        return self.ss_imgs["transport-belt.png"].copy(sprite_rect)
+        return Sprite(self.ss_imgs["transport-belt.png"].copy(sprite_rect), QtCore.QPoint(0, 0))
 
     def get_splitter_sprite(self, bp_dir: Direction) -> QImage:
         return QImage()
 
-    def get_entity_sprite(self, entity) -> QImage:
+    def get_entity_sprite(self, entity) -> Sprite:
         e_name = entity["name"]
 
         if e_name not in self.sprites:
@@ -136,7 +141,7 @@ class GUI(QtWidgets.QMainWindow):
 
         if bp_dir not in self.sprites[entity["name"]]:
 
-            self.sprites[entity["name"]][bp_dir] = QImage()
+            self.sprites[entity["name"]][bp_dir] = Sprite()
 
             if e_name == "transport-belt":
                 self.sprites[entity["name"]][bp_dir] = self.get_tbelt_sprite(bp_dir)
@@ -162,7 +167,8 @@ class GUI(QtWidgets.QMainWindow):
                 r_y = bp_pos_y - self.bp.min_y
 
                 # print(r_x, r_y)
-                p.drawImage(QtCore.QPoint(r_x, r_y) * self.sprite_size.width(), self.get_entity_sprite(entity))
+                sprite = self.get_entity_sprite(entity)
+                p.drawImage(QtCore.QPoint(r_x, r_y) * self.sprite_size.width() + sprite.offset, sprite.img)
 
 if __name__ == '__main__':
 
