@@ -128,8 +128,32 @@ class GUI(QtWidgets.QMainWindow):
 
         return Sprite(self.ss_imgs["transport-belt.png"].copy(sprite_rect), QtCore.QPoint(0, 0))
 
-    def get_splitter_sprite(self, bp_dir: Direction) -> QImage:
-        return QImage()
+    def get_splitter_sprite(self, bp_dir: Direction) -> Sprite:
+        if bp_dir == Direction.UP:
+            sprite_rect = QtCore.QRect(3, 5, 128, 64)
+            return Sprite(self.ss_imgs["splitter-north.png"].copy(sprite_rect), QtCore.QPoint(-64, 0))
+        if bp_dir == Direction.DOWN:
+            sprite_rect = QtCore.QRect(10, 6, 128, 64)
+            return Sprite(self.ss_imgs["splitter-north.png"].copy(sprite_rect), QtCore.QPoint(-64, 0))
+        if bp_dir == Direction.LEFT:
+
+            # Make tall image, ~(64x128)
+            ss_format = self.ss_imgs["splitter-west-top_patch.png"].format()
+            ans = QImage(QSize(64, 128), ss_format)
+
+            # top patch to the top half first
+            top_sprite_rect = QtCore.QRect(1, 5, 64, 64)
+            QPainter(ans).drawImage(QtCore.QPoint(0, 0), self.ss_imgs["splitter-west-top_patch.png"], top_sprite_rect)
+
+            # then other sprite 65 pixels down (no x trans)
+            top_sprite_rect = QtCore.QRect(1, 3, 64, 64)
+            QPainter(ans).drawImage(QtCore.QPoint(0, 60), self.ss_imgs["splitter-west.png"], top_sprite_rect)
+
+            return Sprite(ans, QtCore.QPoint(-64, 0))
+        if bp_dir == Direction.RIGHT:
+            sprite_rect = QtCore.QRect(10, 6, 128, 64)
+            return Sprite(self.ss_imgs["splitter-north.png"].copy(sprite_rect), QtCore.QPoint(-64, 0))
+        return Sprite()
 
     def get_entity_sprite(self, entity) -> Sprite:
         e_name = entity["name"]
