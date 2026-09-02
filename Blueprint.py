@@ -51,6 +51,8 @@ class Blueprint:
         "type": "none"
     }
 
+    belt_prefixes = ["fast", "express", "turbo"]
+
     def __init__(self, bp_str: str):
         self.max_y = None
         self.min_y = None
