@@ -9,8 +9,18 @@ from Belt import ColorStrategy
 
 # TODO: add blueprint parsing (rip from Factorio SAT)
 #   TODO: add belt bending
+#       TODO: in blueprint, or GUI, compile a 2d array of directions and then flag any positions where:
+#           1. the direction is NOT pointed to from behind
+#           2. the direction IS pointed to from a perpendicular direction
+#           3. the direction is NOT pointed to from the other perpendicular direction
+#       TODO: mark it with the direction pointing to it
+#       TODO: for each entity, check these flags and add a key "bend_from" with the direction theyre bending from
+#       TODO: belts will check bend_from and pick the right sprite
 #   TODO: add background
 #   TODO: clean up render
+#       TODO: fix positioning
+#       TODO: pick belt sprites with arrows in the middle
+#       TODO: lay a belt under undergrounds
 #   TODO: add blueprint export
 # TODO: generate balancers
 #   TODO: generate 2^nx2^n balancers
