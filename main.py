@@ -7,11 +7,17 @@ import z3
 
 from Belt import ColorStrategy
 
-# TODO: add tests for 8x8
-# TODO: generate universal NxM balancers
 # TODO: add blueprint parsing (rip from Factorio SAT)
-# TODO: add P&R
-# TODO: add blueprint export
+#   TODO: extend this to fast, express, and turbo components
+#   TODO: add blueprint export
+# TODO: generate balancers
+#   TODO: generate 2^nx2^n balancers
+#   TODO: generate NXN balancers
+#   TODO: generate NxM redistributors
+#   TODO: generate universal NxM balancers by applying universal method to NxM balancers
+# TODO: add P&R\
+# TODO: make actual UI
+
 
 if __name__ == '__main__':
 
