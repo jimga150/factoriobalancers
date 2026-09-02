@@ -8,7 +8,9 @@ import z3
 from Belt import ColorStrategy
 
 # TODO: add blueprint parsing (rip from Factorio SAT)
-#   TODO: extend this to fast, express, and turbo components
+#   TODO: add belt bending
+#   TODO: add background
+#   TODO: clean up render
 #   TODO: add blueprint export
 # TODO: generate balancers
 #   TODO: generate 2^nx2^n balancers
