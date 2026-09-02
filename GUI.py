@@ -1,3 +1,4 @@
+import copy
 import os
 import shutil
 import sys
@@ -62,7 +63,7 @@ def fetch_assets():
     ]
     entity_dirs = [game_directory / 'data' / x / "graphics" / "entity" for x in entity_dirs]
 
-    spritesheet_paths = [
+    spritesheet_paths_base = [
         path("transport-belt") / "transport-belt.png",
         path("splitter") / "splitter-east.png",
         path("splitter") / "splitter-east-top_patch.png",
@@ -72,6 +73,16 @@ def fetch_assets():
         path("splitter") / "splitter-west-top_patch.png",
         path("underground-belt") / "underground-belt-structure.png",
     ]
+
+    spritesheet_paths = copy.deepcopy(spritesheet_paths_base)
+
+    prefixes = ["fast", "express", "turbo"]
+    anchors = ["transport", "splitter", "underground"]
+    for prefix in prefixes:
+        prefixed_ss_paths = copy.deepcopy(spritesheet_paths_base)
+        for anchor in anchors:
+            prefixed_ss_paths = [path(str(x).replace(anchor, f"{prefix}-{anchor}")) for x in prefixed_ss_paths]
+        spritesheet_paths.extend(prefixed_ss_paths)
 
     for ss_path in spritesheet_paths:
         found_ss = False
