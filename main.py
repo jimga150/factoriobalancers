@@ -15,7 +15,7 @@ from Belt import ColorStrategy
 #   TODO: generate NXN balancers
 #   TODO: generate NxM redistributors
 #   TODO: generate universal NxM balancers by applying universal method to NxM balancers
-# TODO: add P&R\
+# TODO: add P&R
 # TODO: make actual UI
 
 
