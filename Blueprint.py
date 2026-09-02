@@ -72,7 +72,7 @@ class Blueprint:
         compressed = base64.b64decode(string)
         raw_bytes = zlib.decompress(compressed)
         data = json.loads(raw_bytes)["blueprint"]
-        print(type(data))
+        # print(type(data))
         print(json.dumps(data, sort_keys=True, indent=4, ))
         print(f"Version: {hex(data["version"])}")
         # print("keys:")
