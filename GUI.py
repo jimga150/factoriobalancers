@@ -90,10 +90,16 @@ def fetch_assets():
             full_ss_path = entity_dir / ss_path
             if not path.exists(full_ss_path):
                 continue
+
+            found_ss = True
+
             dest_ss_path = path("assets") / ss_path.name
+            if path.exists(dest_ss_path):
+                # skip copying
+                break
+
             source_file = str(full_ss_path)
             print('Copying: {} -> {}'.format(source_file, dest_ss_path))
-            found_ss = True
 
             if full_ss_path.is_file():
                 shutil.copyfile(source_file, dest_ss_path)
