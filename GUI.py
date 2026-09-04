@@ -239,6 +239,9 @@ class GUI(QtWidgets.QMainWindow):
 
     def get_underground_belt_sprite(self, prefix: str, bp_dir: Direction, io_type: IOType) -> Sprite:
 
+        belt_sprite = self.get_sprite_by_attr(f"{prefix}transport-belt", bp_dir, IOType.NONE, Rotation.NONE)
+        ans = Sprite.from_sprite(belt_sprite)
+
         # the direction of an underground refers to which way the belt is flowing, not which way its opening
 
         opening_dir = bp_dir if io_type == IOType.OUTPUT else Direction.reverse(bp_dir)
@@ -256,7 +259,7 @@ class GUI(QtWidgets.QMainWindow):
             sprite_rect = QtCore.QRect(639, 54 if io_type == IOType.OUTPUT else 246, 107, 70)
             offset = QtCore.QPoint(0, -10)
 
-        return Sprite(self.ss_imgs[f"{prefix}underground-belt-structure.png"].copy(sprite_rect), offset)
+        return ans.add(Sprite(self.ss_imgs[f"{prefix}underground-belt-structure.png"].copy(sprite_rect), offset))
 
     def get_sprite_by_entity(self, entity) -> Sprite:
         e_name = entity["name"]
