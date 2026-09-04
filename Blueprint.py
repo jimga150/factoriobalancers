@@ -84,7 +84,7 @@ class Blueprint:
         self.parse_bp_dict(self.bp_dict)
 
         return
-        
+
         dir_graph = "Direction graph:\n"
         dir_graph += "-" * (self.width * 2 + 1)
         dir_graph += "\n"
