@@ -212,42 +212,28 @@ class GUI(QtWidgets.QMainWindow):
 
         splitter_sprite = Sprite()
         if bp_dir == Direction.UP:
-            sprite_rect = QtCore.QRect(3, 5, 128, 64)
-            splitter_sprite = Sprite(self.ss_imgs[f"{prefix}splitter-north.png"].copy(sprite_rect), offset)
-        if bp_dir == Direction.DOWN:
-            sprite_rect = QtCore.QRect(10, 6, 128, 64)
-            splitter_sprite = Sprite(self.ss_imgs[f"{prefix}splitter-south.png"].copy(sprite_rect), offset)
-        if bp_dir == Direction.LEFT:
+            sprite_rect = QtCore.QRect(2, 5, 155, 58)
+            sprite_offset = QtCore.QPoint(1, -8)
+            splitter_sprite = Sprite(self.ss_imgs[f"{prefix}splitter-north.png"].copy(sprite_rect), offset + sprite_offset)
+        elif bp_dir == Direction.DOWN:
+            sprite_rect = QtCore.QRect(0, 5, 163, 53)
+            sprite_offset = QtCore.QPoint(-10, -4)
+            splitter_sprite = Sprite(self.ss_imgs[f"{prefix}splitter-south.png"].copy(sprite_rect), offset + sprite_offset)
+        elif bp_dir == Direction.LEFT:
 
-            # Make tall image, ~(64x128)
-            ss_format = self.ss_imgs[f"{prefix}splitter-west-top_patch.png"].format()
-            splitter_ans = QImage(QSize(64, 128), ss_format)
-            splitter_ans.fill(QColor(0, 0, 0, 0))
+            top_sprite_rect = QtCore.QRect(1, 3, 88, 93)
+            splitter_sprite = Sprite(self.ss_imgs[f"{prefix}splitter-west-top_patch.png"].copy(top_sprite_rect), offset + QtCore.QPoint(-1, -17))
 
-            # top patch to the top half first
-            top_sprite_rect = QtCore.QRect(1, 5, 64, 64)
-            QPainter(splitter_ans).drawImage(QtCore.QPoint(0, 0), self.ss_imgs[f"{prefix}splitter-west-top_patch.png"], top_sprite_rect)
+            bot_sprite_rect = QtCore.QRect(1, 3, 88, 83)
+            splitter_sprite.add(Sprite(self.ss_imgs[f"{prefix}splitter-west.png"].copy(bot_sprite_rect), offset + QtCore.QPoint(-1, -17 + 60)))
+        elif bp_dir == Direction.RIGHT:
+            top_sprite_rect = QtCore.QRect(3, 6, 86, 98)
+            splitter_sprite = Sprite(self.ss_imgs[f"{prefix}splitter-east-top_patch.png"].copy(top_sprite_rect),
+                                     offset + QtCore.QPoint(-1, -17))
 
-            # then other sprite 65 pixels down (no x trans)
-            top_sprite_rect = QtCore.QRect(1, 3, 64, 64)
-            QPainter(splitter_ans).drawImage(QtCore.QPoint(0, 60), self.ss_imgs[f"{prefix}splitter-west.png"], top_sprite_rect)
-
-            splitter_sprite = Sprite(splitter_ans, offset)
-        if bp_dir == Direction.RIGHT:
-            # Make tall image, ~(64x128)
-            ss_format = self.ss_imgs[f"{prefix}splitter-east-top_patch.png"].format()
-            splitter_ans = QImage(QSize(64, 128), ss_format)
-            splitter_ans.fill(QColor(0, 0, 0, 0))
-
-            # top patch to the top half first
-            top_sprite_rect = QtCore.QRect(1, 5, 64, 64)
-            QPainter(splitter_ans).drawImage(QtCore.QPoint(0, 0), self.ss_imgs[f"{prefix}splitter-east-top_patch.png"], top_sprite_rect)
-
-            # then other sprite 65 pixels down (no x trans)
-            top_sprite_rect = QtCore.QRect(1, 3, 64, 64)
-            QPainter(splitter_ans).drawImage(QtCore.QPoint(0, 60), self.ss_imgs[f"{prefix}splitter-east.png"], top_sprite_rect)
-
-            splitter_sprite = Sprite(splitter_ans, offset)
+            bot_sprite_rect = QtCore.QRect(4, 1, 85, 83)
+            splitter_sprite.add(Sprite(self.ss_imgs[f"{prefix}splitter-east.png"].copy(bot_sprite_rect),
+                                       offset + QtCore.QPoint(0, -17 + 71)))
         ans.add(splitter_sprite)
         return ans
 
