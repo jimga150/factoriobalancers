@@ -156,11 +156,14 @@ class GUI(QtWidgets.QMainWindow):
         ]
         ss_y_offset = ss_y_offsets.index((bp_dir, rotation))
 
+        # take sprite from column 15 cause it has a more clear arrow position for each spritesheet
+        ss_x_offset = 15
+
         init_sprite_loc = QtCore.QPoint(32, 38)
         sprite_spacing = 128
 
         sprite_rect = QtCore.QRect(
-            init_sprite_loc + QtCore.QPoint(0, sprite_spacing * ss_y_offset) - self.tile_offset,
+            init_sprite_loc + QtCore.QPoint(sprite_spacing * ss_x_offset, sprite_spacing * ss_y_offset) - self.tile_offset,
             self.sprite_window
         )
 

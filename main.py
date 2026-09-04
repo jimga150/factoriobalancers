@@ -9,7 +9,6 @@ from Belt import ColorStrategy
 
 # TODO: add blueprint parsing (rip from Factorio SAT)
 #   TODO: clean up render
-#       TODO: pick belt sprites with arrows in the middle
 #       TODO: lay a belt under undergrounds
 #   TODO: add blueprint export
 # TODO: generate balancers
