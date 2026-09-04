@@ -8,7 +8,9 @@ import z3
 from Belt import ColorStrategy
 
 # TODO: add blueprint parsing (rip from Factorio SAT)
+#   TODO: fix direction map not accounting for north/west tile of splitters
 #   TODO: clean up render
+#       TODO: lay a belt under splitters
 #       TODO: lay a belt under undergrounds
 #   TODO: add blueprint export
 # TODO: generate balancers
