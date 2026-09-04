@@ -9,7 +9,7 @@ from PySide6.QtCore import QSize
 from PySide6.QtGui import QPainter, QImage
 from vdfparse import VDFParse
 
-from Blueprint import Blueprint, Direction, IOType
+from Blueprint import Blueprint, Direction, IOType, Rotation
 
 
 def fetch_assets():
@@ -132,10 +132,25 @@ class GUI(QtWidgets.QMainWindow):
 
         self.sprites = {}
 
-    def get_tbelt_sprite(self, prefix: str, bp_dir: Direction) -> Sprite:
+    def get_tbelt_sprite(self, prefix: str, bp_dir: Direction, rotation: Rotation | None) -> Sprite:
 
-        ss_y_offsets = [Direction.RIGHT, Direction.LEFT, Direction.UP, Direction.DOWN]
-        ss_y_offset = ss_y_offsets.index(bp_dir)
+        ss_y_offsets = [
+            (Direction.RIGHT, None),
+            (Direction.LEFT, None),
+            (Direction.UP, None),
+            (Direction.DOWN, None),
+
+            # rotation direction of these are flipped because Y axis is flipped
+            (Direction.UP, Rotation.CCW),
+            (Direction.RIGHT, Rotation.CW),
+            (Direction.UP, Rotation.CW),
+            (Direction.LEFT, Rotation.CCW),
+            (Direction.RIGHT, Rotation.CCW),
+            (Direction.DOWN, Rotation.CW),
+            (Direction.LEFT, Rotation.CW),
+            (Direction.DOWN, Rotation.CCW)
+        ]
+        ss_y_offset = ss_y_offsets.index((bp_dir, rotation))
 
         init_sprite_loc = QtCore.QPoint(30, 38)
         sprite_spacing = QtCore.QPoint(158, 166) - init_sprite_loc
@@ -214,7 +229,13 @@ class GUI(QtWidgets.QMainWindow):
 
         bp_dir = self.bp.dir_from_int(entity["direction"])
         io_type = IOType.from_type(entity["type"])
-        entity_key = (bp_dir, io_type)
+
+        # get rotation direction of entity, None if doesn't apply
+        rel_x = int(entity["position"]["x"]) - self.bp.min_x
+        rel_y = int(entity["position"]["y"]) - self.bp.min_y
+        rot = self.bp.bends[rel_y][rel_x]
+
+        entity_key = (bp_dir, io_type, rot)
 
         # get filename prefix for image fetching
         prefix = ""
@@ -228,7 +249,7 @@ class GUI(QtWidgets.QMainWindow):
             self.sprites[e_name][entity_key] = Sprite()
 
             if "transport-belt" in e_name:
-                self.sprites[e_name][entity_key] = self.get_tbelt_sprite(prefix, bp_dir)
+                self.sprites[e_name][entity_key] = self.get_tbelt_sprite(prefix, bp_dir, rot)
 
             if "splitter" in e_name:
                 self.sprites[e_name][entity_key] = self.get_splitter_sprite(prefix, bp_dir)

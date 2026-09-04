@@ -6,6 +6,10 @@ import sys
 
 import zlib
 
+class Rotation(enum.Enum):
+    CW = 0
+    CCW = 1
+
 
 class Direction(enum.Enum):
     UP = 0
@@ -23,6 +27,18 @@ class Direction(enum.Enum):
             return Direction.LEFT
         elif arg == Direction.LEFT:
             return Direction.RIGHT
+        raise RuntimeError('Invalid direction')
+
+    @staticmethod
+    def turn(direc: Direction, rot: Rotation):
+        if direc == Direction.UP:
+            return Direction.RIGHT if rot == Rotation.CW else Direction.LEFT
+        elif direc == Direction.DOWN:
+            return Direction.LEFT if rot == Rotation.CW else Direction.RIGHT
+        elif direc == Direction.RIGHT:
+            return Direction.DOWN if rot == Rotation.CW else Direction.UP
+        elif direc == Direction.LEFT:
+            return Direction.UP if rot == Rotation.CW else Direction.DOWN
         raise RuntimeError('Invalid direction')
 
 class IOType(enum.Enum):
@@ -63,6 +79,8 @@ class Blueprint:
         self.version = None
         self.bp_dict = Blueprint.decode_blueprint_str(bp_str)
         self.tiles = []
+        self.dirs = []
+        self.bends = []
         self.parse_bp_dict(self.bp_dict)
 
     @staticmethod
@@ -89,6 +107,25 @@ class Blueprint:
 
     def entities(self) -> list:
         return self.bp_dict["entities"]
+
+    def get_coord_in_direction(self, x: int, y: int, direction: Direction) -> tuple[int, int]:
+        if direction == Direction.UP:
+            if y == 0:
+                raise ValueError
+            return x, y - 1
+        if direction == Direction.DOWN:
+            if y == self.height-1:
+                raise ValueError
+            return x, y + 1
+        if direction == Direction.RIGHT:
+            if x == self.width-1:
+                raise ValueError
+            return x + 1, y
+        if direction == Direction.LEFT:
+            if x == 0:
+                raise ValueError
+            return x - 1, y
+        raise RuntimeError('Invalid direction')
 
     def parse_bp_dict(self, blueprint: dict):
 
@@ -123,8 +160,12 @@ class Blueprint:
 
         for _ in range(self.min_y, self.max_y+1):
             self.tiles.append([])
+            self.dirs.append([])
+            self.bends.append([])
             for _ in range(self.min_x, self.max_x+1):
                 self.tiles[-1].append(BPEntity())
+                self.dirs[-1].append(Direction.UP)
+                self.bends[-1].append(None)
 
         # print(f"{len(self.tiles)=}, {len(self.tiles[0])=}")
 
@@ -132,3 +173,51 @@ class Blueprint:
             pos_x = int(entity["position"]["x"])
             pos_y = int(entity["position"]["y"])
             self.tiles[pos_y-self.min_y][pos_x-self.min_x] = BPEntity(entity)
+            self.dirs[pos_y-self.min_y][pos_x-self.min_x] = self.dir_from_int(int(entity["direction"]))
+
+        for y in range(self.height):
+            for x in range(self.width):
+
+                if self.tiles[y][x].entity is None:
+                    continue
+
+                if "transport-belt" not in self.tiles[y][x].entity["name"]:
+                    continue
+
+                b_dir = self.dirs[y][x]
+
+                connected_from_behind = False
+                try:
+                    x1, y1 = self.get_coord_in_direction(x, y, Direction.reverse(b_dir))
+                    connected_from_behind = self.dirs[y1][x1] == b_dir
+                except ValueError:
+                    pass
+
+                if connected_from_behind:
+                    # will never be bent
+                    continue
+
+                connected_from_left = False
+                try:
+                    x1, y1 = self.get_coord_in_direction(x, y, Direction.turn(b_dir, Rotation.CCW))
+                    connected_from_left = self.dirs[y1][x1] == b_dir
+                except ValueError:
+                    pass
+
+                connected_from_right = False
+                try:
+                    x1, y1 = self.get_coord_in_direction(x, y, Direction.turn(b_dir, Rotation.CW))
+                    connected_from_right = self.dirs[y1][x1] == b_dir
+                except ValueError:
+                    pass
+
+                if connected_from_left == connected_from_right:
+                    # if both or neither, no bend
+                    continue
+
+                if connected_from_left:
+                    # implies not connected from right so the input of the belt bends left (so it bends clockwise)
+                    self.bends[y][x] = Rotation.CCW
+                else:
+                    # implies not connected from left so the input of the belt bends right (so it bends counterclockwise)
+                    self.bends[y][x] = Rotation.CW
