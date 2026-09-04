@@ -214,6 +214,8 @@ class GUI(QtWidgets.QMainWindow):
         if bp_dir == Direction.UP:
             sprite_rect = QtCore.QRect(2, 5, 155, 58)
             sprite_offset = QtCore.QPoint(1, -8)
+            if "turbo" in prefix:
+                sprite_rect = QtCore.QRect(0, 1, 157, 63)
             splitter_sprite = Sprite(self.ss_imgs[f"{prefix}splitter-north.png"].copy(sprite_rect), offset + sprite_offset)
         elif bp_dir == Direction.DOWN:
             sprite_rect = QtCore.QRect(0, 5, 163, 53)
@@ -225,13 +227,19 @@ class GUI(QtWidgets.QMainWindow):
             splitter_sprite = Sprite(self.ss_imgs[f"{prefix}splitter-west-top_patch.png"].copy(top_sprite_rect), offset + QtCore.QPoint(-1, -17))
 
             bot_sprite_rect = QtCore.QRect(1, 3, 88, 83)
+            if "turbo" in prefix:
+                bot_sprite_rect = QtCore.QRect(0, 1, 88, 83)
             splitter_sprite.add(Sprite(self.ss_imgs[f"{prefix}splitter-west.png"].copy(bot_sprite_rect), offset + QtCore.QPoint(-1, -17 + 60)))
         elif bp_dir == Direction.RIGHT:
             top_sprite_rect = QtCore.QRect(3, 6, 86, 98)
+            if "turbo" in prefix:
+                top_sprite_rect = QtCore.QRect(3, 4, 86, 98)
             splitter_sprite = Sprite(self.ss_imgs[f"{prefix}splitter-east-top_patch.png"].copy(top_sprite_rect),
                                      offset + QtCore.QPoint(-1, -17))
 
             bot_sprite_rect = QtCore.QRect(4, 1, 85, 83)
+            if "turbo" in prefix:
+                bot_sprite_rect = QtCore.QRect(0, 1, 85, 83)
             splitter_sprite.add(Sprite(self.ss_imgs[f"{prefix}splitter-east.png"].copy(bot_sprite_rect),
                                        offset + QtCore.QPoint(0, -17 + 71)))
         ans.add(splitter_sprite)
