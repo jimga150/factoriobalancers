@@ -5,7 +5,7 @@ import sys
 from pathlib import Path as path
 
 from PySide6 import QtWidgets, QtCore
-from PySide6.QtCore import QSize
+from PySide6.QtCore import QSize, QPoint
 from PySide6.QtGui import QPainter, QImage, QColor
 from vdfparse import VDFParse
 
@@ -118,7 +118,13 @@ class Sprite:
 class GUI(QtWidgets.QMainWindow):
     def __init__(self, bp: Blueprint):
         super().__init__()
-        self.sprite_size = QSize(64, 64)
+        self.tile_size = QSize(64, 64)
+        self.sprite_window = QSize(92, 92)
+        self.tile_offset = QPoint(
+            int((self.sprite_window.width() - self.tile_size.width())/2),
+            int((self.sprite_window.height() - self.tile_size.height())/2)
+        )
+
         self.bp = bp
 
         asset_dir = "assets"
@@ -150,15 +156,15 @@ class GUI(QtWidgets.QMainWindow):
         ]
         ss_y_offset = ss_y_offsets.index((bp_dir, rotation))
 
-        init_sprite_loc = QtCore.QPoint(30, 38)
-        sprite_spacing = QtCore.QPoint(158, 166) - init_sprite_loc
+        init_sprite_loc = QtCore.QPoint(32, 38)
+        sprite_spacing = 128
 
         sprite_rect = QtCore.QRect(
-            init_sprite_loc + QtCore.QPoint(sprite_spacing.x(), sprite_spacing.y() * ss_y_offset),
-            self.sprite_size
+            init_sprite_loc + QtCore.QPoint(0, sprite_spacing * ss_y_offset) - self.tile_offset,
+            self.sprite_window
         )
 
-        return Sprite(self.ss_imgs[f"{prefix}transport-belt.png"].copy(sprite_rect), QtCore.QPoint(0, 0))
+        return Sprite(self.ss_imgs[f"{prefix}transport-belt.png"].copy(sprite_rect), self.tile_offset*(-1))
 
     def get_splitter_sprite(self, prefix: str, bp_dir: Direction) -> Sprite:
         if bp_dir == Direction.UP:
@@ -278,7 +284,7 @@ class GUI(QtWidgets.QMainWindow):
 
                 # print(r_x, r_y)
                 sprite = self.get_entity_sprite(entity)
-                p.drawImage(QtCore.QPoint(r_x, r_y) * self.sprite_size.width() + sprite.offset, sprite.img)
+                p.drawImage(QtCore.QPoint(r_x, r_y) * self.tile_size.width() + sprite.offset, sprite.img)
 
 if __name__ == '__main__':
 
