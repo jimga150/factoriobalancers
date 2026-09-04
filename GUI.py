@@ -115,6 +115,33 @@ class Sprite:
         self.img = img
         self.offset = offset
 
+    @staticmethod
+    def from_sprite(arg: Sprite):
+        img = arg.img.copy()
+        offset = copy.deepcopy(arg.offset)
+        return Sprite(img, offset)
+
+    def add(self, other: Sprite) -> Sprite:
+
+        new_offset = QPoint(min(self.offset.x(), other.offset.x()), min(self.offset.y(), other.offset.y()))
+
+        # make new image with size enough for both, accounting for offset difference
+        min_x = min(self.offset.x(), other.offset.x())
+        max_x = max(self.offset.x() + self.img.width(), other.offset.x() + other.img.width())
+        min_y = min(self.offset.y(), other.offset.y())
+        max_y = max(self.offset.y() + self.img.height(), other.offset.y() + other.img.height())
+        new_img = QImage(max_x - min_x + 1, max_y - min_y + 1, self.img.format())
+        new_img.fill(QColor(0, 0, 0, 0))
+
+        p = QPainter(new_img)
+        p.drawImage(self.offset - new_offset, self.img)
+        p.drawImage(other.offset - new_offset, other.img)
+
+        self.img = new_img
+        self.offset = new_offset
+
+        return self
+
 class GUI(QtWidgets.QMainWindow):
     def __init__(self, bp: Blueprint):
         super().__init__()
@@ -138,13 +165,13 @@ class GUI(QtWidgets.QMainWindow):
 
         self.sprites = {}
 
-    def get_tbelt_sprite(self, prefix: str, bp_dir: Direction, rotation: Rotation | None) -> Sprite:
+    def get_tbelt_sprite(self, prefix: str, bp_dir: Direction, rotation: Rotation) -> Sprite:
 
         ss_y_offsets = [
-            (Direction.RIGHT, None),
-            (Direction.LEFT, None),
-            (Direction.UP, None),
-            (Direction.DOWN, None),
+            (Direction.RIGHT, Rotation.NONE),
+            (Direction.LEFT, Rotation.NONE),
+            (Direction.UP, Rotation.NONE),
+            (Direction.DOWN, Rotation.NONE),
             (Direction.UP, Rotation.CW),
             (Direction.RIGHT, Rotation.CCW),
             (Direction.UP, Rotation.CCW),
@@ -170,42 +197,59 @@ class GUI(QtWidgets.QMainWindow):
         return Sprite(self.ss_imgs[f"{prefix}transport-belt.png"].copy(sprite_rect), self.tile_offset*(-1))
 
     def get_splitter_sprite(self, prefix: str, bp_dir: Direction) -> Sprite:
+
+        if bp_dir in [Direction.UP, Direction.DOWN]:
+            offset = QtCore.QPoint(-64, 0)
+        else:
+            offset = QtCore.QPoint(0, -64)
+
+        belt_sprite = self.get_sprite_by_attr(f"{prefix}transport-belt", bp_dir, IOType.NONE, Rotation.NONE)
+
+        ans = Sprite.from_sprite(belt_sprite)
+
+        # add belt twice in two splitter squares
+        ans.add(Sprite(belt_sprite.img, belt_sprite.offset + offset))
+
+        splitter_sprite = Sprite()
         if bp_dir == Direction.UP:
             sprite_rect = QtCore.QRect(3, 5, 128, 64)
-            return Sprite(self.ss_imgs[f"{prefix}splitter-north.png"].copy(sprite_rect), QtCore.QPoint(-64, 0))
+            splitter_sprite = Sprite(self.ss_imgs[f"{prefix}splitter-north.png"].copy(sprite_rect), offset)
         if bp_dir == Direction.DOWN:
             sprite_rect = QtCore.QRect(10, 6, 128, 64)
-            return Sprite(self.ss_imgs[f"{prefix}splitter-south.png"].copy(sprite_rect), QtCore.QPoint(-64, 0))
+            splitter_sprite = Sprite(self.ss_imgs[f"{prefix}splitter-south.png"].copy(sprite_rect), offset)
         if bp_dir == Direction.LEFT:
 
             # Make tall image, ~(64x128)
             ss_format = self.ss_imgs[f"{prefix}splitter-west-top_patch.png"].format()
-            ans = QImage(QSize(64, 128), ss_format)
+            splitter_ans = QImage(QSize(64, 128), ss_format)
+            splitter_ans.fill(QColor(0, 0, 0, 0))
 
             # top patch to the top half first
             top_sprite_rect = QtCore.QRect(1, 5, 64, 64)
-            QPainter(ans).drawImage(QtCore.QPoint(0, 0), self.ss_imgs[f"{prefix}splitter-west-top_patch.png"], top_sprite_rect)
+            QPainter(splitter_ans).drawImage(QtCore.QPoint(0, 0), self.ss_imgs[f"{prefix}splitter-west-top_patch.png"], top_sprite_rect)
 
             # then other sprite 65 pixels down (no x trans)
             top_sprite_rect = QtCore.QRect(1, 3, 64, 64)
-            QPainter(ans).drawImage(QtCore.QPoint(0, 60), self.ss_imgs[f"{prefix}splitter-west.png"], top_sprite_rect)
+            QPainter(splitter_ans).drawImage(QtCore.QPoint(0, 60), self.ss_imgs[f"{prefix}splitter-west.png"], top_sprite_rect)
 
-            return Sprite(ans, QtCore.QPoint(0, -64))
+            splitter_sprite = Sprite(splitter_ans, offset)
         if bp_dir == Direction.RIGHT:
             # Make tall image, ~(64x128)
             ss_format = self.ss_imgs[f"{prefix}splitter-east-top_patch.png"].format()
-            ans = QImage(QSize(64, 128), ss_format)
+            splitter_ans = QImage(QSize(64, 128), ss_format)
+            splitter_ans.fill(QColor(0, 0, 0, 0))
 
             # top patch to the top half first
             top_sprite_rect = QtCore.QRect(1, 5, 64, 64)
-            QPainter(ans).drawImage(QtCore.QPoint(0, 0), self.ss_imgs[f"{prefix}splitter-east-top_patch.png"], top_sprite_rect)
+            QPainter(splitter_ans).drawImage(QtCore.QPoint(0, 0), self.ss_imgs[f"{prefix}splitter-east-top_patch.png"], top_sprite_rect)
 
             # then other sprite 65 pixels down (no x trans)
             top_sprite_rect = QtCore.QRect(1, 3, 64, 64)
-            QPainter(ans).drawImage(QtCore.QPoint(0, 60), self.ss_imgs[f"{prefix}splitter-east.png"], top_sprite_rect)
+            QPainter(splitter_ans).drawImage(QtCore.QPoint(0, 60), self.ss_imgs[f"{prefix}splitter-east.png"], top_sprite_rect)
 
-            return Sprite(ans, QtCore.QPoint(0, -64))
-        return Sprite()
+            splitter_sprite = Sprite(splitter_ans, offset)
+        ans.add(splitter_sprite)
+        return ans
 
     def get_underground_belt_sprite(self, prefix: str, bp_dir: Direction, io_type: IOType) -> Sprite:
 
@@ -228,11 +272,8 @@ class GUI(QtWidgets.QMainWindow):
 
         return Sprite(self.ss_imgs[f"{prefix}underground-belt-structure.png"].copy(sprite_rect), offset)
 
-    def get_entity_sprite(self, entity) -> Sprite:
+    def get_sprite_by_entity(self, entity) -> Sprite:
         e_name = entity["name"]
-
-        if e_name not in self.sprites:
-            self.sprites[e_name] = {}
 
         bp_dir = self.bp.dir_from_int(entity["direction"])
         io_type = IOType.from_type(entity["type"])
@@ -242,7 +283,11 @@ class GUI(QtWidgets.QMainWindow):
         rel_y = int(entity["position"]["y"]) - self.bp.min_y
         rot = self.bp.bends[rel_y][rel_x]
 
-        entity_key = (bp_dir, io_type, rot)
+        return self.get_sprite_by_attr(e_name, bp_dir, io_type, rot)
+
+    def get_sprite_by_attr(self, e_name: str, bp_dir: Direction, io_type: IOType, rot: Rotation) -> Sprite:
+
+        entity_key = (e_name, bp_dir, io_type, rot)
 
         # get filename prefix for image fetching
         prefix = ""
@@ -251,20 +296,20 @@ class GUI(QtWidgets.QMainWindow):
                 prefix = f"{p}-"
                 break
 
-        if entity_key not in self.sprites[e_name]:
+        if entity_key not in self.sprites:
 
-            self.sprites[e_name][entity_key] = Sprite()
+            self.sprites[entity_key] = Sprite()
 
             if "transport-belt" in e_name:
-                self.sprites[e_name][entity_key] = self.get_tbelt_sprite(prefix, bp_dir, rot)
+                self.sprites[entity_key] = self.get_tbelt_sprite(prefix, bp_dir, rot)
 
             if "splitter" in e_name:
-                self.sprites[e_name][entity_key] = self.get_splitter_sprite(prefix, bp_dir)
+                self.sprites[entity_key] = self.get_splitter_sprite(prefix, bp_dir)
 
             if "underground-belt" in e_name:
-                self.sprites[e_name][entity_key] = self.get_underground_belt_sprite(prefix, bp_dir, io_type)
+                self.sprites[entity_key] = self.get_underground_belt_sprite(prefix, bp_dir, io_type)
 
-        return self.sprites[e_name][entity_key]
+        return self.sprites[entity_key]
 
     def paintEvent(self, event):
 
@@ -286,7 +331,7 @@ class GUI(QtWidgets.QMainWindow):
                 r_y = bp_pos_y - self.bp.min_y
 
                 # print(r_x, r_y)
-                sprite = self.get_entity_sprite(entity)
+                sprite = self.get_sprite_by_entity(entity)
                 p.drawImage(QtCore.QPoint(r_x, r_y) * self.tile_size.width() + sprite.offset, sprite.img)
 
 if __name__ == '__main__':

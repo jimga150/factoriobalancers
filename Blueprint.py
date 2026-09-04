@@ -7,6 +7,7 @@ import sys
 import zlib
 
 class Rotation(enum.Enum):
+    NONE = -1
     CW = 0
     CCW = 1
 
@@ -149,6 +150,10 @@ class Blueprint:
         direction /= divisor
         return Direction(direction)
 
+    def int_from_dir(self, direction: Direction) -> int:
+        mult = 2 if self.version >> major_version_offset_bits == 1 else 4
+        return int(direction) * mult
+
     def entities(self) -> list:
         return self.bp_dict["entities"]
 
@@ -209,7 +214,7 @@ class Blueprint:
             for _ in range(self.min_x, self.max_x+1):
                 self.tiles[-1].append(BPEntity())
                 self.dirs[-1].append(None)
-                self.bends[-1].append(None)
+                self.bends[-1].append(Rotation.NONE)
 
         # print(f"{len(self.tiles)=}, {len(self.tiles[0])=}")
 
