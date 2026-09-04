@@ -6,7 +6,7 @@ from pathlib import Path as path
 
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QSize
-from PySide6.QtGui import QPainter, QImage
+from PySide6.QtGui import QPainter, QImage, QColor
 from vdfparse import VDFParse
 
 from Blueprint import Blueprint, Direction, IOType, Rotation
@@ -258,7 +258,11 @@ class GUI(QtWidgets.QMainWindow):
         return self.sprites[e_name][entity_key]
 
     def paintEvent(self, event):
-        print("Paint")
+
+        p = self.palette()
+        p.setColor(self.backgroundRole(), QColor(84, 84, 84))
+        self.setPalette(p)
+
         with QPainter(self) as p:
 
             # p.setPen(QColor(0, 0, 0))
