@@ -83,6 +83,50 @@ class Blueprint:
         self.bends = []
         self.parse_bp_dict(self.bp_dict)
 
+        return
+        
+        dir_graph = "Direction graph:\n"
+        dir_graph += "-" * (self.width * 2 + 1)
+        dir_graph += "\n"
+        for y in range(self.height):
+            dir_graph += "|"
+            for x in range(self.width):
+                curr_dir = self.dirs[y][x]
+                if curr_dir == Direction.UP:
+                    dir_graph += "^"
+                elif curr_dir == Direction.DOWN:
+                    dir_graph += "v"
+                elif curr_dir == Direction.LEFT:
+                    dir_graph += "<"
+                elif curr_dir == Direction.RIGHT:
+                    dir_graph += ">"
+                else:
+                    dir_graph += "0"
+                dir_graph += "|"
+            dir_graph += "\n"
+            dir_graph += "-" * (self.width * 2 + 1)
+            dir_graph += "\n"
+        print(dir_graph)
+
+        rot_graph = "Rotation graph:\n"
+        rot_graph += "-" * (self.width * 2 + 1)
+        rot_graph += "\n"
+        for y in range(self.height):
+            rot_graph += "|"
+            for x in range(self.width):
+                rot = self.bends[y][x]
+                if rot == Rotation.CW:
+                    rot_graph += "1"
+                elif rot == Rotation.CCW:
+                    rot_graph += "2"
+                else:
+                    rot_graph += " "
+                rot_graph += "|"
+            rot_graph += "\n"
+            rot_graph += "-"*(self.width*2 + 1)
+            rot_graph += "\n"
+        print(rot_graph)
+
     @staticmethod
     def decode_blueprint_str(string: str):
         leading_version_byte = string[0]
