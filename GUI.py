@@ -300,6 +300,16 @@ class GUI(QtWidgets.QMainWindow):
 
         return self.sprites[entity_key]
 
+    def drawEntity(self, p: QPainter, entity):
+        bp_pos_x = int(entity["position"]["x"])
+        bp_pos_y = int(entity["position"]["y"])
+        r_x = bp_pos_x - self.bp.min_x
+        r_y = bp_pos_y - self.bp.min_y
+
+        # print(r_x, r_y)
+        sprite = self.get_sprite_by_entity(entity)
+        p.drawImage(QtCore.QPoint(r_x, r_y) * self.tile_size.width() + sprite.offset, sprite.img)
+
     def paintEvent(self, event):
 
         p = self.palette()
@@ -307,21 +317,13 @@ class GUI(QtWidgets.QMainWindow):
         self.setPalette(p)
 
         with QPainter(self) as p:
+            for y in range(0, self.bp.height):
+                for x in range(0, self.bp.width):
+                    entity = self.bp.tiles[y][x].entity
+                    if entity is None:
+                        continue
+                    self.drawEntity(p, entity)
 
-            # p.setPen(QColor(0, 0, 0))
-            # p.setBrush(QtCore.Qt.BrushStyle.SolidPattern)
-            # p.drawRect(QtCore.QRect(0, 0, 800, 800))
-
-            for entity in self.bp.entities():
-
-                bp_pos_x = int(entity["position"]["x"])
-                bp_pos_y = int(entity["position"]["y"])
-                r_x = bp_pos_x - self.bp.min_x
-                r_y = bp_pos_y - self.bp.min_y
-
-                # print(r_x, r_y)
-                sprite = self.get_sprite_by_entity(entity)
-                p.drawImage(QtCore.QPoint(r_x, r_y) * self.tile_size.width() + sprite.offset, sprite.img)
 
 if __name__ == '__main__':
 
