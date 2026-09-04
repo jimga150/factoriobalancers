@@ -164,7 +164,7 @@ class Blueprint:
             self.bends.append([])
             for _ in range(self.min_x, self.max_x+1):
                 self.tiles[-1].append(BPEntity())
-                self.dirs[-1].append(Direction.UP)
+                self.dirs[-1].append(None)
                 self.bends[-1].append(None)
 
         # print(f"{len(self.tiles)=}, {len(self.tiles[0])=}")
@@ -197,17 +197,20 @@ class Blueprint:
                     # will never be bent
                     continue
 
+                dir_cw = Direction.turn(b_dir, Rotation.CW)
+                dir_ccw = Direction.turn(b_dir, Rotation.CCW)
+
                 connected_from_left = False
                 try:
-                    x1, y1 = self.get_coord_in_direction(x, y, Direction.turn(b_dir, Rotation.CCW))
-                    connected_from_left = self.dirs[y1][x1] == b_dir
+                    x1, y1 = self.get_coord_in_direction(x, y, dir_ccw)
+                    connected_from_left = self.dirs[y1][x1] == dir_cw
                 except ValueError:
                     pass
 
                 connected_from_right = False
                 try:
-                    x1, y1 = self.get_coord_in_direction(x, y, Direction.turn(b_dir, Rotation.CW))
-                    connected_from_right = self.dirs[y1][x1] == b_dir
+                    x1, y1 = self.get_coord_in_direction(x, y, dir_cw)
+                    connected_from_right = self.dirs[y1][x1] == dir_ccw
                 except ValueError:
                     pass
 

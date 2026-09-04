@@ -139,16 +139,14 @@ class GUI(QtWidgets.QMainWindow):
             (Direction.LEFT, None),
             (Direction.UP, None),
             (Direction.DOWN, None),
-
-            # rotation direction of these are flipped because Y axis is flipped
-            (Direction.UP, Rotation.CCW),
-            (Direction.RIGHT, Rotation.CW),
             (Direction.UP, Rotation.CW),
-            (Direction.LEFT, Rotation.CCW),
             (Direction.RIGHT, Rotation.CCW),
-            (Direction.DOWN, Rotation.CW),
+            (Direction.UP, Rotation.CCW),
             (Direction.LEFT, Rotation.CW),
-            (Direction.DOWN, Rotation.CCW)
+            (Direction.RIGHT, Rotation.CW),
+            (Direction.DOWN, Rotation.CCW),
+            (Direction.LEFT, Rotation.CCW),
+            (Direction.DOWN, Rotation.CW)
         ]
         ss_y_offset = ss_y_offsets.index((bp_dir, rotation))
 
