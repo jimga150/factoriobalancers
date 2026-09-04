@@ -217,7 +217,16 @@ class Blueprint:
             pos_x = int(entity["position"]["x"])
             pos_y = int(entity["position"]["y"])
             self.tiles[pos_y-self.min_y][pos_x-self.min_x] = BPEntity(entity)
-            self.dirs[pos_y-self.min_y][pos_x-self.min_x] = self.dir_from_int(int(entity["direction"]))
+
+            e_dir = self.dir_from_int(int(entity["direction"]))
+            self.dirs[pos_y-self.min_y][pos_x-self.min_x] = e_dir
+
+            # account for splitters being 2 tiles, entity is only marked as southeast half
+            if "splitter" in entity["name"]:
+                if e_dir in [Direction.UP, Direction.DOWN]:
+                    self.dirs[pos_y-self.min_y][pos_x-self.min_x-1] = e_dir
+                else:
+                    self.dirs[pos_y-self.min_y-1][pos_x-self.min_x] = e_dir
 
         for y in range(self.height):
             for x in range(self.width):
