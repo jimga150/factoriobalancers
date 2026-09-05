@@ -150,10 +150,6 @@ class Blueprint:
         direction /= divisor
         return Direction(direction)
 
-    def int_from_dir(self, direction: Direction) -> int:
-        mult = 2 if self.version >> major_version_offset_bits == 1 else 4
-        return int(direction) * mult
-
     def entities(self) -> list:
         return self.bp_dict["entities"]
 
