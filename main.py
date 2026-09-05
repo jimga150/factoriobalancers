@@ -8,13 +8,15 @@ import z3
 from Belt import ColorStrategy
 
 # TODO: add blueprint parsing (rip from Factorio SAT)
+#   TODO: parse blueprints into entity objects
 #   TODO: add blueprint export
-# TODO: generate balancers
+# TODO: add network -> blueprint conversion (P&R)
+# TODO: add blueprint -> network conversion (network parsing)
+# TODO: generate balancer networks
 #   TODO: generate 2^nx2^n balancers
 #   TODO: generate NXN balancers
 #   TODO: generate NxM redistributors
 #   TODO: generate universal NxM balancers by applying universal method to NxM balancers
-# TODO: add P&R
 # TODO: make actual UI
 
 
