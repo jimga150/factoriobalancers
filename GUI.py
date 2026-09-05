@@ -9,7 +9,7 @@ from PySide6.QtCore import QSize, QPoint
 from PySide6.QtGui import QPainter, QImage, QColor
 from vdfparse import VDFParse
 
-from Blueprint import Blueprint, Direction, IOType, Rotation
+from Blueprint import Blueprint, Direction, IOType, Rotation, BPEntity
 
 
 def fetch_assets():
@@ -64,19 +64,19 @@ def fetch_assets():
     entity_dirs = [game_directory / 'data' / x / "graphics" / "entity" for x in entity_dirs]
 
     spritesheet_paths_base = [
-        path("transport-belt") / "transport-belt.png",
-        path("splitter") / "splitter-east.png",
-        path("splitter") / "splitter-east-top_patch.png",
-        path("splitter") / "splitter-north.png",
-        path("splitter") / "splitter-south.png",
-        path("splitter") / "splitter-west.png",
-        path("splitter") / "splitter-west-top_patch.png",
-        path("underground-belt") / "underground-belt-structure.png",
+        path(BPEntity.NAME_BELT) / "transport-belt.png",
+        path(BPEntity.NAME_SPLITTER) / "splitter-east.png",
+        path(BPEntity.NAME_SPLITTER) / "splitter-east-top_patch.png",
+        path(BPEntity.NAME_SPLITTER) / "splitter-north.png",
+        path(BPEntity.NAME_SPLITTER) / "splitter-south.png",
+        path(BPEntity.NAME_SPLITTER) / "splitter-west.png",
+        path(BPEntity.NAME_SPLITTER) / "splitter-west-top_patch.png",
+        path(BPEntity.NAME_UNDERGROUND) / "underground-belt-structure.png",
     ]
 
     spritesheet_paths = copy.deepcopy(spritesheet_paths_base)
 
-    anchors = ["transport", "splitter", "underground"]
+    anchors = [BPEntity.NAME_BELT, BPEntity.NAME_SPLITTER, BPEntity.NAME_UNDERGROUND]
     for prefix in Blueprint.belt_prefixes:
         prefixed_ss_paths = copy.deepcopy(spritesheet_paths_base)
         for anchor in anchors:
@@ -269,18 +269,8 @@ class GUI(QtWidgets.QMainWindow):
 
         return ans.add(Sprite(self.ss_imgs[f"{prefix}underground-belt-structure.png"].copy(sprite_rect), offset))
 
-    def get_sprite_by_entity(self, entity) -> Sprite:
-        e_name = entity["name"]
-
-        bp_dir = self.bp.dir_from_int(entity["direction"])
-        io_type = IOType.from_type(entity["type"])
-
-        # get rotation direction of entity, None if doesn't apply
-        rel_x = int(entity["position"]["x"]) - self.bp.min_x
-        rel_y = int(entity["position"]["y"]) - self.bp.min_y
-        rot = self.bp.bends[rel_y][rel_x]
-
-        return self.get_sprite_by_attr(e_name, bp_dir, io_type, rot)
+    def get_sprite_by_entity(self, entity: BPEntity) -> Sprite:
+        return self.get_sprite_by_attr(entity.name, entity.direction, entity.type, entity.bend)
 
     def get_sprite_by_attr(self, e_name: str, bp_dir: Direction, io_type: IOType, rot: Rotation) -> Sprite:
 
@@ -297,24 +287,25 @@ class GUI(QtWidgets.QMainWindow):
 
             self.sprites[entity_key] = Sprite()
 
-            if "transport-belt" in e_name:
+            if BPEntity.NAME_BELT in e_name:
                 self.sprites[entity_key] = self.get_tbelt_sprite(prefix, bp_dir, rot)
 
-            if "splitter" in e_name:
+            if BPEntity.NAME_SPLITTER in e_name:
                 self.sprites[entity_key] = self.get_splitter_sprite(prefix, bp_dir)
 
-            if "underground-belt" in e_name:
+            if BPEntity.NAME_UNDERGROUND in e_name:
                 self.sprites[entity_key] = self.get_underground_belt_sprite(prefix, bp_dir, io_type)
 
         return self.sprites[entity_key]
 
-    def drawEntity(self, p: QPainter, entity):
-        bp_pos_x = int(entity["position"]["x"])
-        bp_pos_y = int(entity["position"]["y"])
-        r_x = bp_pos_x - self.bp.min_x
-        r_y = bp_pos_y - self.bp.min_y
+    def drawEntity(self, p: QPainter, entity: BPEntity):
 
-        # print(r_x, r_y)
+        if entity.empty:
+            return
+
+        r_x = entity.pos_x - self.bp.min_x
+        r_y = entity.pos_y - self.bp.min_y
+
         sprite = self.get_sprite_by_entity(entity)
         p.drawImage(QtCore.QPoint(r_x, r_y) * self.tile_size.width() + sprite.offset, sprite.img)
 
@@ -328,10 +319,7 @@ class GUI(QtWidgets.QMainWindow):
             p.translate(0, 16)
             for y in range(0, self.bp.height):
                 for x in range(0, self.bp.width):
-                    entity = self.bp.tiles[y][x].entity
-                    if entity is None:
-                        continue
-                    self.drawEntity(p, entity)
+                    self.drawEntity(p, self.bp.tiles[y][x])
 
 
 if __name__ == '__main__':

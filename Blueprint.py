@@ -1,5 +1,6 @@
 
 import base64
+import copy
 import enum
 import json
 import sys
@@ -13,6 +14,7 @@ class Rotation(enum.Enum):
 
 
 class Direction(enum.Enum):
+    NONE = -1
     UP = 0
     RIGHT = 1
     DOWN = 2
@@ -43,9 +45,9 @@ class Direction(enum.Enum):
         raise RuntimeError('Invalid direction')
 
 class IOType(enum.Enum):
+    NONE = -1
     INPUT = 0
     OUTPUT = 1
-    NONE = 2
 
     @staticmethod
     def from_type(bp_str: str):
@@ -58,15 +60,42 @@ class IOType(enum.Enum):
 major_version_offset_bits = 6*8
 
 class BPEntity:
-    def __init__(self, entity: dict | None = None):
-        self.entity = entity
-
-class Blueprint:
-
     entity_keys_to_ensure = {
         "direction": 0,
         "type": "none"
     }
+
+    NAME_SPLITTER = "splitter"
+    NAME_BELT = "transport-belt"
+    NAME_UNDERGROUND = "underground-belt"
+
+    def __init__(self, version: int = 1, entity: dict | None = None):
+
+        self.empty = entity is None
+
+        if self.empty:
+            return
+
+        for k, dv in self.entity_keys_to_ensure.items():
+            try:
+                x = entity[k]
+            except KeyError:
+                entity[k] = dv
+
+        self.name = entity["name"]
+        self.version = version
+
+        divisor = 2 if self.version >> major_version_offset_bits == 1 else 4
+        self.direction = Direction(int(entity["direction"]) / divisor)
+
+        self.type = IOType.from_type(entity["type"])
+        self.pos_x = int(entity["position"]["x"])
+        self.pos_y = int(entity["position"]["y"])
+
+        # to be filled in later
+        self.bend = Rotation.NONE
+
+class Blueprint:
 
     belt_prefixes = ["fast", "express", "turbo"]
 
@@ -80,8 +109,6 @@ class Blueprint:
         self.version = None
         self.bp_dict = Blueprint.decode_blueprint_str(bp_str)
         self.tiles = []
-        self.dirs = []
-        self.bends = []
         self.parse_bp_dict(self.bp_dict)
 
         return
@@ -92,7 +119,7 @@ class Blueprint:
         for y in range(self.height):
             dir_graph += "|"
             for x in range(self.width):
-                curr_dir = self.dirs[y][x]
+                curr_dir = self.tiles[y][x].direction
                 if curr_dir == Direction.UP:
                     dir_graph += "^"
                 elif curr_dir == Direction.DOWN:
@@ -145,14 +172,6 @@ class Blueprint:
         #     print(f"{key}: {value}")
         return data
 
-    def dir_from_int(self, direction: int) -> Direction:
-        divisor = 2 if self.version >> major_version_offset_bits == 1 else 4
-        direction /= divisor
-        return Direction(direction)
-
-    def entities(self) -> list:
-        return self.bp_dict["entities"]
-
     def get_coord_in_direction(self, x: int, y: int, direction: Direction) -> tuple[int, int]:
         if direction == Direction.UP:
             if y == 0:
@@ -183,67 +202,51 @@ class Blueprint:
         self.min_y = self.min_x
         self.max_y = self.max_x
 
-        for entity in entities:
-            pos_x = int(entity["position"]["x"])
-            pos_y = int(entity["position"]["y"])
+        bp_entities = [BPEntity(self.version, x) for x in entities]
 
-            for k, dv in self.entity_keys_to_ensure.items():
-                try:
-                    x = entity[k]
-                except KeyError:
-                    entity[k] = dv
-
-            self.min_x = min(self.min_x, pos_x)
-            self.min_y = min(self.min_y, pos_y)
-            self.max_x = max(self.max_x, pos_x)
-            self.max_y = max(self.max_y, pos_y)
+        for entity in bp_entities:
+            self.min_x = min(self.min_x, entity.pos_x)
+            self.min_y = min(self.min_y, entity.pos_y)
+            self.max_x = max(self.max_x, entity.pos_x)
+            self.max_y = max(self.max_y, entity.pos_y)
 
         self.width = self.max_x - self.min_x + 1
         self.height = self.max_y - self.min_y + 1
 
-        # print(f"{min_x=} {min_y=} {max_x=} {max_y=}")
-
         for _ in range(self.min_y, self.max_y+1):
             self.tiles.append([])
-            self.dirs.append([])
-            self.bends.append([])
             for _ in range(self.min_x, self.max_x+1):
                 self.tiles[-1].append(BPEntity())
-                self.dirs[-1].append(None)
-                self.bends[-1].append(Rotation.NONE)
 
         # print(f"{len(self.tiles)=}, {len(self.tiles[0])=}")
 
-        for entity in entities:
-            pos_x = int(entity["position"]["x"])
-            pos_y = int(entity["position"]["y"])
-            self.tiles[pos_y-self.min_y][pos_x-self.min_x] = BPEntity(entity)
-
-            e_dir = self.dir_from_int(int(entity["direction"]))
-            self.dirs[pos_y-self.min_y][pos_x-self.min_x] = e_dir
+        for entity in bp_entities:
+            self.tiles[entity.pos_y-self.min_y][entity.pos_x-self.min_x] = entity
 
             # account for splitters being 2 tiles, entity is only marked as southeast half
-            if "splitter" in entity["name"]:
-                if e_dir in [Direction.UP, Direction.DOWN]:
-                    self.dirs[pos_y-self.min_y][pos_x-self.min_x-1] = e_dir
+            if BPEntity.NAME_SPLITTER in entity.name:
+                sp_entity_cap = copy.deepcopy(entity)
+                sp_entity_cap.name = "split_cap"
+                if entity.direction in [Direction.UP, Direction.DOWN]:
+                    self.tiles[entity.pos_y - self.min_y][entity.pos_x - self.min_x - 1] = sp_entity_cap
                 else:
-                    self.dirs[pos_y-self.min_y-1][pos_x-self.min_x] = e_dir
+                    self.tiles[entity.pos_y - self.min_y - 1][entity.pos_x - self.min_x] = sp_entity_cap
 
         for y in range(self.height):
             for x in range(self.width):
 
-                if self.tiles[y][x].entity is None:
+                if self.tiles[y][x].empty:
                     continue
 
-                if "transport-belt" not in self.tiles[y][x].entity["name"]:
+                if BPEntity.NAME_BELT not in self.tiles[y][x].name:
                     continue
 
-                b_dir = self.dirs[y][x]
+                b_dir = self.tiles[y][x].direction
 
                 connected_from_behind = False
                 try:
                     x1, y1 = self.get_coord_in_direction(x, y, Direction.reverse(b_dir))
-                    connected_from_behind = self.dirs[y1][x1] == b_dir
+                    connected_from_behind = self.tiles[y1][x1].direction == b_dir
                 except ValueError:
                     pass
 
@@ -257,14 +260,14 @@ class Blueprint:
                 connected_from_left = False
                 try:
                     x1, y1 = self.get_coord_in_direction(x, y, dir_ccw)
-                    connected_from_left = self.dirs[y1][x1] == dir_cw
+                    connected_from_left = self.tiles[y1][x1].direction == dir_cw
                 except ValueError:
                     pass
 
                 connected_from_right = False
                 try:
                     x1, y1 = self.get_coord_in_direction(x, y, dir_cw)
-                    connected_from_right = self.dirs[y1][x1] == dir_ccw
+                    connected_from_right = self.tiles[y1][x1].direction == dir_ccw
                 except ValueError:
                     pass
 
@@ -274,7 +277,7 @@ class Blueprint:
 
                 if connected_from_left:
                     # implies not connected from right so the input of the belt bends left (so it bends clockwise)
-                    self.bends[y][x] = Rotation.CCW
+                    self.tiles[y][x].bend = Rotation.CCW
                 else:
                     # implies not connected from left so the input of the belt bends right (so it bends counterclockwise)
-                    self.bends[y][x] = Rotation.CW
+                    self.tiles[y][x].bend = Rotation.CW
