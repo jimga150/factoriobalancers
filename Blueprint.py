@@ -224,13 +224,12 @@ class Blueprint:
             self.tiles[entity.pos_y-self.min_y][entity.pos_x-self.min_x] = entity
 
             # account for splitters being 2 tiles, entity is only marked as southeast half
+            # populate direction of empty entity next to splitter
             if BPEntity.NAME_SPLITTER in entity.name:
-                sp_entity_cap = copy.deepcopy(entity)
-                sp_entity_cap.name = "split_cap"
                 if entity.direction in [Direction.UP, Direction.DOWN]:
-                    self.tiles[entity.pos_y - self.min_y][entity.pos_x - self.min_x - 1] = sp_entity_cap
+                    self.tiles[entity.pos_y - self.min_y][entity.pos_x - self.min_x - 1].direction = entity.direction
                 else:
-                    self.tiles[entity.pos_y - self.min_y - 1][entity.pos_x - self.min_x] = sp_entity_cap
+                    self.tiles[entity.pos_y - self.min_y - 1][entity.pos_x - self.min_x].direction = entity.direction
 
         for y in range(self.height):
             for x in range(self.width):
