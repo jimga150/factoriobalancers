@@ -248,6 +248,8 @@ class Blueprint:
                     connected_from_behind = self.tiles[y1][x1].direction == b_dir
                 except ValueError:
                     pass
+                except AttributeError:
+                    pass
 
                 if connected_from_behind:
                     # will never be bent
@@ -262,12 +264,16 @@ class Blueprint:
                     connected_from_left = self.tiles[y1][x1].direction == dir_cw
                 except ValueError:
                     pass
+                except AttributeError:
+                    pass
 
                 connected_from_right = False
                 try:
                     x1, y1 = self.get_coord_in_direction(x, y, dir_cw)
                     connected_from_right = self.tiles[y1][x1].direction == dir_ccw
                 except ValueError:
+                    pass
+                except AttributeError:
                     pass
 
                 if connected_from_left == connected_from_right:
