@@ -90,6 +90,7 @@ class BPEntity:
 
         self.name = entity["name"]
         self.version = version
+        self.entity_number = entity["entity_number"]
 
         divisor = 2 if self.version >> major_version_offset_bits == 1 else 4
         self.direction = Direction(int(entity["direction"]) / divisor)
@@ -110,13 +111,19 @@ class Blueprint:
     belt_prefixes = ["fast", "express", "turbo"]
 
     def __init__(self, bp_str: str):
+
         self.max_y = None
         self.min_y = None
         self.min_x = None
         self.max_x = None
         self.width = None
         self.height = None
+
         self.version = None
+        self.description = None
+        self.label = None
+        self.icons = None
+
         self.bp_dict = Blueprint.decode_blueprint_str(bp_str)
         self.tiles = []
         self.parse_bp_dict(self.bp_dict)
@@ -204,6 +211,12 @@ class Blueprint:
     def parse_bp_dict(self, blueprint: dict):
 
         self.version = int(blueprint["version"])
+
+        self.icons = blueprint["icons"]
+        self.label = blueprint["label"]
+
+        if "description" in blueprint:
+            self.description = blueprint["description"]
 
         entities = blueprint["entities"]
 
