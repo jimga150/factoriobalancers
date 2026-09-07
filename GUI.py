@@ -318,7 +318,7 @@ class GUI(QtWidgets.QMainWindow):
             p.translate(0, 16)
             for y in range(0, self.bp.height):
                 for x in range(0, self.bp.width):
-                    self.drawEntity(p, self.bp.tiles[y][x])
+                    self.drawEntity(p, self.bp.entity_grid[y][x])
 
 
 if __name__ == '__main__':

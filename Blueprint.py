@@ -162,7 +162,7 @@ class Blueprint:
         self.icons = None
 
         self.bp_dict = Blueprint.decode_blueprint_str(bp_str)
-        self.tiles = []
+        self.entity_grid = []
         self.parse_bp_dict(self.bp_dict)
 
         return
@@ -173,7 +173,7 @@ class Blueprint:
         for y in range(self.height):
             dir_graph += "|"
             for x in range(self.width):
-                curr_dir = self.tiles[y][x].direction
+                curr_dir = self.entity_grid[y][x].direction
                 if curr_dir == Direction.UP:
                     dir_graph += "^"
                 elif curr_dir == Direction.DOWN:
@@ -283,9 +283,9 @@ class Blueprint:
         self.height = int(self.max_y - self.min_y + 1 + 0.5)
 
         for _ in range(self.height):
-            self.tiles.append([])
+            self.entity_grid.append([])
             for _ in range(self.width):
-                self.tiles[-1].append(BPEntity())
+                self.entity_grid[-1].append(BPEntity())
 
         # print(f"{len(self.tiles)=}, {len(self.tiles[0])=}")
 
@@ -293,31 +293,31 @@ class Blueprint:
 
             y, x = self.get_entity_idxs(entity)
 
-            self.tiles[y][x] = entity
+            self.entity_grid[y][x] = entity
 
             # account for splitters being 2 tiles, entity is only marked as southeast half
             # populate direction of empty entity next to splitter
             if BPEntity.NAME_SPLITTER in entity.name:
                 if entity.direction in [Direction.UP, Direction.DOWN]:
-                    self.tiles[y][x-1].direction = entity.direction
+                    self.entity_grid[y][x - 1].direction = entity.direction
                 else:
-                    self.tiles[y-1][x].direction = entity.direction
+                    self.entity_grid[y - 1][x].direction = entity.direction
 
         for y in range(self.height):
             for x in range(self.width):
 
-                if self.tiles[y][x].empty:
+                if self.entity_grid[y][x].empty:
                     continue
 
-                if BPEntity.NAME_BELT not in self.tiles[y][x].name:
+                if BPEntity.NAME_BELT not in self.entity_grid[y][x].name:
                     continue
 
-                b_dir = self.tiles[y][x].direction
+                b_dir = self.entity_grid[y][x].direction
 
                 connected_from_behind = False
                 try:
                     x1, y1 = self.get_coord_in_direction(x, y, Direction.reverse(b_dir))
-                    connected_from_behind = self.tiles[y1][x1].direction == b_dir
+                    connected_from_behind = self.entity_grid[y1][x1].direction == b_dir
                 except ValueError:
                     pass
                 except AttributeError:
@@ -333,7 +333,7 @@ class Blueprint:
                 connected_from_left = False
                 try:
                     x1, y1 = self.get_coord_in_direction(x, y, dir_ccw)
-                    connected_from_left = self.tiles[y1][x1].direction == dir_cw
+                    connected_from_left = self.entity_grid[y1][x1].direction == dir_cw
                 except ValueError:
                     pass
                 except AttributeError:
@@ -342,7 +342,7 @@ class Blueprint:
                 connected_from_right = False
                 try:
                     x1, y1 = self.get_coord_in_direction(x, y, dir_cw)
-                    connected_from_right = self.tiles[y1][x1].direction == dir_ccw
+                    connected_from_right = self.entity_grid[y1][x1].direction == dir_ccw
                 except ValueError:
                     pass
                 except AttributeError:
@@ -354,10 +354,10 @@ class Blueprint:
 
                 if connected_from_left:
                     # implies not connected from right so the input of the belt bends left (so it bends clockwise)
-                    self.tiles[y][x].bend = Rotation.CCW
+                    self.entity_grid[y][x].bend = Rotation.CCW
                 else:
                     # implies not connected from left so the input of the belt bends right (so it bends counterclockwise)
-                    self.tiles[y][x].bend = Rotation.CW
+                    self.entity_grid[y][x].bend = Rotation.CW
 
     def to_bp_dict(self) -> dict:
         bp_dict = {
@@ -373,7 +373,7 @@ class Blueprint:
 
         for y in range(self.height):
             for x in range(self.width):
-                bp_entity = self.tiles[y][x]
+                bp_entity = self.entity_grid[y][x]
                 if bp_entity.empty:
                     continue
                 bp_dict["entities"].append(bp_entity.to_entity_dict())
