@@ -7,8 +7,11 @@ import z3
 
 from Belt import ColorStrategy
 
-# TODO: add network -> blueprint conversion (P&R)
 # TODO: add blueprint -> network conversion (network parsing)
+# TODO: add network -> blueprint conversion (P&R)
+#   TODO: use library of pre-routed balancer blueprints that larger balancers can be broken down into
+#   TODO: make an interchange generator
+#   TODO: all balancers will need to be comprised of smaller balancers (or shallower functional blocks) connected possibly by an interchange
 # TODO: generate balancer networks
 #   TODO: generate 2^nx2^n balancers
 #   TODO: generate NXN balancers
