@@ -62,7 +62,6 @@ major_version_offset_bits = 6*8
 class BPEntity:
     entity_keys_to_ensure = {
         "direction": 0,
-        "type": "none"
     }
 
     NAME_SPLITTER = "splitter"
@@ -88,9 +87,13 @@ class BPEntity:
         divisor = 2 if self.version >> major_version_offset_bits == 1 else 4
         self.direction = Direction(int(entity["direction"]) / divisor)
 
-        self.type = IOType.from_type(entity["type"])
         self.pos_x = int(entity["position"]["x"])
         self.pos_y = int(entity["position"]["y"])
+        try:
+            self.type = IOType.from_type(entity["type"])
+        except KeyError:
+            self.type = IOType.NONE
+
 
         # to be filled in later
         self.bend = Rotation.NONE
