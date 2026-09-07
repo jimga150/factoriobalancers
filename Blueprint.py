@@ -57,6 +57,13 @@ class IOType(enum.Enum):
             return IOType.OUTPUT
         return IOType.NONE
 
+    def __str__(self):
+        if self == IOType.INPUT:
+            return "input"
+        if self == IOType.OUTPUT:
+            return "output"
+        return "none"
+
 major_version_offset_bits = 6*8
 
 class BPEntity:
