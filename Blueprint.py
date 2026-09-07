@@ -113,6 +113,36 @@ class BPEntity:
         # to be filled in later
         self.bend = Rotation.NONE
 
+    def to_entity_dict(self) -> dict:
+
+        if self.empty:
+            raise ValueError("This BPEntity is empty")
+
+        ans = {"name": self.name}
+
+        mul = 2 if self.version >> major_version_offset_bits == 1 else 4
+        ans["direction"] = int(self.direction.value) * mul
+
+        if self.type != IOType.NONE:
+            ans["type"] = str(self.type)
+
+        # # most entities define "center" as the center of the single tile
+        # x_center = self.pos_x + 0.5
+        # y_center = self.pos_y + 0.5
+        #
+        # # splitters place the center on the line between the halves
+        # if BPEntity.NAME_SPLITTER in self.name:
+        #     if self.direction in [Direction.UP, Direction.DOWN]:
+        #         x_center = self.pos_x
+        #     else:
+        #         y_center = self.pos_y
+
+        ans["position"] = {"x": self.pos_x, "y": self.pos_y}
+
+        ans["entity_number"] = self.entity_number
+
+        return ans
+
 class Blueprint:
 
     belt_prefixes = ["fast", "express", "turbo"]
@@ -188,6 +218,10 @@ class Blueprint:
         compressed = base64.b64decode(string)
         raw_bytes = zlib.decompress(compressed)
         data = json.loads(raw_bytes)["blueprint"]
+
+        # sort entities by number so that list comparison works
+        data["entities"].sort(key=lambda x: int(x["entity_number"]))
+
         # print(type(data))
         print(json.dumps(data, sort_keys=True, indent=4, ))
         print(f"Version: {hex(data["version"])}")
@@ -324,3 +358,29 @@ class Blueprint:
                 else:
                     # implies not connected from left so the input of the belt bends right (so it bends counterclockwise)
                     self.tiles[y][x].bend = Rotation.CW
+
+    def to_bp_dict(self) -> dict:
+        bp_dict = {
+            "entities": [],
+            "version": self.version,
+            "icons": self.icons,
+            "item": "blueprint",
+            "label": self.label,
+        }
+
+        if self.description:
+            bp_dict["description"] = self.description
+
+        for y in range(self.height):
+            for x in range(self.width):
+                bp_entity = self.tiles[y][x]
+                if bp_entity.empty:
+                    continue
+                bp_dict["entities"].append(bp_entity.to_entity_dict())
+        return {"blueprint": bp_dict}
+
+    def to_bp_str(self) -> str:
+        raw_bytes = json.dumps(self.to_bp_dict()).encode('utf-8')
+        compressed = zlib.compress(raw_bytes, level=9)
+        string = base64.b64encode(compressed).decode('utf-8')
+        return '0' + string

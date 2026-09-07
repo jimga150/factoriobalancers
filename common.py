@@ -76,3 +76,74 @@ def z3realMax(a: z3.ArithRef, b: z3.ArithRef) -> z3.ArithRef:
 
 def z3RealBound(arg: z3.ArithRef, min: z3.ArithRef, max: z3.ArithRef) -> z3.ArithRef:
     return z3realMax(min, z3realMin(arg, max))
+
+def nested_objs_eq(a, b, debug: bool = False) -> bool:
+
+    if debug:
+        print(f"nested_objs_eq called")
+        print(f"a ({type(a)}) = {a}")
+        print(f"b ({type(b)}) = {b}")
+
+    if type(a) != type(b):
+        if debug:
+            print(f"{type(a)=} != {type(b)=}")
+        return False
+
+    if type(a) == dict:
+        return dicts_eq(a, b, debug)
+
+    if type(a) == list:
+        return lists_eq(a, b, debug)
+
+    return a == b
+
+def dicts_eq(a: dict, b: dict, debug: bool = False) -> bool:
+    if debug:
+        print(f"dicts_eq called")
+        print(f"a = {a}")
+        print(f"b = {b}")
+
+    if type(a) != type(b):
+        if debug:
+            print(f"{type(a)=} != {type(b)=}")
+        return False
+
+    if type(a) != dict:
+        if debug:
+            print(f"{type(a)=} != dict")
+        return False
+
+    for k, v in a.items():
+        if k not in b:
+            if debug:
+                print(f"{k=} not in b")
+            return False
+        if not nested_objs_eq(v, b[k], debug):
+            return False
+
+    return True
+
+def lists_eq(a: list, b: list, debug: bool = False) -> bool:
+    if debug:
+        print(f"lists_eq called")
+        print(f"a = {a}")
+        print(f"b = {b}")
+
+    if type(a) != type(b):
+        if debug:
+            print(f"{type(a)=} != {type(b)=}")
+        return False
+    if type(a) != list:
+        if debug:
+            print(f"{type(a)=} != list")
+        return False
+
+    for ia, ib in zip(a, b):
+        if type(ia) != type(ib):
+            if debug:
+                print(f"{type(ia)=} != {type(ib)=}")
+            return False
+        if not nested_objs_eq(ia, ib, debug):
+            return False
+
+    return True
