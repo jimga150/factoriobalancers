@@ -303,8 +303,7 @@ class GUI(QtWidgets.QMainWindow):
         if entity.empty:
             return
 
-        r_x = entity.pos_x - self.bp.min_x
-        r_y = entity.pos_y - self.bp.min_y
+        r_y, r_x = self.bp.get_entity_idxs(entity)
 
         sprite = self.get_sprite_by_entity(entity)
         p.drawImage(QtCore.QPoint(r_x, r_y) * self.tile_size.width() + sprite.offset, sprite.img)

@@ -95,13 +95,20 @@ class BPEntity:
         divisor = 2 if self.version >> major_version_offset_bits == 1 else 4
         self.direction = Direction(int(entity["direction"]) / divisor)
 
-        self.pos_x = int(entity["position"]["x"])
-        self.pos_y = int(entity["position"]["y"])
         try:
             self.type = IOType.from_type(entity["type"])
         except KeyError:
             self.type = IOType.NONE
 
+        self.pos_x = float(entity["position"]["x"])
+        self.pos_y = float(entity["position"]["y"])
+
+        # cast to ints if they can be accurately, since blueprint comparison will read round numbers as ints
+        if self.pos_x.is_integer():
+            self.pos_x = int(round(self.pos_x))
+
+        if self.pos_y.is_integer():
+            self.pos_y = int(round(self.pos_y))
 
         # to be filled in later
         self.bend = Rotation.NONE
@@ -208,6 +215,11 @@ class Blueprint:
             return x - 1, y
         raise RuntimeError('Invalid direction')
 
+    def get_entity_idxs(self, entity: BPEntity) -> tuple[int, int]:
+        y = int(entity.pos_y - self.min_y + 0.5)
+        x = int(entity.pos_x - self.min_x + 0.5)
+        return y, x
+
     def parse_bp_dict(self, blueprint: dict):
 
         self.version = int(blueprint["version"])
@@ -233,26 +245,29 @@ class Blueprint:
             self.max_x = max(self.max_x, entity.pos_x)
             self.max_y = max(self.max_y, entity.pos_y)
 
-        self.width = self.max_x - self.min_x + 1
-        self.height = self.max_y - self.min_y + 1
+        self.width = int(self.max_x - self.min_x + 1 + 0.5)
+        self.height = int(self.max_y - self.min_y + 1 + 0.5)
 
-        for _ in range(self.min_y, self.max_y+1):
+        for _ in range(self.height):
             self.tiles.append([])
-            for _ in range(self.min_x, self.max_x+1):
+            for _ in range(self.width):
                 self.tiles[-1].append(BPEntity())
 
         # print(f"{len(self.tiles)=}, {len(self.tiles[0])=}")
 
         for entity in bp_entities:
-            self.tiles[entity.pos_y-self.min_y][entity.pos_x-self.min_x] = entity
+
+            y, x = self.get_entity_idxs(entity)
+
+            self.tiles[y][x] = entity
 
             # account for splitters being 2 tiles, entity is only marked as southeast half
             # populate direction of empty entity next to splitter
             if BPEntity.NAME_SPLITTER in entity.name:
                 if entity.direction in [Direction.UP, Direction.DOWN]:
-                    self.tiles[entity.pos_y - self.min_y][entity.pos_x - self.min_x - 1].direction = entity.direction
+                    self.tiles[y][x-1].direction = entity.direction
                 else:
-                    self.tiles[entity.pos_y - self.min_y - 1][entity.pos_x - self.min_x].direction = entity.direction
+                    self.tiles[y-1][x].direction = entity.direction
 
         for y in range(self.height):
             for x in range(self.width):
