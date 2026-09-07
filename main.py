@@ -7,8 +7,6 @@ import z3
 
 from Belt import ColorStrategy
 
-# TODO: add blueprint parsing (rip from Factorio SAT)
-#   TODO: add blueprint export
 # TODO: add network -> blueprint conversion (P&R)
 # TODO: add blueprint -> network conversion (network parsing)
 # TODO: generate balancer networks
