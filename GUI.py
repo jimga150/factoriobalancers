@@ -356,6 +356,9 @@ if __name__ == '__main__':
         print("Network rendering failed:")
         print(str(e))
 
+    print(f"min (x, y) = ({widget.bp.min_x}, {widget.bp.min_y})")
+    print(f"max (x, y) = ({widget.bp.max_x}, {widget.bp.max_y})")
+
     widget.resize(800, 800)
     widget.show()
 
