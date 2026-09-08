@@ -7,7 +7,7 @@ import z3
 
 from Belt import ColorStrategy
 
-# TODO: get rid of attribute specific sprite fetching, it stops me from using BPEntity fxns
+# TODO: debug why undergrounds arent finding pairs
 # TODO: fix belt added to undergrounds (cut it off before closed end)
 # TODO: add blueprint -> network conversion (network parsing)
 #   TODO: handle underground distance limits

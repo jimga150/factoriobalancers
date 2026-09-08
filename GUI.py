@@ -203,7 +203,13 @@ class GUI(QtWidgets.QMainWindow):
         else:
             offset = QtCore.QPoint(0, -64)
 
-        belt_sprite = self.get_sprite_by_attr(f"{prefix}transport-belt", bp_dir, IOType.NONE, Rotation.NONE)
+        belt_entity = BPEntity()
+        belt_entity.name = f"{prefix}transport-belt"
+        belt_entity.direction = bp_dir
+        belt_entity.bend = Rotation.NONE
+        belt_entity.type = IOType.NONE
+
+        belt_sprite = self.get_sprite_by_entity(belt_entity)
 
         ans = Sprite.from_sprite(belt_sprite)
 
@@ -247,7 +253,14 @@ class GUI(QtWidgets.QMainWindow):
 
     def get_underground_belt_sprite(self, prefix: str, bp_dir: Direction, io_type: IOType) -> Sprite:
 
-        belt_sprite = self.get_sprite_by_attr(f"{prefix}transport-belt", bp_dir, IOType.NONE, Rotation.NONE)
+        belt_entity = BPEntity()
+        belt_entity.name = f"{prefix}transport-belt"
+        belt_entity.direction = bp_dir
+        belt_entity.bend = Rotation.NONE
+        belt_entity.type = IOType.NONE
+
+        belt_sprite = self.get_sprite_by_entity(belt_entity)
+
         ans = Sprite.from_sprite(belt_sprite)
 
         # the direction of an underground refers to which way the belt is flowing, not which way its opening
@@ -270,16 +283,13 @@ class GUI(QtWidgets.QMainWindow):
         return ans.add(Sprite(self.ss_imgs[f"{prefix}underground-belt-structure.png"].copy(sprite_rect), offset))
 
     def get_sprite_by_entity(self, entity: BPEntity) -> Sprite:
-        return self.get_sprite_by_attr(entity.name, entity.direction, entity.type, entity.bend)
 
-    def get_sprite_by_attr(self, e_name: str, bp_dir: Direction, io_type: IOType, rot: Rotation) -> Sprite:
-
-        entity_key = (e_name, bp_dir, io_type, rot)
+        entity_key = (entity.name, entity.direction, entity.type, entity.bend)
 
         # get filename prefix for image fetching
         prefix = ""
         for p in Blueprint.belt_prefixes:
-            if p in e_name:
+            if p in entity.name:
                 prefix = f"{p}-"
                 break
 
@@ -287,14 +297,14 @@ class GUI(QtWidgets.QMainWindow):
 
             self.sprites[entity_key] = Sprite()
 
-            if BPEntity.NAME_BELT in e_name:
-                self.sprites[entity_key] = self.get_tbelt_sprite(prefix, bp_dir, rot)
+            if entity.is_belt():
+                self.sprites[entity_key] = self.get_tbelt_sprite(prefix, entity.direction, entity.bend)
 
-            if BPEntity.NAME_SPLITTER in e_name:
-                self.sprites[entity_key] = self.get_splitter_sprite(prefix, bp_dir)
+            if entity.is_splitter():
+                self.sprites[entity_key] = self.get_splitter_sprite(prefix, entity.direction)
 
-            if BPEntity.NAME_UNDERGROUND in e_name:
-                self.sprites[entity_key] = self.get_underground_belt_sprite(prefix, bp_dir, io_type)
+            if entity.is_underground():
+                self.sprites[entity_key] = self.get_underground_belt_sprite(prefix, entity.direction, entity.type)
 
         return self.sprites[entity_key]
 
