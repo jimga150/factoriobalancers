@@ -57,6 +57,10 @@ def fetch_assets():
     if game_directory is None:
         raise RuntimeError("No Factorio installation found")
 
+    mac_path = game_directory / "factorio.app" / "Contents"
+    if path.exists(mac_path):
+        game_directory = mac_path
+
     entity_dirs = [
         "base",
         "space-age"
