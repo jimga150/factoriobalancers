@@ -6,6 +6,12 @@ import json
 import sys
 
 import zlib
+from itertools import chain
+
+from Balancer import Balancer
+from Belt import Belt
+from Node import Node
+
 
 class Rotation(enum.Enum):
     NONE = -1
@@ -43,6 +49,15 @@ class Direction(enum.Enum):
         elif direc == Direction.LEFT:
             return Direction.UP if rot == Rotation.CW else Direction.DOWN
         raise RuntimeError('Invalid direction')
+
+    def is_vertical(self) -> bool:
+        return self in [Direction.UP, Direction.DOWN]
+
+    def is_horizontal(self) -> bool:
+        return self in [Direction.LEFT, Direction.RIGHT]
+
+    def is_perpendicular(self, other: Direction) -> bool:
+        return self.is_vertical() != other.is_vertical()
 
 class IOType(enum.Enum):
     NONE = -1
@@ -248,7 +263,7 @@ class Blueprint:
         #     print(f"{key}: {value}")
         return data
 
-    def get_coord_in_direction(self, x: int, y: int, direction: Direction) -> tuple[int, int]:
+    def get_coord_in_direction(self, x: int | float, y: int | float, direction: Direction) -> tuple[int | float, int | float]:
         if direction == Direction.UP:
             if y == 0:
                 raise ValueError
@@ -429,3 +444,176 @@ class Blueprint:
         compressed = zlib.compress(raw_bytes, level=9)
         string = base64.b64encode(compressed).decode('utf-8')
         return '0' + string
+
+    def entites_as_flat_list(self) -> list[BPEntity]:
+        return list(chain.from_iterable(self.entity_grid))
+
+    def get_network(self):
+
+        internal_nodes = {}
+
+        # make nodes for each splitter
+        for entity in self.entites_as_flat_list():
+            if entity.is_splitter():
+                internal_nodes[self.get_entity_idxs(entity)] = Node()
+
+        print(internal_nodes)
+
+        io_nodes = []
+
+        belts_explored = []
+        for _ in range(self.height):
+            belts_explored.append([])
+            for _ in range(self.width):
+                belts_explored[-1].append(False)
+
+        ans = Balancer()
+
+        for y in range(self.height):
+            for x in range(self.width):
+                entity = self.entity_grid[y][x]
+                if not entity.is_belt() and not entity.is_underground():
+                    continue
+
+                # if belt/underground already seen as part of a Belt object
+                if belts_explored[y][x]:
+                    continue
+
+                # trace path forwards to find dest node
+                curr_entity = entity
+                while True:
+
+                    y, x = self.get_entity_idxs(curr_entity)
+
+                    belts_explored[y][x] = True
+                    curr_entity = self.find_connected_entity(curr_entity)
+
+                    if curr_entity.empty:
+                        # empty entity, found output belt
+                        dest_node = Node()
+                        io_nodes.append(dest_node)
+                        break
+
+                    if curr_entity.is_splitter():
+                        # found dest node
+                        dest_node = internal_nodes[self.get_entity_idxs(curr_entity)]
+                        break
+
+                    if not curr_entity.is_underground() and not curr_entity.is_belt():
+                        raise RuntimeError("Belt in balancer faces an entity that is not a splitter, belt, or underground.")
+
+                # trace path backwards to find src node
+                curr_entity = entity
+                while True:
+
+                    y, x = self.get_entity_idxs(curr_entity)
+
+                    belts_explored[y][x] = True
+                    curr_entity = self.find_connected_entity(curr_entity, reverse=True)
+
+                    if curr_entity.empty:
+                        # empty entity, found input belt
+                        src_node = Node()
+                        io_nodes.append(src_node)
+                        break
+
+                    if curr_entity.is_splitter():
+                        # found src node
+                        src_node = internal_nodes[self.get_entity_idxs(curr_entity)]
+                        break
+
+                if src_node is None:
+                    raise RuntimeError
+
+                ans.belts.append(Belt(src_node, dest_node))
+
+        ans.postprocess_nodes()
+        return ans
+
+    def find_connected_entity(self, from_entity: BPEntity, reverse: bool = False) -> BPEntity:
+        print(f"find_connected_entity called (from_entity={str(from_entity)}, {reverse=})")
+        y, x = self.get_entity_idxs(from_entity)
+        if from_entity.is_underground():
+            # find the location of the corresponding underground
+            candidate_x = x
+            candidate_y = y
+            curr_opening_dir = from_entity.direction \
+                if from_entity.type == IOType.OUTPUT \
+                else Direction.reverse(from_entity.direction)
+            while True:
+                try:
+                    dir_to_try = Direction.reverse(from_entity.direction) if reverse else from_entity.direction
+                    candidate_x, candidate_y = self.get_coord_in_direction(candidate_x, candidate_y,
+                                                                           dir_to_try)
+                except ValueError:
+                    # out of bounds, no partner
+                    raise RuntimeError(f"Underground in balancer ({str(from_entity)}) has no corresponding underground")
+
+                candidate_entity = self.entity_grid[candidate_y][candidate_x]
+
+                if not candidate_entity.is_underground():
+                    continue
+                if candidate_entity.direction.is_perpendicular(from_entity.direction):
+                    continue
+
+                if Direction.reverse(candidate_entity.direction) == from_entity.direction:
+                    raise RuntimeError(
+                        f"Underground in balancer ({str(from_entity)}) has broken link--sees underground flowing in opposite direction")
+
+                opening_dir = candidate_entity.direction \
+                    if candidate_entity.type == IOType.OUTPUT \
+                    else Direction.reverse(candidate_entity.direction)
+
+                if opening_dir == curr_opening_dir:
+                    raise RuntimeError(
+                        f"Underground in balancer ({str(from_entity)}) has broken link--sees underground opening in the same direction")
+
+                # found corresponding underground. exit
+                x1 = candidate_x
+                y1 = candidate_y
+                break
+        elif reverse:
+            # not an underground, must be a belt. find previous belt
+            dirs_to_try = [
+                Direction.reverse(from_entity.direction),
+                Direction.turn(from_entity.direction, Rotation.CW),
+                Direction.turn(from_entity.direction, Rotation.CCW)
+            ]
+            entities_pointing_here = []
+            for dir_to_try in dirs_to_try:
+                try:
+                    x1, y1 = self.get_coord_in_direction(x, y, dir_to_try)
+                except ValueError:
+                    # out of bounds, nothing here
+                    continue
+
+                candidate_entity = self.entity_grid[y1][x1]
+
+                if candidate_entity.empty:
+                    # nothing here
+                    continue
+
+                if candidate_entity.direction == Direction.reverse(dir_to_try):
+                    # this entity is pointing to from_entity
+                    entities_pointing_here.append(candidate_entity)
+
+            if len(entities_pointing_here) == 0:
+                # nothing pointing here, return empty entity
+                return BPEntity()
+
+            if len(entities_pointing_here) == 1:
+                # unambiguous
+                return entities_pointing_here[0]
+
+            # more than one entity points here, meaning lane shenanigans will be happening
+            raise RuntimeError("Lane balancing techniques are being used for this balancer, which is currently unsupported.")
+
+        else:
+            # not an underground, must be a belt. find next belt
+            try:
+                x1, y1 = self.get_coord_in_direction(x, y, from_entity.direction)
+            except ValueError:
+                # out of bounds, return empty entity
+                return BPEntity()
+
+        return self.entity_grid[y1][x1]
