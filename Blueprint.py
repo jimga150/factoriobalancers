@@ -143,6 +143,21 @@ class BPEntity:
 
         return ans
 
+    def is_belt(self) -> bool:
+        if self.empty:
+            return False
+        return BPEntity.NAME_BELT in self.name
+
+    def is_splitter(self) -> bool:
+        if self.empty:
+            return False
+        return BPEntity.NAME_SPLITTER in self.name
+
+    def is_underground(self) -> bool:
+        if self.empty:
+            return False
+        return BPEntity.NAME_UNDERGROUND in self.name
+
 class Blueprint:
 
     belt_prefixes = ["fast", "express", "turbo"]
@@ -297,7 +312,7 @@ class Blueprint:
 
             # account for splitters being 2 tiles, entity is only marked as southeast half
             # populate direction of empty entity next to splitter
-            if BPEntity.NAME_SPLITTER in entity.name:
+            if entity.is_splitter():
                 if entity.direction in [Direction.UP, Direction.DOWN]:
                     self.entity_grid[y][x - 1].direction = entity.direction
                 else:
@@ -306,13 +321,15 @@ class Blueprint:
         for y in range(self.height):
             for x in range(self.width):
 
-                if self.entity_grid[y][x].empty:
+                entity = self.entity_grid[y][x]
+
+                if entity.empty:
                     continue
 
-                if BPEntity.NAME_BELT not in self.entity_grid[y][x].name:
+                if not entity.is_belt():
                     continue
 
-                b_dir = self.entity_grid[y][x].direction
+                b_dir = entity.direction
 
                 connected_from_behind = False
                 try:
@@ -354,10 +371,10 @@ class Blueprint:
 
                 if connected_from_left:
                     # implies not connected from right so the input of the belt bends left (so it bends clockwise)
-                    self.entity_grid[y][x].bend = Rotation.CCW
+                    entity.bend = Rotation.CCW
                 else:
                     # implies not connected from left so the input of the belt bends right (so it bends counterclockwise)
-                    self.entity_grid[y][x].bend = Rotation.CW
+                    entity.bend = Rotation.CW
 
     def to_bp_dict(self) -> dict:
         bp_dict = {
