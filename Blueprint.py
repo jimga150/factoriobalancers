@@ -318,6 +318,7 @@ class Blueprint:
                 else:
                     self.entity_grid[y - 1][x].direction = entity.direction
 
+        # find belts that should bend when rendered
         for y in range(self.height):
             for x in range(self.width):
 
@@ -334,7 +335,15 @@ class Blueprint:
                 connected_from_behind = False
                 try:
                     x1, y1 = self.get_coord_in_direction(x, y, Direction.reverse(b_dir))
-                    connected_from_behind = self.entity_grid[y1][x1].direction == b_dir
+                    candidate_entity = self.entity_grid[y1][x1]
+                    if candidate_entity.is_underground():
+                        opening_dir = candidate_entity.direction \
+                            if candidate_entity.type == IOType.OUTPUT \
+                            else Direction.reverse(candidate_entity.direction)
+                        if opening_dir != b_dir:
+                            # closed end, ignore
+                            raise ValueError
+                    connected_from_behind = candidate_entity.direction == b_dir
                 except ValueError:
                     pass
                 except AttributeError:
@@ -350,7 +359,15 @@ class Blueprint:
                 connected_from_left = False
                 try:
                     x1, y1 = self.get_coord_in_direction(x, y, dir_ccw)
-                    connected_from_left = self.entity_grid[y1][x1].direction == dir_cw
+                    candidate_entity = self.entity_grid[y1][x1]
+                    if candidate_entity.is_underground():
+                        opening_dir = candidate_entity.direction \
+                            if candidate_entity.type == IOType.OUTPUT \
+                            else Direction.reverse(candidate_entity.direction)
+                        if opening_dir != dir_cw:
+                            # closed end, ignore
+                            raise ValueError
+                    connected_from_left = candidate_entity.direction == dir_cw
                 except ValueError:
                     pass
                 except AttributeError:
@@ -359,7 +376,15 @@ class Blueprint:
                 connected_from_right = False
                 try:
                     x1, y1 = self.get_coord_in_direction(x, y, dir_cw)
-                    connected_from_right = self.entity_grid[y1][x1].direction == dir_ccw
+                    candidate_entity = self.entity_grid[y1][x1]
+                    if candidate_entity.is_underground():
+                        opening_dir = candidate_entity.direction \
+                            if candidate_entity.type == IOType.OUTPUT \
+                            else Direction.reverse(candidate_entity.direction)
+                        if opening_dir != dir_ccw:
+                            # closed end, ignore
+                            raise ValueError
+                    connected_from_right = candidate_entity.direction == dir_ccw
                 except ValueError:
                     pass
                 except AttributeError:
