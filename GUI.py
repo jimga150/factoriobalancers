@@ -155,6 +155,8 @@ class GUI(QtWidgets.QMainWindow):
         self.bp = bp
 
         asset_dir = "assets"
+        os.makedirs(asset_dir, exist_ok=True)
+
         self.ss_imgs = {}
 
         for file in os.listdir(asset_dir):
