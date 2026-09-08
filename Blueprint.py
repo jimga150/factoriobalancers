@@ -113,6 +113,9 @@ class BPEntity:
         # to be filled in later
         self.bend = Rotation.NONE
 
+    def __str__(self):
+        return f"{self.name} @ ({self.pos_x}, {self.pos_y})"
+
     def to_entity_dict(self) -> dict:
 
         if self.empty:
