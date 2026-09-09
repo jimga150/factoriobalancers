@@ -7,12 +7,13 @@ import z3
 
 from Belt import ColorStrategy
 
-# TODO: debug why undergrounds arent finding pairs
+# TODO: debug derived network rendering error
 # TODO: fix belt added to undergrounds (cut it off before closed end)
 # TODO: add blueprint -> network conversion (network parsing)
 #   TODO: handle underground distance limits
 #   TODO: handle belt weaving
 #   TODO: handle lane interactions
+#   TODO: add tests
 # TODO: add network -> blueprint conversion (P&R)
 #   TODO: use library of pre-routed balancer blueprints that larger balancers can be broken down into
 #   TODO: make an interchange generator

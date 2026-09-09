@@ -533,7 +533,9 @@ class Blueprint:
     def find_connected_entity(self, from_entity: BPEntity, reverse: bool = False) -> BPEntity:
         print(f"find_connected_entity called (from_entity={str(from_entity)}, {reverse=})")
         y, x = self.get_entity_idxs(from_entity)
-        if from_entity.is_underground():
+        if (from_entity.is_underground() and
+                ((from_entity.type == IOType.OUTPUT and reverse) or
+                 (from_entity.type == IOType.INPUT and not reverse))):
             # find the location of the corresponding underground
             candidate_x = x
             candidate_y = y
@@ -573,12 +575,19 @@ class Blueprint:
                 y1 = candidate_y
                 break
         elif reverse:
-            # not an underground, must be a belt. find previous belt
+            # not looking for an underground pair, just look for things pointing here
             dirs_to_try = [
                 Direction.reverse(from_entity.direction),
                 Direction.turn(from_entity.direction, Rotation.CW),
                 Direction.turn(from_entity.direction, Rotation.CCW)
             ]
+
+            if from_entity.is_underground():
+                # underground entrance, only relevant direction is backwards
+                dirs_to_try = [
+                    Direction.reverse(from_entity.direction)
+                ]
+
             entities_pointing_here = []
             for dir_to_try in dirs_to_try:
                 try:
@@ -609,7 +618,7 @@ class Blueprint:
             raise RuntimeError("Lane balancing techniques are being used for this balancer, which is currently unsupported.")
 
         else:
-            # not an underground, must be a belt. find next belt
+            # not looking for an underground pair, just find next belt
             try:
                 x1, y1 = self.get_coord_in_direction(x, y, from_entity.direction)
             except ValueError:
