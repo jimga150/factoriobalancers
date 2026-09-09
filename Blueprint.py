@@ -525,6 +525,9 @@ class Blueprint:
                 if src_node is None:
                     raise RuntimeError
 
+                if dest_node is None:
+                    raise RuntimeError
+
                 ans.belts.append(Belt(src_node, dest_node))
 
         ans.postprocess_nodes()
