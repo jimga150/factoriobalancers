@@ -622,8 +622,9 @@ class Blueprint:
 
                 candidate_entity = self.entity_grid[y1][x1]
 
-                if candidate_entity.direction == Direction.reverse(dir_to_try):
-                    # this entity is pointing to from_entity
+                if (candidate_entity.direction == Direction.reverse(dir_to_try) and
+                        not (candidate_entity.is_underground() and candidate_entity.type == IOType.INPUT)):
+                    # this entity is pointing to from_entity (excluding undergrounds closing to this direction)
                     entities_pointing_here.append(candidate_entity)
 
             if len(entities_pointing_here) == 0:
