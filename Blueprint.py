@@ -308,6 +308,8 @@ class Blueprint:
         raise RuntimeError('Invalid direction')
 
     def get_entity_idxs(self, entity: BPEntity) -> tuple[int, int]:
+        if entity.is_splitter_cap():
+            entity = entity.splitter_sibling
         y = int(entity.pos_y - self.min_y + 0.5)
         x = int(entity.pos_x - self.min_x + 0.5)
         return y, x
@@ -478,85 +480,72 @@ class Blueprint:
         # make nodes for each splitter
         for entity in self.entites_as_flat_list():
             if entity.is_splitter():
-                internal_nodes[self.get_entity_idxs(entity)] = Node()
+                internal_nodes[entity] = Node()
 
         print(internal_nodes)
 
         io_nodes = []
 
-        belts_explored = []
-        for _ in range(self.height):
-            belts_explored.append([])
-            for _ in range(self.width):
-                belts_explored[-1].append(False)
-
         ans = Balancer()
 
-        for y in range(self.height):
-            for x in range(self.width):
-                entity = self.entity_grid[y][x]
-                if not entity.is_belt() and not entity.is_underground():
-                    continue
+        # iterate over all splitter entities:
+        # for each output x direction:
+        #   trace to destination in direction
+        #   make belt, if belt not on list
+        #   add belt to list
 
-                # if belt/underground already seen as part of a Belt object
-                if belts_explored[y][x]:
-                    continue
+        for splitter_entity, node in internal_nodes.items():
+            for reverse in [True, False]:
+                for use_head in [True, False]:
+                    # use_head: True when using true splitter entity, false when using splitter cap (nearly empty entity next to it)
+                    curr_entity = splitter_entity if use_head else splitter_entity.splitter_sibling
+                    other_node = None
+                    while True:
 
-                # trace path forwards to find dest node
-                curr_entity = entity
-                while True:
+                        last_entity = curr_entity
 
-                    y, x = self.get_entity_idxs(curr_entity)
+                        # did we start at a belt this iteration
+                        from_belt = curr_entity.is_belt() or curr_entity.is_underground()
 
-                    belts_explored[y][x] = True
-                    curr_entity = self.find_connected_entity(curr_entity)
+                        curr_entity = self.find_connected_entity(curr_entity, reverse)
 
-                    if curr_entity.is_splitter_cap():
-                        # found dest node
-                        dest_node = internal_nodes[self.get_entity_idxs(curr_entity.splitter_sibling)]
-                        break
+                        if curr_entity.is_splitter_cap():
+                            # found dest node, need to fetch "true" splitter entity
+                            other_node = internal_nodes[curr_entity.splitter_sibling]
+                            break
 
-                    if curr_entity.empty:
-                        # empty entity, found output belt
-                        dest_node = Node()
-                        io_nodes.append(dest_node)
-                        break
+                        if curr_entity.empty:
+                            if from_belt:
+                                # empty entity, found I/O belt
+                                other_node = Node()
+                                io_nodes.append(other_node)
+                                print(f"I/O node @ ({self.get_entity_idxs(last_entity)})")
+                            else:
+                                # splitter with nothing connecting to it is not an I/O
+                                pass
+                            break
 
-                    if curr_entity.is_splitter():
-                        # found dest node
-                        dest_node = internal_nodes[self.get_entity_idxs(curr_entity)]
-                        break
+                        if curr_entity.is_splitter():
+                            # found dest node
+                            other_node = internal_nodes[curr_entity]
+                            break
 
-                    if not curr_entity.is_underground() and not curr_entity.is_belt():
-                        raise RuntimeError("Belt in balancer faces an entity that is not a splitter, belt, or underground.")
+                        if not curr_entity.is_underground() and not curr_entity.is_belt():
+                            raise RuntimeError(
+                                "Belt in balancer faces an entity that is not a splitter, belt, or underground.")
 
-                # trace path backwards to find src node
-                curr_entity = entity
-                while True:
+                    if other_node is None:
+                        # no belt to be made
+                        continue
 
-                    y, x = self.get_entity_idxs(curr_entity)
+                    if reverse:
+                        # seeking backwards, so starting node was actually dest
+                        belt = Belt(other_node, node)
+                    else:
+                        belt = Belt(node, other_node)
 
-                    belts_explored[y][x] = True
-                    curr_entity = self.find_connected_entity(curr_entity, reverse=True)
-
-                    if curr_entity.empty:
-                        # empty entity, found input belt
-                        src_node = Node()
-                        io_nodes.append(src_node)
-                        break
-
-                    if curr_entity.is_splitter():
-                        # found src node
-                        src_node = internal_nodes[self.get_entity_idxs(curr_entity)]
-                        break
-
-                if src_node is None:
-                    raise RuntimeError
-
-                if dest_node is None:
-                    raise RuntimeError
-
-                ans.belts.append(Belt(src_node, dest_node))
+                    # we will have duplicates (for belts that aren't I/O) but that's OK
+                    ans.belts.append(belt)
 
         ans.postprocess_nodes()
         return ans
