@@ -8,6 +8,7 @@ import z3
 from Belt import ColorStrategy
 
 # TODO: debug derived network rendering error
+#   TODO: load 2-4 balancer (in yellow) to test?
 # TODO: fix belt added to undergrounds (cut it off before closed end)
 # TODO: add blueprint -> network conversion (network parsing)
 #   TODO: handle underground distance limits
