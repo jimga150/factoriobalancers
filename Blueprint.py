@@ -606,8 +606,8 @@ class Blueprint:
                 Direction.turn(from_entity.direction, Rotation.CCW)
             ]
 
-            if from_entity.is_underground():
-                # underground entrance, only relevant direction is backwards
+            if from_entity.is_underground() or from_entity.is_splitter():
+                # underground entrance or splitter, only relevant direction is backwards
                 dirs_to_try = [
                     Direction.reverse(from_entity.direction)
                 ]
