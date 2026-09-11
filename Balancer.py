@@ -49,7 +49,10 @@ class Balancer:
         self.z3solver = None
         self.total_throughput_var = None
 
-        input_char = ord('A')
+        min_input_char = ord('A')
+        max_input_char = ord('Z')
+        input_char = min_input_char
+
         output_idx = 1
         for belt in self.belts:
 
@@ -61,6 +64,8 @@ class Balancer:
             if self.is_input(belt):
                 belt.source.name = str(chr(input_char))
                 input_char += 1
+                if input_char > max_input_char:
+                    raise RuntimeError(f"Can't handle more than {max_input_char - min_input_char} inputs.")
             else:
                 belt.source.name = ""
 
