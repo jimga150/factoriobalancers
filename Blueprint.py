@@ -95,7 +95,7 @@ class BPEntity:
         self.empty = entity is None
 
         # set to BPEntity of splitter on other tile when this is part of a pair
-        self.splitter_head = None
+        self.splitter_sibling = None
 
         self.direction = Direction.NONE
 
@@ -185,6 +185,9 @@ class BPEntity:
         if self.empty:
             return False
         return BPEntity.NAME_SPLITTER in self.name
+
+    def is_splitter_cap(self) -> bool:
+        return self.empty and self.splitter_sibling is not None
 
     def is_underground(self) -> bool:
         if self.empty:
@@ -354,8 +357,9 @@ class Blueprint:
                 # populate direction of empty entity next to splitter
                 splitter_cap_entity.direction = entity.direction
 
-                # point to master entity
-                splitter_cap_entity.splitter_head = entity
+                # set entities to point to each other
+                splitter_cap_entity.splitter_sibling = entity
+                entity.splitter_sibling = splitter_cap_entity
 
         # find belts that should bend when rendered
         for y in range(self.height):
@@ -509,9 +513,9 @@ class Blueprint:
                     belts_explored[y][x] = True
                     curr_entity = self.find_connected_entity(curr_entity)
 
-                    if curr_entity.splitter_head is not None:
+                    if curr_entity.is_splitter_cap():
                         # found dest node
-                        dest_node = internal_nodes[self.get_entity_idxs(curr_entity.splitter_head)]
+                        dest_node = internal_nodes[self.get_entity_idxs(curr_entity.splitter_sibling)]
                         break
 
                     if curr_entity.empty:
