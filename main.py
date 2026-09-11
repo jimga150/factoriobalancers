@@ -9,10 +9,10 @@ from Belt import ColorStrategy
 
 # TODO: debug derived network rendering error
 #   TODO: load 2-4 balancer (in yellow) to test?
-# TODO: BPEntity should use attribute setting to import dict, use typedefs on strings to pass values around
 # TODO: change get_sprite fxns to use BPEntity
 # TODO: fix belt added to undergrounds (cut it off before closed end)
 # TODO: add debug overlay to rendered blueprints
+# TODO: move all renders to output folder by default
 # TODO: add blueprint -> network conversion (network parsing)
 #   TODO: handle underground distance limits
 #   TODO: handle belt weaving
