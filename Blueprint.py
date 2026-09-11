@@ -635,8 +635,12 @@ class Blueprint:
                 # unambiguous
                 return entities_pointing_here[0]
 
+            eph_str = "; ".join([str(x) for x in entities_pointing_here])
+
             # more than one entity points here, meaning lane shenanigans will be happening
-            raise RuntimeError("Lane balancing techniques are being used for this balancer, which is currently unsupported.")
+            raise RuntimeError(f"Lane balancing techniques are being used for this balancer, "
+                               f"which is currently unsupported. "
+                               f"{eph_str}")
 
         else:
             # not looking for an underground pair, just find next belt
