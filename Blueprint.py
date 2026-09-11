@@ -131,6 +131,15 @@ class BPEntity:
     def __str__(self):
         return f"{self.name} @ ({self.pos_x}, {self.pos_y})"
 
+    def __eq__(self, other):
+        return self.entity_number == other.entity_number
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __hash__(self):
+        return hash(self.entity_number)
+
     def to_entity_dict(self) -> dict:
 
         if self.empty:
