@@ -627,10 +627,6 @@ class Blueprint:
 
                 candidate_entity = self.entity_grid[y1][x1]
 
-                if candidate_entity.empty:
-                    # nothing here
-                    continue
-
                 if candidate_entity.direction == Direction.reverse(dir_to_try):
                     # this entity is pointing to from_entity
                     entities_pointing_here.append(candidate_entity)
