@@ -194,6 +194,13 @@ class BPEntity:
             return False
         return BPEntity.NAME_UNDERGROUND in self.name
 
+    def opening_dir(self) -> Direction:
+        if self.empty:
+            raise ValueError("This BPEntity is empty")
+        if not self.is_underground():
+            raise ValueError("This BPEntity is not an underground")
+        return self.direction if self.type == IOType.OUTPUT else Direction.reverse(self.direction)
+
 class Blueprint:
 
     belt_prefixes = ["fast", "express", "turbo"]
@@ -380,10 +387,7 @@ class Blueprint:
                     x1, y1 = self.get_coord_in_direction(x, y, Direction.reverse(b_dir))
                     candidate_entity = self.entity_grid[y1][x1]
                     if candidate_entity.is_underground():
-                        opening_dir = candidate_entity.direction \
-                            if candidate_entity.type == IOType.OUTPUT \
-                            else Direction.reverse(candidate_entity.direction)
-                        if opening_dir != b_dir:
+                        if candidate_entity.opening_dir() != b_dir:
                             # closed end, ignore
                             raise ValueError
                     connected_from_behind = candidate_entity.direction == b_dir
@@ -404,10 +408,7 @@ class Blueprint:
                     x1, y1 = self.get_coord_in_direction(x, y, dir_ccw)
                     candidate_entity = self.entity_grid[y1][x1]
                     if candidate_entity.is_underground():
-                        opening_dir = candidate_entity.direction \
-                            if candidate_entity.type == IOType.OUTPUT \
-                            else Direction.reverse(candidate_entity.direction)
-                        if opening_dir != dir_cw:
+                        if candidate_entity.opening_dir() != dir_cw:
                             # closed end, ignore
                             raise ValueError
                     connected_from_left = candidate_entity.direction == dir_cw
@@ -421,10 +422,7 @@ class Blueprint:
                     x1, y1 = self.get_coord_in_direction(x, y, dir_cw)
                     candidate_entity = self.entity_grid[y1][x1]
                     if candidate_entity.is_underground():
-                        opening_dir = candidate_entity.direction \
-                            if candidate_entity.type == IOType.OUTPUT \
-                            else Direction.reverse(candidate_entity.direction)
-                        if opening_dir != dir_ccw:
+                        if candidate_entity.opening_dir() != dir_ccw:
                             # closed end, ignore
                             raise ValueError
                     connected_from_right = candidate_entity.direction == dir_ccw
@@ -572,9 +570,6 @@ class Blueprint:
             # find the location of the corresponding underground
             candidate_x = x
             candidate_y = y
-            curr_opening_dir = from_entity.direction \
-                if from_entity.type == IOType.OUTPUT \
-                else Direction.reverse(from_entity.direction)
             while True:
                 try:
                     dir_to_try = Direction.reverse(from_entity.direction) if reverse else from_entity.direction
@@ -595,11 +590,7 @@ class Blueprint:
                     raise RuntimeError(
                         f"Underground in balancer ({str(from_entity)}) has broken link--sees underground flowing in opposite direction")
 
-                opening_dir = candidate_entity.direction \
-                    if candidate_entity.type == IOType.OUTPUT \
-                    else Direction.reverse(candidate_entity.direction)
-
-                if opening_dir == curr_opening_dir:
+                if candidate_entity.opening_dir() == from_entity.opening_dir():
                     raise RuntimeError(
                         f"Underground in balancer ({str(from_entity)}) has broken link--sees underground opening in the same direction")
 
