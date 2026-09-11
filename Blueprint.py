@@ -94,7 +94,13 @@ class BPEntity:
 
         self.empty = entity is None
 
+        # set to BPEntity of splitter on other tile when this is part of a pair
+        self.splitter_head = None
+
+        self.direction = Direction.NONE
+
         if self.empty:
+            # dont bother setting other attributes
             return
 
         for k, dv in self.entity_keys_to_ensure.items():
@@ -338,12 +344,18 @@ class Blueprint:
             self.entity_grid[y][x] = entity
 
             # account for splitters being 2 tiles, entity is only marked as southeast half
-            # populate direction of empty entity next to splitter
             if entity.is_splitter():
+
                 if entity.direction in [Direction.UP, Direction.DOWN]:
-                    self.entity_grid[y][x - 1].direction = entity.direction
+                    splitter_cap_entity = self.entity_grid[y][x - 1]
                 else:
-                    self.entity_grid[y - 1][x].direction = entity.direction
+                    splitter_cap_entity = self.entity_grid[y - 1][x]
+
+                # populate direction of empty entity next to splitter
+                splitter_cap_entity.direction = entity.direction
+
+                # point to master entity
+                splitter_cap_entity.splitter_head = entity
 
         # find belts that should bend when rendered
         for y in range(self.height):
@@ -497,6 +509,11 @@ class Blueprint:
                     belts_explored[y][x] = True
                     curr_entity = self.find_connected_entity(curr_entity)
 
+                    if curr_entity.splitter_head is not None:
+                        # found dest node
+                        dest_node = internal_nodes[self.get_entity_idxs(curr_entity.splitter_head)]
+                        break
+
                     if curr_entity.empty:
                         # empty entity, found output belt
                         dest_node = Node()
@@ -543,7 +560,7 @@ class Blueprint:
         return ans
 
     def find_connected_entity(self, from_entity: BPEntity, reverse: bool = False) -> BPEntity:
-        print(f"find_connected_entity called (from_entity={str(from_entity)}, {reverse=})")
+        # print(f"find_connected_entity called (from_entity={str(from_entity)}, {reverse=})")
         y, x = self.get_entity_idxs(from_entity)
         if (from_entity.is_underground() and
                 ((from_entity.type == IOType.OUTPUT and reverse) or
