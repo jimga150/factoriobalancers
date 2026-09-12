@@ -307,6 +307,7 @@ class Blueprint:
                 for use_head in [True, False]:
                     # use_head: True when using true splitter entity, false when using splitter cap (nearly empty entity next to it)
                     curr_entity = splitter_entity if use_head else splitter_entity.splitter_sibling
+                    # print(f"Seeking from {splitter_entity} (reverse={reverse}, use_head={use_head})")
                     other_node = None
                     while True:
 
@@ -320,6 +321,8 @@ class Blueprint:
                         if curr_entity.is_splitter_cap():
                             # found dest node, need to fetch "true" splitter entity
                             other_node = self.internal_nodes[curr_entity.splitter_sibling]
+                            connector_str = " <- " if reverse else " -> "
+                            # print(str(splitter_entity) + connector_str + str(curr_entity.splitter_sibling))
                             break
 
                         if curr_entity.empty:
@@ -327,7 +330,8 @@ class Blueprint:
                                 # empty entity, found I/O belt
                                 other_node = Node()
                                 io_nodes.append(other_node)
-                                print(f"I/O node @ ({self.get_entity_idxs(last_entity)})")
+                                connector_str = " <- " if reverse else " -> "
+                                # print(str(splitter_entity) + connector_str + f"I/O node @ ({self.get_entity_idxs(last_entity)})")
                             else:
                                 # splitter with nothing connecting to it is not an I/O
                                 pass
@@ -336,7 +340,11 @@ class Blueprint:
                         if curr_entity.is_splitter():
                             # found dest node
                             other_node = self.internal_nodes[curr_entity]
+                            connector_str = " <- " if reverse else " -> "
+                            # print(str(splitter_entity) + connector_str + str(curr_entity))
                             break
+
+                        # print(f"\t{curr_entity}")
 
                         if not curr_entity.is_underground() and not curr_entity.is_belt():
                             raise RuntimeError(
@@ -410,6 +418,7 @@ class Blueprint:
                 ]
 
             entities_pointing_here = []
+            # print(f"\t({x}, {y}) -> ", end="")
             for dir_to_try in dirs_to_try:
                 try:
                     x1, y1 = self.get_coord_in_direction(x, y, dir_to_try)
@@ -422,14 +431,17 @@ class Blueprint:
                 if (candidate_entity.direction == Direction.reverse(dir_to_try) and
                         not (candidate_entity.is_underground() and candidate_entity.type == IOType.INPUT)):
                     # this entity is pointing to from_entity (excluding undergrounds closing to this direction)
+                    # print(f"({x1}, {y1})", end="")
                     entities_pointing_here.append(candidate_entity)
 
             if len(entities_pointing_here) == 0:
                 # nothing pointing here, return empty entity
+                # print(f"(None)")
                 return BPEntity()
 
             if len(entities_pointing_here) == 1:
                 # unambiguous
+                # print("")
                 return entities_pointing_here[0]
 
             eph_str = "; ".join([str(x) for x in entities_pointing_here])
@@ -447,4 +459,5 @@ class Blueprint:
                 # out of bounds, return empty entity
                 return BPEntity()
 
+        # print(f"\t({x}, {y}) -> ({x1}, {y1})")
         return self.entity_grid[y1][x1]
