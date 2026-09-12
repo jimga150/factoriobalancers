@@ -7,7 +7,6 @@ import z3
 
 from Belt import ColorStrategy
 
-# TODO: add debug overlay to rendered blueprints
 # TODO: add blueprint -> network conversion (network parsing)
 #   TODO: handle underground distance limits
 #   TODO: handle belt weaving
