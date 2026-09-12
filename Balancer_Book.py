@@ -1,6 +1,14 @@
+import logging
+
+import common
 from Balancer import Balancer
 from Belt import Belt
 from Node import Node
+
+
+logger = logging.getLogger(__name__)
+common.setup_logger(logger)
+
 
 def makeNxN(num_inputs: int, num_outputs: int):
     pass

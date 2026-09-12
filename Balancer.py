@@ -19,12 +19,12 @@ except ModuleNotFoundError:
     print('"graphviz" not installed: network rendering will not work')
     sys.exit(1)
 
-balancerLogger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+common.setup_logger(logger)
 
 class Balancer:
 
     default_img_filename = "Network"
-    default_logger = balancerLogger
 
     # when generating false oversupply, go over by this amount
     oversupply_amt = common.diff_threshold_iter
@@ -36,15 +36,6 @@ class Balancer:
         self.z3solver = None
         self.total_throughput_var = None
 
-        self.logger = Balancer.default_logger
-
-        if not self.logger.hasHandlers():
-            if common.debug:
-                self.logger.setLevel(logging.DEBUG)
-            else:
-                self.logger.setLevel(logging.INFO)
-            self.logger.addHandler(logging.StreamHandler(sys.stdout))
-            self.logger.addHandler(logging.FileHandler("main_out.txt", mode='w+'))
 
     def postprocess_nodes(self, optimize: bool = True):
         self.nodes.clear()
@@ -80,12 +71,12 @@ class Balancer:
         for node in self.nodes:
             same_names = [x for x in self.nodes if str(x) == str(node)]
             if len(same_names) > 1:
-                self.logger.error(f"Error: {node} has a duplicate in the node list. Nodes:")
+                logger.error(f"Error: {node} has a duplicate in the node list. Nodes:")
                 for node in self.nodes:
-                    self.logger.error(f"{str(node)} ({hash(node)}) ({id(node)})")
-                self.logger.error("same_names:")
+                    logger.error(f"{str(node)} ({hash(node)}) ({id(node)})")
+                logger.error("same_names:")
                 for node in same_names:
-                    self.logger.error(f"{str(node)} ({hash(node)}) ({id(node)})")
+                    logger.error(f"{str(node)} ({hash(node)}) ({id(node)})")
                 raise AssertionError(f"{node} has a duplicate in the node list.")
 
         nodes_to_remove = []
@@ -227,10 +218,10 @@ class Balancer:
             return self.z3solver
 
         self.z3solver = z3.Solver()
-        self.logger.debug("populating z3 model of balancer...")
+        logger.debug("populating z3 model of balancer...")
 
         for belt in self.belts:
-            self.logger.debug(f"Belt {belt}")
+            logger.debug(f"Belt {belt}")
 
             # removed since oversupply logic can force supply to be greater than belt capacity
             self.z3solver.assert_and_track(belt.supply_var() <= Belt.max_belt_val, f"{str(belt)}_s_lte_{Belt.max_belt_val}")
@@ -249,12 +240,12 @@ class Balancer:
             try:
                 splitter = self.get_splitter(node)
             except ArgumentError:
-                self.logger.debug(f"Node {node} could not access splitter")
+                logger.debug(f"Node {node} could not access splitter")
                 continue
 
-            self.logger.debug(f"Splitter {splitter}")
+            logger.debug(f"Splitter {splitter}")
 
-            splitter.populate_solver(self.z3solver, self.logger)
+            splitter.populate_solver(self.z3solver)
 
         if common.use_quant_ext_vars:
             # force all input supplies and output demands to be quantized
@@ -276,18 +267,18 @@ class Balancer:
         self.total_throughput_var = z3.Real("total_throughput")
         self.z3solver.assert_and_track(total_throughput_expr == self.total_throughput_var, "total_throughput_expr")
 
-        self.logger.debug(f"Assertions:")
+        logger.debug(f"Assertions:")
         for a in self.z3solver.assertions():
-            self.logger.debug(a)
+            logger.debug(a)
 
         return self.z3solver
 
     def set_to_model(self):
         solver = self.get_solver()
         model = solver.model()
-        self.logger.debug("Full model:")
+        logger.debug("Full model:")
         for assignment in model:
-            self.logger.debug(f"{str(assignment)} = {model[assignment]}")
+            logger.debug(f"{str(assignment)} = {model[assignment]}")
         for belt in self.belts:
             belt.supply = float(model[belt.supply_var()].as_fraction())
             belt.demand = float(model[belt.demand_var()].as_fraction())

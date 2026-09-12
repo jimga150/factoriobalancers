@@ -1,5 +1,12 @@
 import datetime
+import logging
 import time
+
+import common
+
+logger = logging.getLogger(__name__)
+common.setup_logger(logger)
+
 
 class ProgressPrinter:
 

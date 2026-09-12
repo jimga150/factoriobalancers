@@ -1,9 +1,14 @@
-from logging import Logger
+import logging
 
 import z3
 
 import common
 from Belt import Belt
+
+
+logger = logging.getLogger(__name__)
+common.setup_logger(logger)
+
 
 class Splitter:
 
@@ -47,7 +52,7 @@ class Splitter:
     def get_enabled_outputs(self) -> list[Belt]:
         return [x for x in self.outputs if x.enabled]
     
-    def populate_solver(self, solver: z3.Solver, logger: Logger):
+    def populate_solver(self, solver: z3.Solver):
         if self.is_input_proxy() or self.is_output_proxy():
             logger.debug(f"Proxy, skipping...")
             return

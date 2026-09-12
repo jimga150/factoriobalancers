@@ -2,15 +2,21 @@
 import base64
 import copy
 import json
+import logging
 import sys
 
 import zlib
 from itertools import chain
 
-from BPEntity import *
+import common
+from BPEntity import BPEntity, Direction, Rotation, IOType
 from Balancer import Balancer
 from Belt import Belt
 from Node import Node
+
+
+logger = logging.getLogger(__name__)
+common.setup_logger(logger)
 
 
 class Blueprint:

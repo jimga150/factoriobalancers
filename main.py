@@ -1,12 +1,19 @@
+import logging
 import sys
 
 import BalancerProofs
 import Balancer_Book
+import common
 from Balancer import Balancer
 
 import z3
 
 from Belt import ColorStrategy
+
+
+logger = logging.getLogger(__name__)
+common.setup_logger(logger)
+
 
 # TODO: add blueprint -> network conversion (network parsing)
 #   TODO: add tests

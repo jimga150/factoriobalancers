@@ -1,3 +1,4 @@
+import logging
 from enum import Enum
 
 import z3
@@ -5,6 +6,10 @@ import z3
 import common
 from Node import Node
 from UniqueIDObj import UniqueIDObj
+
+
+logger = logging.getLogger(__name__)
+common.setup_logger(logger)
 
 
 class ColorStrategy(Enum):

@@ -1,4 +1,11 @@
+import logging
+import sys
+
 import z3
+
+
+logger = logging.getLogger(__name__)
+
 
 decimals_iter = 5
 decimals_verif = decimals_iter-2
@@ -17,6 +24,18 @@ use_quant_ext_vars = False
 ext_var_quant_denom = 4
 
 
+def setup_logger(logger: logging.Logger):
+    
+    if debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+    
+    if not logger.hasHandlers():
+        logger.addHandler(logging.StreamHandler(sys.stdout))
+        logger.addHandler(logging.FileHandler("main_out.txt", mode='w+'))
+    
+setup_logger(logger)
 
 def term_str(name, frac: float) -> str:
 

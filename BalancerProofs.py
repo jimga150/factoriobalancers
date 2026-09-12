@@ -1,10 +1,15 @@
 import inspect
+import logging
 
 import z3
 
 import common
 from Balancer import Balancer
 from Belt import ColorStrategy
+
+
+logger = logging.getLogger(__name__)
+common.setup_logger(logger)
 
 
 def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckSatResult, condition_name: str):
@@ -15,15 +20,15 @@ def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckS
 
     # assumes push was used before the critical condition
 
-    balancer.logger.debug("Assertions:")
+    logger.debug("Assertions:")
     for a in z3solver.assertions():
-        balancer.logger.debug(a)
+        logger.debug(a)
 
     if check_result == z3.sat:
         # for a in z3solver.assertions():
         #     balancer.logger.debug(a)
 
-        balancer.logger.debug(f"{condition_name} Counterexample:")
+        logger.debug(f"{condition_name} Counterexample:")
 
         balancer.set_to_model()
 
@@ -67,15 +72,15 @@ def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckS
             balancer.render(f"{condition_name} Example", color_strat=ColorStrategy.BACKPRESSURE)
         else:
             core = z3solver.unsat_core()
-            balancer.logger.debug(f"{condition_name} Unsat core:")
+            logger.debug(f"{condition_name} Unsat core:")
             for a in core:
-                balancer.logger.debug(a)
+                logger.debug(a)
 
     z3solver.pop()
 
 # raynquist refers to this as "regular"
 def partially_tu_proof(balancer: Balancer) -> bool:
-    balancer.logger.debug(f"{inspect.stack()[0][3]} called")
+    logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
     z3solver.push()
@@ -131,9 +136,9 @@ def partially_tu_proof(balancer: Balancer) -> bool:
     is_tu = check_result == z3.unsat
 
     if not is_tu:
-        balancer.logger.info("Balancer is not even partially Throughput Unlimited")
+        logger.info("Balancer is not even partially Throughput Unlimited")
     else:
-        balancer.logger.info("Balancer is partially Throughput Unlimited")
+        logger.info("Balancer is at least partially Throughput Unlimited")
 
     debug_proof(balancer, z3solver, check_result, "partially TU")
 
@@ -142,7 +147,7 @@ def partially_tu_proof(balancer: Balancer) -> bool:
     return is_tu
 
 def tu_proof(balancer: Balancer) -> bool:
-    balancer.logger.debug(f"{inspect.stack()[0][3]} called")
+    logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
     z3solver.push()
@@ -167,9 +172,9 @@ def tu_proof(balancer: Balancer) -> bool:
     is_tu = check_result == z3.unsat
 
     if not is_tu:
-        balancer.logger.info("Balancer is not Throughput Unlimited")
+        logger.info("Balancer is not Throughput Unlimited")
     else:
-        balancer.logger.info("Balancer is Throughput Unlimited")
+        logger.info("Balancer is Throughput Unlimited")
 
     debug_proof(balancer, z3solver, check_result, "TU")
 
@@ -178,7 +183,7 @@ def tu_proof(balancer: Balancer) -> bool:
     return is_tu
 
 def partially_input_balanced_proof(balancer: Balancer) -> bool:
-    balancer.logger.debug(f"{inspect.stack()[0][3]} called")
+    logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
     z3solver.push()
@@ -211,16 +216,16 @@ def partially_input_balanced_proof(balancer: Balancer) -> bool:
     debug_proof(balancer, z3solver, check_result, "pi_balanced")
 
     if not is_pi_balanced:
-        balancer.logger.info("Balancer is not even partially input balanced")
+        logger.info("Balancer is not even partially input balanced")
     else:
-        balancer.logger.info("Balancer is at least partially input balanced")
+        logger.info("Balancer is at least partially input balanced")
 
     z3solver.pop()
 
     return is_pi_balanced
 
 def input_balanced_proof(balancer: Balancer) -> bool:
-    balancer.logger.debug(f"{inspect.stack()[0][3]} called")
+    logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
     z3solver.push()
@@ -264,14 +269,14 @@ def input_balanced_proof(balancer: Balancer) -> bool:
     debug_proof(balancer, z3solver, check_result, "input_balanced")
 
     if not is_input_balanced:
-        balancer.logger.info("Balancer is not fully input balanced")
+        logger.info("Balancer is not fully input balanced")
     else:
-        balancer.logger.info("Balancer is fully input balanced")
+        logger.info("Balancer is fully input balanced")
 
     return is_input_balanced
 
 def partially_output_balanced_proof(balancer: Balancer) -> bool:
-    balancer.logger.debug(f"{inspect.stack()[0][3]} called")
+    logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
     z3solver.push()
@@ -304,16 +309,16 @@ def partially_output_balanced_proof(balancer: Balancer) -> bool:
     debug_proof(balancer, z3solver, check_result, "po_balanced")
 
     if not is_po_balanced:
-        balancer.logger.info("Balancer is not even partially output balanced")
+        logger.info("Balancer is not even partially output balanced")
     else:
-        balancer.logger.info("Balancer is at least partially output balanced")
+        logger.info("Balancer is at least partially output balanced")
 
     z3solver.pop()
 
     return is_po_balanced
 
 def output_balanced_proof(balancer: Balancer) -> bool:
-    balancer.logger.debug(f"{inspect.stack()[0][3]} called")
+    logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
     z3solver.push()
@@ -351,9 +356,9 @@ def output_balanced_proof(balancer: Balancer) -> bool:
     debug_proof(balancer, z3solver, check_result, "output_balanced")
 
     if not is_output_balanced:
-        balancer.logger.info("Balancer is not fully output balanced")
+        logger.info("Balancer is not fully output balanced")
     else:
-        balancer.logger.info("Balancer is fully output balanced")
+        logger.info("Balancer is fully output balanced")
 
     return is_output_balanced
 

@@ -1,4 +1,5 @@
 import copy
+import logging
 import os
 import unittest
 from multiprocessing.dummy import Pool
@@ -14,6 +15,11 @@ from Belt import ColorStrategy
 from Blueprint import Blueprint
 from Node import Node
 import UniqueIDObj
+
+
+logger = logging.getLogger(__name__)
+common.setup_logger(logger)
+
 
 class NodeTests(unittest.TestCase):
 
@@ -185,8 +191,8 @@ class SplitterTests(unittest.TestCase):
         check_result = self.solver.check()
 
         if check_result == z3.unsat:
-            self.balancer22.logger.error("Unsat core:")
-            self.balancer22.logger.error(self.solver.unsat_core())
+            logger.error("Unsat core:")
+            logger.error(self.solver.unsat_core())
 
         self.assertEqual(z3.sat, check_result)
 

@@ -1,5 +1,8 @@
+import copy
+import logging
 import os
 import shutil
+import sys
 from pathlib import Path
 
 from PySide6 import QtWidgets, QtCore
@@ -9,7 +12,12 @@ from vdfparse import VDFParse
 
 import BalancerProofs
 import common
-from Blueprint import *
+from BPEntity import BPEntity, Direction, Rotation, IOType
+from Blueprint import Blueprint
+
+
+logger = logging.getLogger(__name__)
+common.setup_logger(logger)
 
 
 def fetch_assets():

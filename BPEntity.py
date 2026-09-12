@@ -1,4 +1,10 @@
 import enum
+import logging
+
+import common
+
+logger = logging.getLogger(__name__)
+common.setup_logger(logger)
 
 
 class Rotation(enum.Enum):
