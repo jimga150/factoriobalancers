@@ -16,11 +16,7 @@ output_folder = "output"
 use_quant_ext_vars = False
 ext_var_quant_denom = 4
 
-# Limit each iteration to one splitter update and render network on each iteration.
-# This is liable to generate hundreds of MBs of images for each balancer calculation.
-deep_iteration_debug = False
 
-max_iters = 100
 
 def term_str(name, frac: float) -> str:
 
