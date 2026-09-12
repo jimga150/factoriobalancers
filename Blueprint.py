@@ -320,13 +320,10 @@ class Blueprint:
 
                         last_entity = curr_entity
 
-                        # did we start at a belt this iteration
-                        from_belt = curr_entity.is_belt() or curr_entity.is_underground()
-
                         curr_entity = self.find_connected_entity(curr_entity, reverse)
 
                         if curr_entity.empty:
-                            if from_belt:
+                            if last_entity.is_belt() or last_entity.is_underground():
                                 # empty entity, found I/O belt
                                 other_node = Node()
                                 io_nodes.append(other_node)
