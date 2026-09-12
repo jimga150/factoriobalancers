@@ -116,8 +116,6 @@ class Blueprint:
         raise RuntimeError('Invalid direction')
 
     def get_entity_idxs(self, entity: BPEntity) -> tuple[int, int]:
-        if entity.is_splitter_cap():
-            entity = entity.splitter_sibling
         y = int(entity.pos_y - self.min_y + 0.5)
         x = int(entity.pos_x - self.min_x + 0.5)
         return y, x
@@ -168,8 +166,12 @@ class Blueprint:
 
                 if entity.direction in [Direction.UP, Direction.DOWN]:
                     splitter_cap_entity = self.entity_grid[y][x - 1]
+                    splitter_cap_entity.pos_x = entity.pos_x - 1
+                    splitter_cap_entity.pos_y = entity.pos_y
                 else:
                     splitter_cap_entity = self.entity_grid[y - 1][x]
+                    splitter_cap_entity.pos_x = entity.pos_x
+                    splitter_cap_entity.pos_y = entity.pos_y - 1
 
                 # populate direction of empty entity next to splitter
                 splitter_cap_entity.direction = entity.direction
@@ -411,7 +413,7 @@ class Blueprint:
                 Direction.turn(from_entity.direction, Rotation.CCW)
             ]
 
-            if from_entity.is_underground() or from_entity.is_splitter():
+            if from_entity.is_underground() or from_entity.is_splitter() or from_entity.is_splitter_cap():
                 # underground entrance or splitter, only relevant direction is backwards
                 dirs_to_try = [
                     Direction.reverse(from_entity.direction)
