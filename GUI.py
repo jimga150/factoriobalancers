@@ -379,7 +379,7 @@ if __name__ == '__main__':
         network.render()
         for fxn in BalancerTests.all_z3_tests:
             print(f"{fxn.__name__}: {fxn(network)}")
-    except RuntimeError as e:
+    except Exception as e:
         print("Network rendering failed:")
         print(str(e))
 
