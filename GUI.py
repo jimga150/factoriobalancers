@@ -355,7 +355,14 @@ class GUI(QtWidgets.QMainWindow):
             p.translate(0, 16)
             for y in range(0, self.bp.height):
                 for x in range(0, self.bp.width):
-                    self.drawEntity(p, self.bp.entity_grid[y][x])
+                    entity = self.bp.entity_grid[y][x]
+                    if entity.is_belt():
+                        self.drawEntity(p, entity)
+            for y in range(0, self.bp.height):
+                for x in range(0, self.bp.width):
+                    entity = self.bp.entity_grid[y][x]
+                    if not entity.is_belt():
+                        self.drawEntity(p, entity)
 
 
 if __name__ == '__main__':
