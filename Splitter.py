@@ -13,8 +13,8 @@ class Splitter:
         self.inputs = inputs
         self.outputs = outputs
 
-        assert len(self.inputs) <= 2
-        assert len(self.outputs) <= 2
+        assert len(self.inputs) <= 2, f"Splitter has {len(self.inputs)} inputs"
+        assert len(self.outputs) <= 2, f"Splitter has {len(self.outputs)} outputs"
 
         if len(self.inputs) > 0:
             self.node = self.inputs[0].dest

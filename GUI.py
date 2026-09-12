@@ -104,7 +104,7 @@ def fetch_assets():
                 break
 
             source_file = str(full_ss_path)
-            print('Copying: {} -> {}'.format(source_file, dest_ss_path))
+            # print('Copying: {} -> {}'.format(source_file, dest_ss_path))
 
             if full_ss_path.is_file():
                 shutil.copyfile(source_file, dest_ss_path)
@@ -114,7 +114,7 @@ def fetch_assets():
             break
             
         if not found_ss:
-            print('No sprite sheet found for {}'.format(ss_path))
+            raise RuntimeError('No sprite sheet found for {}'.format(ss_path))
 
 class Sprite:
     def __init__(self, img: QImage = QImage(), offset: QtCore.QPoint = QtCore.QPoint(0, 0)):
