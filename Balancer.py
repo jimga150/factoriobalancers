@@ -13,14 +13,15 @@ from Belt import Belt, ColorStrategy
 from Node import Node
 from Splitter import Splitter
 
+logger = logging.getLogger(__name__)
+common.setup_logger(logger)
+
 try:
     from graphviz import Digraph
 except ModuleNotFoundError:
-    print('"graphviz" not installed: network rendering will not work')
+    logger.error('"graphviz" not installed: network rendering will not work')
     sys.exit(1)
 
-logger = logging.getLogger(__name__)
-common.setup_logger(logger)
 
 class Balancer:
 

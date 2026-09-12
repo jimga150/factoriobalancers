@@ -394,10 +394,10 @@ if __name__ == '__main__':
         network = widget.bp.get_network()
         network.render()
         for fxn in BalancerProofs.all_z3_tests:
-            print(f"{fxn.__name__}: {fxn(network)}")
+            logger.info(f"{fxn.__name__}: {fxn(network)}")
     except Exception as e:
-        print("Network rendering failed:")
-        print(str(e))
+        logger.error("Network rendering failed:")
+        logger.error(str(e))
 
     # print(f"min (x, y) = ({widget.bp.min_x}, {widget.bp.min_y})")
     # print(f"max (x, y) = ({widget.bp.max_x}, {widget.bp.max_y})")

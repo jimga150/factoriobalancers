@@ -96,14 +96,12 @@ def z3RealBound(arg: z3.ArithRef, min: z3.ArithRef, max: z3.ArithRef) -> z3.Arit
 
 def nested_objs_eq(a, b, debug: bool = False) -> bool:
 
-    if debug:
-        print(f"nested_objs_eq called")
-        print(f"a ({type(a)}) = {a}")
-        print(f"b ({type(b)}) = {b}")
+    logger.debug(f"nested_objs_eq called")
+    logger.debug(f"a ({type(a)}) = {a}")
+    logger.debug(f"b ({type(b)}) = {b}")
 
     if type(a) != type(b):
-        if debug:
-            print(f"{type(a)=} != {type(b)=}")
+        logger.debug(f"{type(a)=} != {type(b)=}")
         return False
 
     if type(a) == dict:
@@ -115,25 +113,22 @@ def nested_objs_eq(a, b, debug: bool = False) -> bool:
     return a == b
 
 def dicts_eq(a: dict, b: dict, debug: bool = False) -> bool:
-    if debug:
-        print(f"dicts_eq called")
-        print(f"a = {a}")
-        print(f"b = {b}")
+
+    logger.debug(f"dicts_eq called")
+    logger.debug(f"a = {a}")
+    logger.debug(f"b = {b}")
 
     if type(a) != type(b):
-        if debug:
-            print(f"{type(a)=} != {type(b)=}")
+        logger.debug(f"{type(a)=} != {type(b)=}")
         return False
 
     if type(a) != dict:
-        if debug:
-            print(f"{type(a)=} != dict")
+        logger.debug(f"{type(a)=} != dict")
         return False
 
     for k, v in a.items():
         if k not in b:
-            if debug:
-                print(f"{k=} not in b")
+            logger.debugf"{k=} not in b")
             return False
         if not nested_objs_eq(v, b[k], debug):
             return False
@@ -141,24 +136,20 @@ def dicts_eq(a: dict, b: dict, debug: bool = False) -> bool:
     return True
 
 def lists_eq(a: list, b: list, debug: bool = False) -> bool:
-    if debug:
-        print(f"lists_eq called")
-        print(f"a = {a}")
-        print(f"b = {b}")
+    logger.debug(f"lists_eq called")
+    logger.debug(f"a = {a}")
+    logger.debug(f"b = {b}")
 
     if type(a) != type(b):
-        if debug:
-            print(f"{type(a)=} != {type(b)=}")
+        logger.debug(f"{type(a)=} != {type(b)=}")
         return False
     if type(a) != list:
-        if debug:
-            print(f"{type(a)=} != list")
+        logger.debug(f"{type(a)=} != list")
         return False
 
     for ia, ib in zip(a, b):
         if type(ia) != type(ib):
-            if debug:
-                print(f"{type(ia)=} != {type(ib)=}")
+            logger.debug(f"{type(ia)=} != {type(ib)=}")
             return False
         if not nested_objs_eq(ia, ib, debug):
             return False

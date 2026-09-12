@@ -65,12 +65,12 @@ class NodeTests(unittest.TestCase):
         for node in nodes:
             same_names = [x for x in nodes if str(x) == str(node)]
             if len(same_names) > 1:
-                print(f"Error: {node} has a duplicate in the node list. Nodes:")
+                logger.error(f"Error: {node} has a duplicate in the node list. Nodes:")
                 for node in nodes:
-                    print(f"{str(node)} ({hash(node)}) ({id(node)})")
-                print("same_names:")
+                    logger.error(f"{str(node)} ({hash(node)}) ({id(node)})")
+                logger.error("same_names:")
                 for node in same_names:
-                    print(f"{str(node)} ({hash(node)}) ({id(node)})")
+                    logger.error(f"{str(node)} ({hash(node)}) ({id(node)})")
                 self.assertEqual(1, len(same_names))
 
 class Z3BalancerTests(unittest.TestCase):

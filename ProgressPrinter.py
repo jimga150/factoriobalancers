@@ -28,7 +28,7 @@ class ProgressPrinter:
 
         if completion_fraction >= 1:
             td_str = str(datetime.timedelta(seconds=(curr_time - self.time_bookmarks[0])) // 1000000 * 1000000)
-            print(f"Took {td_str} seconds to complete. Completed at {time.ctime(curr_time)}")
+            logger.info(f"Took {td_str} seconds to complete. Completed at {time.ctime(curr_time)}")
             return
 
         if curr_time - self.time_bookmarks[-1] > self.min_time_check_s or \
@@ -45,7 +45,7 @@ class ProgressPrinter:
             eta = curr_time + est_remaining_time
             eta_str = time.ctime(eta)
 
-            print(f"{completion_fraction * 100:>6.2f}% done, "
+            logger.info(f"{completion_fraction * 100:>6.2f}% done, "
                   f"{est_remaining_time_str} remaining; "
                   f"Estimated completion {eta_str}")
 

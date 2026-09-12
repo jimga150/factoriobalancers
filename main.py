@@ -100,9 +100,9 @@ if __name__ == '__main__':
     # balancer.export_to_sat_network()
 
     if BalancerProofs.test_total_balance_z3(balancer):
-        print("Pass")
+        logger.info("Pass")
     else:
-        print("Fail")
+        logger.info("Fail")
 
     balancer.render("pri", color_strat=ColorStrategy.PRIORITY)
     balancer.render("flow", color_strat=ColorStrategy.FLOW)
