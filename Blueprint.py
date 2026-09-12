@@ -32,8 +32,7 @@ class Blueprint:
         self.entity_grid = []
         self.parse_bp_dict(self.bp_dict)
 
-        return
-
+    def __str__(self):
         dir_graph = "Direction graph:\n"
         dir_graph += "-" * (self.width * 2 + 1)
         dir_graph += "\n"
@@ -55,7 +54,6 @@ class Blueprint:
             dir_graph += "\n"
             dir_graph += "-" * (self.width * 2 + 1)
             dir_graph += "\n"
-        print(dir_graph)
 
         rot_graph = "Rotation graph:\n"
         rot_graph += "-" * (self.width * 2 + 1)
@@ -63,7 +61,7 @@ class Blueprint:
         for y in range(self.height):
             rot_graph += "|"
             for x in range(self.width):
-                rot = self.bends[y][x]
+                rot = self.entity_grid[y][x].bend
                 if rot == Rotation.CW:
                     rot_graph += "1"
                 elif rot == Rotation.CCW:
@@ -74,7 +72,8 @@ class Blueprint:
             rot_graph += "\n"
             rot_graph += "-"*(self.width*2 + 1)
             rot_graph += "\n"
-        print(rot_graph)
+
+        return dir_graph + "\n" + rot_graph + "\n"
 
     @staticmethod
     def decode_blueprint_str(string: str):
