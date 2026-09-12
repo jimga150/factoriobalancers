@@ -507,6 +507,8 @@ class Balancer:
         g = Digraph(engine='dot', node_attr={'shape': 'rect', 'height': '0.4', 'width': '0.5'},
                     graph_attr={'rankdir': 'BT'})
 
+        view_render = name == Balancer.default_img_filename
+
         if not Path.exists(Path(common.output_folder)):
             os.makedirs(common.output_folder)
         name = str(Path(common.output_folder) / name)
@@ -543,7 +545,7 @@ class Balancer:
             if not belt.enabled:
                 continue
             g.edge(str(belt.source), str(belt.dest), label=belt.get_label(), color=belt.get_color(color_strat))
-        g.render(name, format='png', view=(name == Balancer.default_img_filename), cleanup=True)
+        g.render(name, format='png', view=view_render, cleanup=True)
 
     def export_to_sat_network(self) -> None:
 
