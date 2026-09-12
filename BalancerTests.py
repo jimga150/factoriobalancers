@@ -360,6 +360,15 @@ def test_total_balance_z3(balancer: Balancer) -> bool:
     is_output_balanced = test_output_balanced_z3(balancer)
     return is_tu and is_input_balanced and is_output_balanced
 
+all_z3_tests = [
+    test_partial_tu_z3,
+    test_tu_z3,
+    test_partial_input_balanced_z3,
+    test_partial_output_balanced_z3,
+    test_input_balanced_z3,
+    test_output_balanced_z3
+]
+
 # return true if balancer passes test
 def test_balance(
         balancer: Balancer,
