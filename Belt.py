@@ -3,7 +3,6 @@ from enum import Enum
 import z3
 
 import common
-from Balance import Balance
 from Node import Node
 from UniqueIDObj import UniqueIDObj
 
@@ -35,14 +34,9 @@ class Belt(UniqueIDObj):
         self.supply = None
         self.demand = None
         self.pushing = None
-        self.balance = Balance()
         self.reset()
 
     def reset(self):
-        # keys are input nodes
-        # values are ratio of that input's items (where 1 = this belt is full capacity with this input belt)
-        self.balance = Balance()
-
         self.demand = 1
         self.supply = 0
         self.pushing = 0
@@ -86,7 +80,7 @@ class Belt(UniqueIDObj):
         if not self.enabled:
             return ""
         p = "+" if self.pushing else ""
-        return f"{str(self.balance)} (S: {common.frac_str(self.supply)}{p}, D: {common.frac_str(self.demand)})"
+        return f"(S: {common.frac_str(self.supply)}{p}, D: {common.frac_str(self.demand)})"
 
     def get_color(self, strat: ColorStrategy = ColorStrategy.PRIORITY) -> str:
         if not self.enabled:
@@ -112,6 +106,3 @@ class Belt(UniqueIDObj):
                 return "blue"
 
         return "black"
-
-    def is_balanced(self) -> bool:
-        return self.balance.is_balanced()
