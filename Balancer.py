@@ -1,7 +1,9 @@
 import copy
 import logging
+import os
 import sys
 from argparse import ArgumentError
+from pathlib import Path
 from types import NoneType
 
 import z3
@@ -507,6 +509,10 @@ class Balancer:
     def render(self, name: str = default_img_filename, color_strat: ColorStrategy = ColorStrategy.PRIORITY) -> None:
         g = Digraph(engine='dot', node_attr={'shape': 'rect', 'height': '0.4', 'width': '0.5'},
                     graph_attr={'rankdir': 'BT'})
+
+        if not Path.exists(Path(common.output_folder)):
+            os.makedirs(common.output_folder)
+        name = str(Path(common.output_folder) / name)
 
         valid_nodes = []
         for node in self.nodes:

@@ -9,6 +9,8 @@ diff_threshold_verif = 10 ** (-decimals_verif)
 # print extremely verbose iteration updates
 debug = False
 
+output_folder = "output"
+
 # use quantized external variables
 # when true, input supplies and output demands must be of the form N/ext_var_quant_denom
 use_quant_ext_vars = False

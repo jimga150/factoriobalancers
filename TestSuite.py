@@ -72,12 +72,11 @@ class Z3BalancerTests(unittest.TestCase):
     def setUpClass(cls):
 
         # remove all PNGs
-        dir_name = "."
-        test = os.listdir(dir_name)
+        test = os.listdir(common.output_folder)
 
         for item in test:
             if item.endswith(".png"):
-                os.remove(os.path.join(dir_name, item))
+                os.remove(os.path.join(common.output_folder, item))
 
         cls.balancer22 = Balancer_Book.make_2x2()
         cls.balancer22d = Balancer_Book.make_2x2_double()
