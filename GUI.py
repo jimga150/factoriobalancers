@@ -295,14 +295,16 @@ class GUI(QtWidgets.QMainWindow):
         sprite_rect = QtCore.QRect(0, 0, 1, 1)
         offset = QtCore.QPoint(0, 0)
         if opening_dir == Direction.UP:
-            sprite_rect = QtCore.QRect(448, 73 if entity.type == IOType.OUTPUT else 265, 107, 70)
+            sprite_rect = QtCore.QRect(447, 73 if entity.type == IOType.OUTPUT else 265, 108, 62)
+            offset = QtCore.QPoint(1, 0)
         if opening_dir == Direction.DOWN:
-            sprite_rect = QtCore.QRect(64, 65 if entity.type == IOType.OUTPUT else 257, 107, 70)
+            sprite_rect = QtCore.QRect(63, 65 if entity.type == IOType.OUTPUT else 257, 108, 70)
+            offset = QtCore.QPoint(1, 0)
         if opening_dir == Direction.LEFT:
-            sprite_rect = QtCore.QRect(259, 54 if entity.type == IOType.OUTPUT else 246, 107, 70)
+            sprite_rect = QtCore.QRect(259, 54 if entity.type == IOType.OUTPUT else 246, 84, 80)
             offset = QtCore.QPoint(0, -10)
         if opening_dir == Direction.RIGHT:
-            sprite_rect = QtCore.QRect(639, 54 if entity.type == IOType.OUTPUT else 246, 107, 70)
+            sprite_rect = QtCore.QRect(639, 54 if entity.type == IOType.OUTPUT else 246, 98, 81)
             offset = QtCore.QPoint(0, -10)
 
         return ans.add(Sprite(self.ss_imgs[f"{entity.name}-structure.png"].copy(sprite_rect), offset))
