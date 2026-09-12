@@ -1,6 +1,6 @@
 import os
 import shutil
-from pathlib import Path as path
+from pathlib import Path
 
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QSize, QPoint
@@ -25,9 +25,9 @@ def fetch_assets():
     else:
         raise RuntimeError('Unknown platform: {}'.format(sys.platform))
 
-    steam_directory = path(steam_directory)
+    steam_directory = Path(steam_directory)
 
-    if not path.exists(steam_directory):
+    if not Path.exists(steam_directory):
         raise RuntimeError('No steam installation found at: {}'.format(steam_directory))
 
     game_directories = []
@@ -48,9 +48,9 @@ def fetch_assets():
 
     game_directory = None
     for x in game_directories:
-        path_to_check = path(x) / 'steamapps' / 'common' / 'Factorio'
+        path_to_check = Path(x) / 'steamapps' / 'common' / 'Factorio'
         # print(f"Checking for factorio install at {path_to_check}")
-        if path.exists(path_to_check):
+        if Path.exists(path_to_check):
             game_directory = path_to_check
             # print(f"Found install.")
             break
@@ -59,7 +59,7 @@ def fetch_assets():
         raise RuntimeError("No Factorio installation found")
 
     mac_path = game_directory / "factorio.app" / "Contents"
-    if path.exists(mac_path):
+    if Path.exists(mac_path):
         game_directory = mac_path
 
     entity_dirs = [
@@ -69,14 +69,14 @@ def fetch_assets():
     entity_dirs = [game_directory / 'data' / x / "graphics" / "entity" for x in entity_dirs]
 
     spritesheet_paths_base = [
-        path(BPEntity.NAME_BELT) / "transport-belt.png",
-        path(BPEntity.NAME_SPLITTER) / "splitter-east.png",
-        path(BPEntity.NAME_SPLITTER) / "splitter-east-top_patch.png",
-        path(BPEntity.NAME_SPLITTER) / "splitter-north.png",
-        path(BPEntity.NAME_SPLITTER) / "splitter-south.png",
-        path(BPEntity.NAME_SPLITTER) / "splitter-west.png",
-        path(BPEntity.NAME_SPLITTER) / "splitter-west-top_patch.png",
-        path(BPEntity.NAME_UNDERGROUND) / "underground-belt-structure.png",
+        Path(BPEntity.NAME_BELT) / "transport-belt.png",
+        Path(BPEntity.NAME_SPLITTER) / "splitter-east.png",
+        Path(BPEntity.NAME_SPLITTER) / "splitter-east-top_patch.png",
+        Path(BPEntity.NAME_SPLITTER) / "splitter-north.png",
+        Path(BPEntity.NAME_SPLITTER) / "splitter-south.png",
+        Path(BPEntity.NAME_SPLITTER) / "splitter-west.png",
+        Path(BPEntity.NAME_SPLITTER) / "splitter-west-top_patch.png",
+        Path(BPEntity.NAME_UNDERGROUND) / "underground-belt-structure.png",
     ]
 
     spritesheet_paths = copy.deepcopy(spritesheet_paths_base)
@@ -85,20 +85,20 @@ def fetch_assets():
     for prefix in BPEntity.belt_prefixes:
         prefixed_ss_paths = copy.deepcopy(spritesheet_paths_base)
         for anchor in anchors:
-            prefixed_ss_paths = [path(str(x).replace(anchor, f"{prefix}-{anchor}")) for x in prefixed_ss_paths]
+            prefixed_ss_paths = [Path(str(x).replace(anchor, f"{prefix}-{anchor}")) for x in prefixed_ss_paths]
         spritesheet_paths.extend(prefixed_ss_paths)
 
     for ss_path in spritesheet_paths:
         found_ss = False
         for entity_dir in entity_dirs:
             full_ss_path = entity_dir / ss_path
-            if not path.exists(full_ss_path):
+            if not Path.exists(full_ss_path):
                 continue
 
             found_ss = True
 
-            dest_ss_path = path("assets") / ss_path.name
-            if path.exists(dest_ss_path):
+            dest_ss_path = Path("assets") / ss_path.name
+            if Path.exists(dest_ss_path):
                 # skip copying
                 break
 
