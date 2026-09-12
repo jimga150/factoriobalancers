@@ -1,7 +1,6 @@
 import copy
 import os
 import shutil
-import sys
 from pathlib import Path as path
 
 from PySide6 import QtWidgets, QtCore
@@ -9,7 +8,7 @@ from PySide6.QtCore import QSize, QPoint
 from PySide6.QtGui import QPainter, QImage, QColor
 from vdfparse import VDFParse
 
-from Blueprint import Blueprint, Direction, IOType, Rotation, BPEntity
+from Blueprint import *
 
 
 def fetch_assets():
@@ -81,7 +80,7 @@ def fetch_assets():
     spritesheet_paths = copy.deepcopy(spritesheet_paths_base)
 
     anchors = [BPEntity.NAME_BELT, BPEntity.NAME_SPLITTER, BPEntity.NAME_UNDERGROUND]
-    for prefix in Blueprint.belt_prefixes:
+    for prefix in BPEntity.belt_prefixes:
         prefixed_ss_paths = copy.deepcopy(spritesheet_paths_base)
         for anchor in anchors:
             prefixed_ss_paths = [path(str(x).replace(anchor, f"{prefix}-{anchor}")) for x in prefixed_ss_paths]
@@ -171,7 +170,7 @@ class GUI(QtWidgets.QMainWindow):
 
         self.sprites = {}
 
-    def get_tbelt_sprite(self, prefix: str, bp_dir: Direction, rotation: Rotation) -> Sprite:
+    def get_tbelt_sprite(self, entity: BPEntity) -> Sprite:
 
         ss_y_offsets = [
             (Direction.RIGHT, Rotation.NONE),
@@ -187,7 +186,7 @@ class GUI(QtWidgets.QMainWindow):
             (Direction.LEFT, Rotation.CCW),
             (Direction.DOWN, Rotation.CW)
         ]
-        ss_y_offset = ss_y_offsets.index((bp_dir, rotation))
+        ss_y_offset = ss_y_offsets.index((entity.direction, entity.bend))
 
         # take sprite from column 15 cause it has a more clear arrow position for each spritesheet
         ss_x_offset = 15
@@ -200,18 +199,18 @@ class GUI(QtWidgets.QMainWindow):
             self.sprite_window
         )
 
-        return Sprite(self.ss_imgs[f"{prefix}transport-belt.png"].copy(sprite_rect), self.tile_offset*(-1))
+        return Sprite(self.ss_imgs[f"{entity.name}.png"].copy(sprite_rect), self.tile_offset*(-1))
 
-    def get_splitter_sprite(self, prefix: str, bp_dir: Direction) -> Sprite:
+    def get_splitter_sprite(self, entity: BPEntity) -> Sprite:
 
-        if bp_dir in [Direction.UP, Direction.DOWN]:
+        if entity.direction in [Direction.UP, Direction.DOWN]:
             offset = QtCore.QPoint(-64, 0)
         else:
             offset = QtCore.QPoint(0, -64)
 
         belt_entity = BPEntity()
-        belt_entity.name = f"{prefix}transport-belt"
-        belt_entity.direction = bp_dir
+        belt_entity.name = f"{entity.prefix()}transport-belt"
+        belt_entity.direction = entity.direction
         belt_entity.bend = Rotation.NONE
         belt_entity.type = IOType.NONE
 
@@ -223,45 +222,59 @@ class GUI(QtWidgets.QMainWindow):
         ans.add(Sprite(belt_sprite.img, belt_sprite.offset + offset))
 
         splitter_sprite = Sprite()
-        if bp_dir == Direction.UP:
+        if entity.direction == Direction.UP:
+
             sprite_rect = QtCore.QRect(2, 5, 155, 58)
             sprite_offset = QtCore.QPoint(1, -8)
-            if "turbo" in prefix:
+
+            if "turbo" in entity.prefix():
                 sprite_rect = QtCore.QRect(0, 1, 157, 63)
-            splitter_sprite = Sprite(self.ss_imgs[f"{prefix}splitter-north.png"].copy(sprite_rect), offset + sprite_offset)
-        elif bp_dir == Direction.DOWN:
+
+            splitter_sprite = Sprite(self.ss_imgs[f"{entity.name}-north.png"].copy(sprite_rect), offset + sprite_offset)
+
+        elif entity.direction == Direction.DOWN:
+
             sprite_rect = QtCore.QRect(0, 5, 163, 53)
             sprite_offset = QtCore.QPoint(-10, -4)
-            splitter_sprite = Sprite(self.ss_imgs[f"{prefix}splitter-south.png"].copy(sprite_rect), offset + sprite_offset)
-        elif bp_dir == Direction.LEFT:
+
+            splitter_sprite = Sprite(self.ss_imgs[f"{entity.name}-south.png"].copy(sprite_rect), offset + sprite_offset)
+
+        elif entity.direction == Direction.LEFT:
 
             top_sprite_rect = QtCore.QRect(1, 3, 88, 93)
-            splitter_sprite = Sprite(self.ss_imgs[f"{prefix}splitter-west-top_patch.png"].copy(top_sprite_rect), offset + QtCore.QPoint(-1, -17))
+
+            splitter_sprite = Sprite(self.ss_imgs[f"{entity.name}-west-top_patch.png"].copy(top_sprite_rect), offset + QtCore.QPoint(-1, -17))
 
             bot_sprite_rect = QtCore.QRect(1, 3, 88, 83)
-            if "turbo" in prefix:
+            if "turbo" in entity.prefix():
                 bot_sprite_rect = QtCore.QRect(0, 1, 88, 83)
-            splitter_sprite.add(Sprite(self.ss_imgs[f"{prefix}splitter-west.png"].copy(bot_sprite_rect), offset + QtCore.QPoint(-1, -17 + 60)))
-        elif bp_dir == Direction.RIGHT:
+
+            splitter_sprite.add(Sprite(self.ss_imgs[f"{entity.name}-west.png"].copy(bot_sprite_rect), offset + QtCore.QPoint(-1, -17 + 60)))
+
+        elif entity.direction == Direction.RIGHT:
+
             top_sprite_rect = QtCore.QRect(3, 6, 86, 98)
-            if "turbo" in prefix:
+            if "turbo" in entity.prefix():
                 top_sprite_rect = QtCore.QRect(3, 4, 86, 98)
-            splitter_sprite = Sprite(self.ss_imgs[f"{prefix}splitter-east-top_patch.png"].copy(top_sprite_rect),
+
+            splitter_sprite = Sprite(self.ss_imgs[f"{entity.name}-east-top_patch.png"].copy(top_sprite_rect),
                                      offset + QtCore.QPoint(-1, -17))
 
             bot_sprite_rect = QtCore.QRect(4, 1, 85, 83)
-            if "turbo" in prefix:
+            if "turbo" in entity.prefix():
                 bot_sprite_rect = QtCore.QRect(0, 1, 85, 83)
-            splitter_sprite.add(Sprite(self.ss_imgs[f"{prefix}splitter-east.png"].copy(bot_sprite_rect),
+
+            splitter_sprite.add(Sprite(self.ss_imgs[f"{entity.name}-east.png"].copy(bot_sprite_rect),
                                        offset + QtCore.QPoint(0, -17 + 71)))
+
         ans.add(splitter_sprite)
         return ans
 
-    def get_underground_belt_sprite(self, prefix: str, bp_dir: Direction, io_type: IOType) -> Sprite:
+    def get_underground_belt_sprite(self, entity: BPEntity) -> Sprite:
 
         belt_entity = BPEntity()
-        belt_entity.name = f"{prefix}transport-belt"
-        belt_entity.direction = bp_dir
+        belt_entity.name = f"{entity.prefix()}transport-belt"
+        belt_entity.direction = entity.direction
         belt_entity.bend = Rotation.NONE
         belt_entity.type = IOType.NONE
 
@@ -269,48 +282,39 @@ class GUI(QtWidgets.QMainWindow):
 
         ans = Sprite.from_sprite(belt_sprite)
 
-        # the direction of an underground refers to which way the belt is flowing, not which way its opening
-
-        opening_dir = bp_dir if io_type == IOType.OUTPUT else Direction.reverse(bp_dir)
+        opening_dir = entity.opening_dir()
 
         sprite_rect = QtCore.QRect(0, 0, 1, 1)
         offset = QtCore.QPoint(0, 0)
         if opening_dir == Direction.UP:
-            sprite_rect = QtCore.QRect(448, 73 if io_type == IOType.OUTPUT else 265, 107, 70)
+            sprite_rect = QtCore.QRect(448, 73 if entity.type == IOType.OUTPUT else 265, 107, 70)
         if opening_dir == Direction.DOWN:
-            sprite_rect = QtCore.QRect(64, 65 if io_type == IOType.OUTPUT else 257, 107, 70)
+            sprite_rect = QtCore.QRect(64, 65 if entity.type == IOType.OUTPUT else 257, 107, 70)
         if opening_dir == Direction.LEFT:
-            sprite_rect = QtCore.QRect(259, 54 if io_type == IOType.OUTPUT else 246, 107, 70)
+            sprite_rect = QtCore.QRect(259, 54 if entity.type == IOType.OUTPUT else 246, 107, 70)
             offset = QtCore.QPoint(0, -10)
         if opening_dir == Direction.RIGHT:
-            sprite_rect = QtCore.QRect(639, 54 if io_type == IOType.OUTPUT else 246, 107, 70)
+            sprite_rect = QtCore.QRect(639, 54 if entity.type == IOType.OUTPUT else 246, 107, 70)
             offset = QtCore.QPoint(0, -10)
 
-        return ans.add(Sprite(self.ss_imgs[f"{prefix}underground-belt-structure.png"].copy(sprite_rect), offset))
+        return ans.add(Sprite(self.ss_imgs[f"{entity.name}-structure.png"].copy(sprite_rect), offset))
 
     def get_sprite_by_entity(self, entity: BPEntity) -> Sprite:
 
         entity_key = (entity.name, entity.direction, entity.type, entity.bend)
-
-        # get filename prefix for image fetching
-        prefix = ""
-        for p in Blueprint.belt_prefixes:
-            if p in entity.name:
-                prefix = f"{p}-"
-                break
 
         if entity_key not in self.sprites:
 
             self.sprites[entity_key] = Sprite()
 
             if entity.is_belt():
-                self.sprites[entity_key] = self.get_tbelt_sprite(prefix, entity.direction, entity.bend)
+                self.sprites[entity_key] = self.get_tbelt_sprite(entity)
 
             if entity.is_splitter():
-                self.sprites[entity_key] = self.get_splitter_sprite(prefix, entity.direction)
+                self.sprites[entity_key] = self.get_splitter_sprite(entity)
 
             if entity.is_underground():
-                self.sprites[entity_key] = self.get_underground_belt_sprite(prefix, entity.direction, entity.type)
+                self.sprites[entity_key] = self.get_underground_belt_sprite(entity)
 
         return self.sprites[entity_key]
 

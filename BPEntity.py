@@ -78,6 +78,8 @@ class BPEntity:
     NAME_BELT = "transport-belt"
     NAME_UNDERGROUND = "underground-belt"
 
+    belt_prefixes = ["fast", "express", "turbo"]
+
     def __init__(self, version: int = 1, entity: dict | None = None):
 
         self.empty = entity is None
@@ -188,3 +190,9 @@ class BPEntity:
         if not self.is_underground():
             raise ValueError("This BPEntity is not an underground")
         return self.direction if self.type == IOType.OUTPUT else Direction.reverse(self.direction)
+
+    def prefix(self) -> str:
+        for p in BPEntity.belt_prefixes:
+            if p in self.name:
+                return f"{p}-"
+        return ""

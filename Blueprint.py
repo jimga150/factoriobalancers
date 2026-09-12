@@ -14,8 +14,6 @@ from Node import Node
 
 class Blueprint:
 
-    belt_prefixes = ["fast", "express", "turbo"]
-
     def __init__(self, bp_str: str):
 
         self.max_y = None
