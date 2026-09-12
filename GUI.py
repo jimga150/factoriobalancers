@@ -7,7 +7,7 @@ from PySide6.QtCore import QSize, QPoint
 from PySide6.QtGui import QPainter, QImage, QColor, QStaticText
 from vdfparse import VDFParse
 
-import BalancerTests
+import BalancerProofs
 import common
 from Blueprint import *
 
@@ -385,7 +385,7 @@ if __name__ == '__main__':
     try:
         network = widget.bp.get_network()
         network.render()
-        for fxn in BalancerTests.all_z3_tests:
+        for fxn in BalancerProofs.all_z3_tests:
             print(f"{fxn.__name__}: {fxn(network)}")
     except Exception as e:
         print("Network rendering failed:")

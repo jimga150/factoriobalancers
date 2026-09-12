@@ -1,5 +1,6 @@
 import sys
 
+import BalancerProofs
 import Balancer_Book
 from Balancer import Balancer
 
@@ -8,9 +9,10 @@ import z3
 from Belt import ColorStrategy
 
 # TODO: add blueprint -> network conversion (network parsing)
+#   TODO: add tests
+#       TODO: add isomophism test (networkx)
 #   TODO: handle belt weaving
 #   TODO: handle lane interactions
-#   TODO: add tests
 # TODO: add network -> blueprint conversion (P&R)
 #   TODO: use library of pre-routed balancer blueprints that larger balancers can be broken down into
 #   TODO: make an interchange generator
@@ -90,7 +92,7 @@ if __name__ == '__main__':
     # balancer.render()
     # balancer.export_to_sat_network()
 
-    if Balancer_Book.test_total_balance_z3(balancer):
+    if BalancerProofs.test_total_balance_z3(balancer):
         print("Pass")
     else:
         print("Fail")

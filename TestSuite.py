@@ -9,7 +9,7 @@ import Blueprint_Book
 import common
 from Balancer import Balancer
 import Balancer_Book
-import BalancerTests
+import BalancerProofs
 from Belt import ColorStrategy
 from Blueprint import Blueprint
 from Node import Node
@@ -129,22 +129,22 @@ class Z3BalancerTests(unittest.TestCase):
     def runtest_balancer(self, balancer: Balancer, ptu: bool, tu: bool, pi: bool, fi: bool, po: bool, fo: bool):
 
         with self.subTest(msg="Partially TU"):
-            self.assertEqual(ptu, BalancerTests.test_partial_tu_z3(balancer))
+            self.assertEqual(ptu, BalancerProofs.test_partial_tu_z3(balancer))
 
         with self.subTest(msg="TU"):
-            self.assertEqual(tu, BalancerTests.test_tu_z3(balancer))
+            self.assertEqual(tu, BalancerProofs.test_tu_z3(balancer))
 
         with self.subTest(msg="Partially Input Balanced"):
-            self.assertEqual(pi, BalancerTests.test_partial_input_balanced_z3(balancer))
+            self.assertEqual(pi, BalancerProofs.test_partial_input_balanced_z3(balancer))
 
         with self.subTest(msg="Input balanced"):
-            self.assertEqual(fi, BalancerTests.test_input_balanced_z3(balancer))
+            self.assertEqual(fi, BalancerProofs.test_input_balanced_z3(balancer))
 
         with self.subTest(msg="Partially Output Balanced"):
-            self.assertEqual(po, BalancerTests.test_partial_output_balanced_z3(balancer))
+            self.assertEqual(po, BalancerProofs.test_partial_output_balanced_z3(balancer))
 
         with self.subTest(msg="Output Balanced"):
-            self.assertEqual(fo, BalancerTests.test_output_balanced_z3(balancer))
+            self.assertEqual(fo, BalancerProofs.test_output_balanced_z3(balancer))
 
 class SplitterTests(unittest.TestCase):
     # test various configurations of supply and demand against actual data in factorio
