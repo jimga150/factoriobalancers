@@ -89,8 +89,8 @@ class Blueprint:
         data["entities"].sort(key=lambda x: int(x["entity_number"]))
 
         # print(type(data))
-        print(json.dumps(data, sort_keys=True, indent=4, ))
-        print(f"Version: {hex(data["version"])}")
+        # print(json.dumps(data, sort_keys=True, indent=4, ))
+        # print(f"Version: {hex(data["version"])}")
         # print("keys:")
         # for key, value in data.items():
         #     print(f"{key}: {value}")

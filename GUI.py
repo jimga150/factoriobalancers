@@ -41,16 +41,17 @@ def fetch_assets():
         if not lib_node.GetNode():
             break
         path_str = lib_node["path"].ToString().replace("\"", "")
-        print(f"Found Steam library at {path_str}")
+        # print(f"Found Steam library at {path_str}")
         game_directories.append(path_str)
         i = i + 1
 
     game_directory = None
     for x in game_directories:
         path_to_check = path(x) / 'steamapps' / 'common' / 'Factorio'
-        print(f"Checking for factorio install at {path_to_check}")
+        # print(f"Checking for factorio install at {path_to_check}")
         if path.exists(path_to_check):
             game_directory = path_to_check
+            # print(f"Found install.")
             break
 
     if game_directory is None:
@@ -366,8 +367,8 @@ if __name__ == '__main__':
         print("Network rendering failed:")
         print(str(e))
 
-    print(f"min (x, y) = ({widget.bp.min_x}, {widget.bp.min_y})")
-    print(f"max (x, y) = ({widget.bp.max_x}, {widget.bp.max_y})")
+    # print(f"min (x, y) = ({widget.bp.min_x}, {widget.bp.min_y})")
+    # print(f"max (x, y) = ({widget.bp.max_x}, {widget.bp.max_y})")
 
     widget.resize(800, 800)
     widget.show()
