@@ -5,7 +5,7 @@ from pathlib import Path as path
 
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import QSize, QPoint
-from PySide6.QtGui import QPainter, QImage, QColor
+from PySide6.QtGui import QPainter, QImage, QColor, QStaticText
 from vdfparse import VDFParse
 
 from Blueprint import *
@@ -326,8 +326,14 @@ class GUI(QtWidgets.QMainWindow):
 
         r_y, r_x = self.bp.get_entity_idxs(entity)
 
+        sprite_pos = QtCore.QPoint(r_x, r_y) * self.tile_size.width()
+
         sprite = self.get_sprite_by_entity(entity)
-        p.drawImage(QtCore.QPoint(r_x, r_y) * self.tile_size.width() + sprite.offset, sprite.img)
+        p.drawImage(sprite_pos + sprite.offset, sprite.img)
+
+        if common.debug and entity.is_splitter():
+            node = self.bp.internal_nodes[entity]
+            p.drawStaticText(sprite_pos, QStaticText(str(node)))
 
     def paintEvent(self, event):
 

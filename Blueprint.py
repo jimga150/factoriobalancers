@@ -283,14 +283,14 @@ class Blueprint:
 
     def get_network(self):
 
-        internal_nodes = {}
+        self.internal_nodes = {}
 
         # make nodes for each splitter
         for entity in self.entites_as_flat_list():
             if entity.is_splitter():
-                internal_nodes[entity] = Node()
+                self.internal_nodes[entity] = Node()
 
-        print(internal_nodes)
+        # print(self.internal_nodes)
 
         io_nodes = []
 
@@ -302,7 +302,7 @@ class Blueprint:
         #   make belt, if belt not on list
         #   add belt to list
 
-        for splitter_entity, node in internal_nodes.items():
+        for splitter_entity, node in self.internal_nodes.items():
             for reverse in [True, False]:
                 for use_head in [True, False]:
                     # use_head: True when using true splitter entity, false when using splitter cap (nearly empty entity next to it)
@@ -319,7 +319,7 @@ class Blueprint:
 
                         if curr_entity.is_splitter_cap():
                             # found dest node, need to fetch "true" splitter entity
-                            other_node = internal_nodes[curr_entity.splitter_sibling]
+                            other_node = self.internal_nodes[curr_entity.splitter_sibling]
                             break
 
                         if curr_entity.empty:
@@ -335,7 +335,7 @@ class Blueprint:
 
                         if curr_entity.is_splitter():
                             # found dest node
-                            other_node = internal_nodes[curr_entity]
+                            other_node = self.internal_nodes[curr_entity]
                             break
 
                         if not curr_entity.is_underground() and not curr_entity.is_belt():
