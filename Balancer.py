@@ -55,9 +55,6 @@ class Balancer:
         max_input_char = ord('Z')
         input_char = min_input_char
 
-        # remove duplicates
-        self.belts = list(set(self.belts))
-
         output_idx = 1
         for belt in self.belts:
 

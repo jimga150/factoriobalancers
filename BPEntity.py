@@ -93,6 +93,10 @@ class BPEntity:
             # dont bother setting other attributes
             return
 
+        # True when this is not a real entity, only the shadow of another.
+        # used for spacial reasoning, but not rendering
+        self.is_phantom = False
+
         for k, dv in self.entity_keys_to_ensure.items():
             try:
                 _ = entity[k]
@@ -138,8 +142,8 @@ class BPEntity:
 
     def to_entity_dict(self) -> dict:
 
-        if self.empty:
-            raise ValueError("This BPEntity is empty")
+        if self.is_real():
+            raise ValueError("This BPEntity is not real")
 
         ans = {"name": self.name}
 
@@ -196,3 +200,6 @@ class BPEntity:
             if p in self.name:
                 return f"{p}-"
         return ""
+
+    def is_real(self):
+        return (not self.empty) and (not self.is_phantom)

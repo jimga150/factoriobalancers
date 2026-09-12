@@ -328,7 +328,7 @@ class GUI(QtWidgets.QMainWindow):
 
     def drawEntity(self, p: QPainter, entity: BPEntity):
 
-        if entity.empty:
+        if not entity.is_real():
             return
 
         r_y, r_x = self.bp.get_entity_idxs(entity)

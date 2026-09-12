@@ -50,15 +50,6 @@ class Belt(UniqueIDObj):
     def __str__(self):
         return f"{self.source}->{self.dest} ({self.id})"
 
-    def __eq__(self, other):
-        return self.source == other.source and self.dest == other.dest
-
-    def __ne__(self, other):
-        return not (self == other)
-
-    def __hash__(self):
-        return hash((self.source, self.dest))
-
     def varname(self):
         return f"{self.source}_to_{self.dest}_{str(hash(self))[-4:]}"
 

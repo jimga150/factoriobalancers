@@ -1,5 +1,6 @@
 
 import base64
+import copy
 import json
 import sys
 
@@ -164,21 +165,23 @@ class Blueprint:
             # account for splitters being 2 tiles, entity is only marked as southeast half
             if entity.is_splitter():
 
+                # make copy of splitter entity at that coord
+                splitter_cap_entity = copy.deepcopy(entity)
+
                 if entity.direction in [Direction.UP, Direction.DOWN]:
-                    splitter_cap_entity = self.entity_grid[y][x - 1]
+                    self.entity_grid[y][x - 1] = splitter_cap_entity
                     splitter_cap_entity.pos_x = entity.pos_x - 1
                     splitter_cap_entity.pos_y = entity.pos_y
                 else:
-                    splitter_cap_entity = self.entity_grid[y - 1][x]
+                    self.entity_grid[y - 1][x] = splitter_cap_entity
                     splitter_cap_entity.pos_x = entity.pos_x
                     splitter_cap_entity.pos_y = entity.pos_y - 1
-
-                # populate direction of empty entity next to splitter
-                splitter_cap_entity.direction = entity.direction
 
                 # set entities to point to each other
                 splitter_cap_entity.splitter_sibling = entity
                 entity.splitter_sibling = splitter_cap_entity
+
+                splitter_cap_entity.is_phantom = True
 
         # find belts that should bend when rendered
         for y in range(self.height):
@@ -269,9 +272,8 @@ class Blueprint:
         for y in range(self.height):
             for x in range(self.width):
                 bp_entity = self.entity_grid[y][x]
-                if bp_entity.empty:
-                    continue
-                bp_dict["entities"].append(bp_entity.to_entity_dict())
+                if bp_entity.is_real():
+                    bp_dict["entities"].append(bp_entity.to_entity_dict())
         return {"blueprint": bp_dict}
 
     def to_bp_str(self) -> str:
@@ -304,11 +306,14 @@ class Blueprint:
         #   make belt, if belt not on list
         #   add belt to list
 
+        belts_made = []
+
         for splitter_entity, node in self.internal_nodes.items():
             for reverse in [True, False]:
                 for use_head in [True, False]:
                     # use_head: True when using true splitter entity, false when using splitter cap (nearly empty entity next to it)
-                    curr_entity = splitter_entity if use_head else splitter_entity.splitter_sibling
+                    start_entity = splitter_entity if use_head else splitter_entity.splitter_sibling
+                    curr_entity = start_entity
                     # print(f"Seeking from {splitter_entity} (reverse={reverse}, use_head={use_head})")
                     other_node = None
                     while True:
@@ -319,13 +324,6 @@ class Blueprint:
                         from_belt = curr_entity.is_belt() or curr_entity.is_underground()
 
                         curr_entity = self.find_connected_entity(curr_entity, reverse)
-
-                        if curr_entity.is_splitter_cap():
-                            # found dest node, need to fetch "true" splitter entity
-                            other_node = self.internal_nodes[curr_entity.splitter_sibling]
-                            connector_str = " <- " if reverse else " -> "
-                            # print(str(splitter_entity) + connector_str + str(curr_entity.splitter_sibling))
-                            break
 
                         if curr_entity.empty:
                             if from_belt:
@@ -338,6 +336,9 @@ class Blueprint:
                                 # splitter with nothing connecting to it is not an I/O
                                 pass
                             break
+
+                        if curr_entity.is_splitter_cap():
+                            curr_entity = curr_entity.splitter_sibling
 
                         if curr_entity.is_splitter():
                             # found dest node
@@ -356,13 +357,32 @@ class Blueprint:
                         # no belt to be made
                         continue
 
+                    if not curr_entity.empty:
+                        # other_node is from a splitter, so we need to check if we already connected these two positions
+                        # this checks the positions, not the splitter head entity,
+                        # so two belts between the same two splitters will still both be added this way
+                        if reverse:
+                            # seeking backwards, so starting node was actually dest
+                            belt_key = (curr_entity.pos_x, curr_entity.pos_y, start_entity.pos_x, start_entity.pos_y)
+                        else:
+                            belt_key = (start_entity.pos_x, start_entity.pos_y, curr_entity.pos_x, curr_entity.pos_y)
+
+                        # print(f"Checking {belt_key}")
+
+                        if belt_key in belts_made:
+                            # print(f"Belt already made")
+                            continue
+
+                        belts_made.append(belt_key)
+
                     if reverse:
                         # seeking backwards, so starting node was actually dest
                         belt = Belt(other_node, node)
                     else:
                         belt = Belt(node, other_node)
 
-                    # we will have duplicates (for belts that aren't I/O) but that's OK
+                    # print(f"New belt: {belt}")
+
                     ans.belts.append(belt)
 
         ans.postprocess_nodes()
