@@ -8,7 +8,6 @@ import z3
 from Belt import ColorStrategy
 
 # TODO: add blueprint -> network conversion (network parsing)
-#   TODO: handle underground distance limits
 #   TODO: handle belt weaving
 #   TODO: handle lane interactions
 #   TODO: add tests

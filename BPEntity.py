@@ -195,6 +195,22 @@ class BPEntity:
             raise ValueError("This BPEntity is not an underground")
         return self.direction if self.type == IOType.OUTPUT else Direction.reverse(self.direction)
 
+    def get_underground_len(self) -> int:
+
+        default_underground_length = 4
+        prefix_underground_lengths = [6, 8, 10]
+
+        if self.empty:
+            raise ValueError("This BPEntity is empty")
+
+        for i in range(len(BPEntity.belt_prefixes)):
+            prefix = BPEntity.belt_prefixes[i]
+            if prefix not in self.name:
+                continue
+            return prefix_underground_lengths[i]
+
+        return default_underground_length
+
     def prefix(self) -> str:
         for p in BPEntity.belt_prefixes:
             if p in self.name:

@@ -396,13 +396,17 @@ class Blueprint:
             # find the location of the corresponding underground
             candidate_x = x
             candidate_y = y
+            dist_from_start = 0
             while True:
                 try:
                     dir_to_try = Direction.reverse(from_entity.direction) if reverse else from_entity.direction
                     candidate_x, candidate_y = self.get_coord_in_direction(candidate_x, candidate_y,
                                                                            dir_to_try)
+                    dist_from_start += 1
+                    if dist_from_start > from_entity.get_underground_len() + 1:
+                        raise ValueError
                 except ValueError:
-                    # out of bounds, no partner
+                    # out of bounds (or out of range), no partner
                     raise RuntimeError(f"Underground in balancer ({str(from_entity)}) has no corresponding underground")
 
                 candidate_entity = self.entity_grid[candidate_y][candidate_x]
