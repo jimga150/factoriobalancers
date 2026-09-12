@@ -129,22 +129,22 @@ class Z3BalancerTests(unittest.TestCase):
     def runtest_balancer(self, balancer: Balancer, ptu: bool, tu: bool, pi: bool, fi: bool, po: bool, fo: bool):
 
         with self.subTest(msg="Partially TU"):
-            self.assertEqual(ptu, BalancerProofs.test_partial_tu_z3(balancer))
+            self.assertEqual(ptu, BalancerProofs.partially_tu_proof(balancer))
 
         with self.subTest(msg="TU"):
-            self.assertEqual(tu, BalancerProofs.test_tu_z3(balancer))
+            self.assertEqual(tu, BalancerProofs.tu_proof(balancer))
 
         with self.subTest(msg="Partially Input Balanced"):
-            self.assertEqual(pi, BalancerProofs.test_partial_input_balanced_z3(balancer))
+            self.assertEqual(pi, BalancerProofs.partially_input_balanced_proof(balancer))
 
         with self.subTest(msg="Input balanced"):
-            self.assertEqual(fi, BalancerProofs.test_input_balanced_z3(balancer))
+            self.assertEqual(fi, BalancerProofs.input_balanced_proof(balancer))
 
         with self.subTest(msg="Partially Output Balanced"):
-            self.assertEqual(po, BalancerProofs.test_partial_output_balanced_z3(balancer))
+            self.assertEqual(po, BalancerProofs.partially_output_balanced_proof(balancer))
 
         with self.subTest(msg="Output Balanced"):
-            self.assertEqual(fo, BalancerProofs.test_output_balanced_z3(balancer))
+            self.assertEqual(fo, BalancerProofs.output_balanced_proof(balancer))
 
 class SplitterTests(unittest.TestCase):
     # test various configurations of supply and demand against actual data in factorio

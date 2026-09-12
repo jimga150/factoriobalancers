@@ -74,7 +74,7 @@ def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckS
     z3solver.pop()
 
 # raynquist refers to this as "regular"
-def test_partial_tu_z3(balancer: Balancer) -> bool:
+def partially_tu_proof(balancer: Balancer) -> bool:
     balancer.logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
@@ -131,7 +131,9 @@ def test_partial_tu_z3(balancer: Balancer) -> bool:
     is_tu = check_result == z3.unsat
 
     if not is_tu:
-        balancer.logger.info("Balancer is not even partially TU")
+        balancer.logger.info("Balancer is not even partially Throughput Unlimited")
+    else:
+        balancer.logger.info("Balancer is partially Throughput Unlimited")
 
     debug_proof(balancer, z3solver, check_result, "partially TU")
 
@@ -139,7 +141,7 @@ def test_partial_tu_z3(balancer: Balancer) -> bool:
 
     return is_tu
 
-def test_tu_z3(balancer: Balancer) -> bool:
+def tu_proof(balancer: Balancer) -> bool:
     balancer.logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
@@ -165,7 +167,9 @@ def test_tu_z3(balancer: Balancer) -> bool:
     is_tu = check_result == z3.unsat
 
     if not is_tu:
-        balancer.logger.info("Balancer is not TU")
+        balancer.logger.info("Balancer is not Throughput Unlimited")
+    else:
+        balancer.logger.info("Balancer is Throughput Unlimited")
 
     debug_proof(balancer, z3solver, check_result, "TU")
 
@@ -173,7 +177,7 @@ def test_tu_z3(balancer: Balancer) -> bool:
 
     return is_tu
 
-def test_partial_input_balanced_z3(balancer: Balancer) -> bool:
+def partially_input_balanced_proof(balancer: Balancer) -> bool:
     balancer.logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
@@ -208,12 +212,14 @@ def test_partial_input_balanced_z3(balancer: Balancer) -> bool:
 
     if not is_pi_balanced:
         balancer.logger.info("Balancer is not even partially input balanced")
+    else:
+        balancer.logger.info("Balancer is at least partially input balanced")
 
     z3solver.pop()
 
     return is_pi_balanced
 
-def test_input_balanced_z3(balancer: Balancer) -> bool:
+def input_balanced_proof(balancer: Balancer) -> bool:
     balancer.logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
@@ -259,10 +265,12 @@ def test_input_balanced_z3(balancer: Balancer) -> bool:
 
     if not is_input_balanced:
         balancer.logger.info("Balancer is not fully input balanced")
+    else:
+        balancer.logger.info("Balancer is fully input balanced")
 
     return is_input_balanced
 
-def test_partial_output_balanced_z3(balancer: Balancer) -> bool:
+def partially_output_balanced_proof(balancer: Balancer) -> bool:
     balancer.logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
@@ -297,12 +305,14 @@ def test_partial_output_balanced_z3(balancer: Balancer) -> bool:
 
     if not is_po_balanced:
         balancer.logger.info("Balancer is not even partially output balanced")
+    else:
+        balancer.logger.info("Balancer is at least partially output balanced")
 
     z3solver.pop()
 
     return is_po_balanced
 
-def test_output_balanced_z3(balancer: Balancer) -> bool:
+def output_balanced_proof(balancer: Balancer) -> bool:
     balancer.logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
@@ -342,20 +352,37 @@ def test_output_balanced_z3(balancer: Balancer) -> bool:
 
     if not is_output_balanced:
         balancer.logger.info("Balancer is not fully output balanced")
+    else:
+        balancer.logger.info("Balancer is fully output balanced")
 
     return is_output_balanced
 
 def test_total_balance_z3(balancer: Balancer) -> bool:
-    is_tu = test_tu_z3(balancer)
-    is_input_balanced = test_input_balanced_z3(balancer)
-    is_output_balanced = test_output_balanced_z3(balancer)
+    is_partially_tu = partially_tu_proof(balancer)
+
+    is_tu = False
+    if is_partially_tu:
+        is_tu = tu_proof(balancer)
+
+    is_pi_balanced = partially_input_balanced_proof(balancer)
+
+    is_input_balanced = False
+    if is_pi_balanced:
+        is_input_balanced = input_balanced_proof(balancer)
+
+    is_po_balanced = partially_output_balanced_proof(balancer)
+
+    is_output_balanced = False
+    if is_po_balanced:
+        is_output_balanced = output_balanced_proof(balancer)
+
     return is_tu and is_input_balanced and is_output_balanced
 
 all_z3_tests = [
-    test_partial_tu_z3,
-    test_tu_z3,
-    test_partial_input_balanced_z3,
-    test_partial_output_balanced_z3,
-    test_input_balanced_z3,
-    test_output_balanced_z3
+    partially_tu_proof,
+    tu_proof,
+    partially_input_balanced_proof,
+    partially_output_balanced_proof,
+    input_balanced_proof,
+    output_balanced_proof
 ]
