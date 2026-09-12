@@ -142,7 +142,7 @@ class BPEntity:
 
     def to_entity_dict(self) -> dict:
 
-        if self.is_real():
+        if not self.is_real():
             raise ValueError("This BPEntity is not real")
 
         ans = {"name": self.name}
