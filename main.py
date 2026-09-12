@@ -7,7 +7,6 @@ import z3
 
 from Belt import ColorStrategy
 
-# TODO: fix belt added to undergrounds (cut it off before closed end)
 # TODO: add debug overlay to rendered blueprints
 # TODO: move all renders to output folder by default
 # TODO: add blueprint -> network conversion (network parsing)
@@ -25,6 +24,7 @@ from Belt import ColorStrategy
 #   TODO: generate NxM redistributors
 #   TODO: generate universal NxM balancers by applying universal method to NxM balancers
 # TODO: make actual UI
+# TODO: use logger
 
 
 if __name__ == '__main__':

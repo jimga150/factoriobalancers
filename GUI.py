@@ -176,20 +176,28 @@ class GUI(QtWidgets.QMainWindow):
     def get_tbelt_sprite(self, entity: BPEntity) -> Sprite:
 
         ss_y_offsets = [
-            (Direction.RIGHT, Rotation.NONE),
-            (Direction.LEFT, Rotation.NONE),
-            (Direction.UP, Rotation.NONE),
-            (Direction.DOWN, Rotation.NONE),
-            (Direction.UP, Rotation.CW),
-            (Direction.RIGHT, Rotation.CCW),
-            (Direction.UP, Rotation.CCW),
-            (Direction.LEFT, Rotation.CW),
-            (Direction.RIGHT, Rotation.CW),
-            (Direction.DOWN, Rotation.CCW),
-            (Direction.LEFT, Rotation.CCW),
-            (Direction.DOWN, Rotation.CW)
+            (Direction.RIGHT, Rotation.NONE, IOType.NONE),
+            (Direction.LEFT, Rotation.NONE, IOType.NONE),
+            (Direction.UP, Rotation.NONE, IOType.NONE),
+            (Direction.DOWN, Rotation.NONE, IOType.NONE),
+            (Direction.UP, Rotation.CW, IOType.NONE),
+            (Direction.RIGHT, Rotation.CCW, IOType.NONE),
+            (Direction.UP, Rotation.CCW, IOType.NONE),
+            (Direction.LEFT, Rotation.CW, IOType.NONE),
+            (Direction.RIGHT, Rotation.CW, IOType.NONE),
+            (Direction.DOWN, Rotation.CCW, IOType.NONE),
+            (Direction.LEFT, Rotation.CCW, IOType.NONE),
+            (Direction.DOWN, Rotation.CW, IOType.NONE),
+            (Direction.UP, Rotation.NONE, IOType.OUTPUT),
+            (Direction.DOWN, Rotation.NONE, IOType.INPUT),
+            (Direction.RIGHT, Rotation.NONE, IOType.OUTPUT),
+            (Direction.LEFT, Rotation.NONE, IOType.INPUT),
+            (Direction.DOWN, Rotation.NONE, IOType.OUTPUT),
+            (Direction.UP, Rotation.NONE, IOType.INPUT),
+            (Direction.LEFT, Rotation.NONE, IOType.OUTPUT),
+            (Direction.RIGHT, Rotation.NONE, IOType.INPUT),
         ]
-        ss_y_offset = ss_y_offsets.index((entity.direction, entity.bend))
+        ss_y_offset = ss_y_offsets.index((entity.direction, entity.bend, entity.type))
 
         # take sprite from column 15 cause it has a more clear arrow position for each spritesheet
         ss_x_offset = 15
@@ -204,6 +212,15 @@ class GUI(QtWidgets.QMainWindow):
 
         return Sprite(self.ss_imgs[f"{entity.name}.png"].copy(sprite_rect), self.tile_offset*(-1))
 
+    def get_tbelt_sprite_under(self, entity: BPEntity) -> Sprite:
+        belt_entity = BPEntity()
+        belt_entity.name = f"{entity.prefix()}transport-belt"
+        belt_entity.direction = entity.direction
+        belt_entity.bend = Rotation.NONE
+        belt_entity.type = entity.type
+
+        return self.get_tbelt_sprite(belt_entity)
+
     def get_splitter_sprite(self, entity: BPEntity) -> Sprite:
 
         if entity.direction in [Direction.UP, Direction.DOWN]:
@@ -211,13 +228,7 @@ class GUI(QtWidgets.QMainWindow):
         else:
             offset = QtCore.QPoint(0, -64)
 
-        belt_entity = BPEntity()
-        belt_entity.name = f"{entity.prefix()}transport-belt"
-        belt_entity.direction = entity.direction
-        belt_entity.bend = Rotation.NONE
-        belt_entity.type = IOType.NONE
-
-        belt_sprite = self.get_sprite_by_entity(belt_entity)
+        belt_sprite = self.get_tbelt_sprite_under(entity)
 
         ans = Sprite.from_sprite(belt_sprite)
 
@@ -275,17 +286,11 @@ class GUI(QtWidgets.QMainWindow):
 
     def get_underground_belt_sprite(self, entity: BPEntity) -> Sprite:
 
-        belt_entity = BPEntity()
-        belt_entity.name = f"{entity.prefix()}transport-belt"
-        belt_entity.direction = entity.direction
-        belt_entity.bend = Rotation.NONE
-        belt_entity.type = IOType.NONE
+        opening_dir = entity.opening_dir()
 
-        belt_sprite = self.get_sprite_by_entity(belt_entity)
+        belt_sprite = self.get_tbelt_sprite_under(entity)
 
         ans = Sprite.from_sprite(belt_sprite)
-
-        opening_dir = entity.opening_dir()
 
         sprite_rect = QtCore.QRect(0, 0, 1, 1)
         offset = QtCore.QPoint(0, 0)
