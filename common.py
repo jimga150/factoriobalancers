@@ -6,7 +6,7 @@ decimals_verif = decimals_iter-2
 diff_threshold_iter = 10 ** (-decimals_iter)
 diff_threshold_verif = 10 ** (-decimals_verif)
 
-# print extremely verbose iteration updates
+# print extremely verbose
 debug = False
 
 output_folder = "output"
