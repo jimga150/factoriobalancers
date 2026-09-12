@@ -33,6 +33,8 @@ class Blueprint:
         self.entity_grid = []
         self.parse_bp_dict(self.bp_dict)
 
+        self.internal_nodes = None
+
     def __str__(self):
         dir_graph = "Direction graph:\n"
         dir_graph += "-" * (self.width * 2 + 1)

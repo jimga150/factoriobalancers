@@ -340,7 +340,7 @@ class GUI(QtWidgets.QMainWindow):
         sprite = self.get_sprite_by_entity(entity)
         p.drawImage(sprite_pos + sprite.offset, sprite.img)
 
-        if common.debug and entity.is_splitter():
+        if common.debug and entity.is_splitter() and self.bp.internal_nodes is not None:
             node = self.bp.internal_nodes[entity]
             p.drawStaticText(sprite_pos, QStaticText(str(node)))
 
