@@ -7,6 +7,7 @@ from pathlib import Path
 from types import NoneType
 
 import z3
+import networkx
 
 import common
 from Belt import Belt, ColorStrategy
@@ -37,6 +38,19 @@ class Balancer:
         self.z3solver = None
         self.total_throughput_var = None
 
+    def equivalent_to(self, other: Balancer) -> bool:
+        # true if this balancer is isomorphic to other
+        this_nx = self.to_networkx()
+        other_nx = other.to_networkx()
+        return networkx.is_isomorphic(this_nx, other_nx)
+
+    def to_networkx(self) -> networkx.MultiDiGraph:
+        ans = networkx.MultiDiGraph()
+        for belt in self.belts:
+            ans.add_node(belt.source, name=str(belt.source))
+            ans.add_node(belt.dest, name=str(belt.dest))
+            ans.add_edge(belt.source, belt.dest)
+        return ans
 
     def postprocess_nodes(self, optimize: bool = True):
         self.nodes.clear()

@@ -17,7 +17,6 @@ common.setup_logger(logger)
 
 # TODO: add blueprint -> network conversion (network parsing)
 #   TODO: add tests
-#       TODO: add isomophism test (networkx)
 #   TODO: handle belt weaving
 #   TODO: handle lane interactions
 # TODO: add network -> blueprint conversion (P&R)

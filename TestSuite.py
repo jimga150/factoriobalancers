@@ -73,7 +73,7 @@ class NodeTests(unittest.TestCase):
                     logger.error(f"{str(node)} ({hash(node)}) ({id(node)})")
                 self.assertEqual(1, len(same_names))
 
-class BalancerProofTests(unittest.TestCase):
+class BalancerTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -151,6 +151,16 @@ class BalancerProofTests(unittest.TestCase):
 
         with self.subTest(msg="Output Balanced"):
             self.assertEqual(fo, BalancerProofs.output_balanced_proof(balancer))
+
+    def test_network_equivalency(self):
+        for balancer in [self.balancer22d, self.balancer31, self.balancer44]:
+            other_balancer = copy.deepcopy(balancer)
+            self.assertEqual(True, balancer.equivalent_to(other_balancer))
+
+    def test_network_nonequivalency(self):
+        other_balancer = self.balancer44TU
+        for balancer in [self.balancer22d, self.balancer31, self.balancer44]:
+            self.assertEqual(False, balancer.equivalent_to(other_balancer))
 
 class SplitterTests(unittest.TestCase):
     # test various configurations of supply and demand against actual data in factorio
