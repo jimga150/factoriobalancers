@@ -42,14 +42,17 @@ class Balancer:
         # true if this balancer is isomorphic to other
         this_nx = self.to_networkx()
         other_nx = other.to_networkx()
-        return networkx.is_isomorphic(this_nx, other_nx)
+
+        belt_eq = networkx.algorithms.isomorphism.categorical_multiedge_match(["source_priority", "dest_priority"], [False, False])
+
+        return networkx.is_isomorphic(this_nx, other_nx, edge_match=belt_eq)
 
     def to_networkx(self) -> networkx.MultiDiGraph:
         ans = networkx.MultiDiGraph()
         for belt in self.belts:
             ans.add_node(belt.source, name=str(belt.source))
             ans.add_node(belt.dest, name=str(belt.dest))
-            ans.add_edge(belt.source, belt.dest)
+            ans.add_edge(belt.source, belt.dest, source_priority=belt.source_priority, dest_priority=belt.dest_priority)
         return ans
 
     def postprocess_nodes(self, optimize: bool = True):
