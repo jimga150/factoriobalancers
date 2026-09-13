@@ -163,14 +163,21 @@ class BalancerTests(unittest.TestCase):
             self.assertEqual(False, balancer.equivalent_to(other_balancer))
 
     def test_bp_network(self):
-        bp = Blueprint(Blueprint_Book.blueprints["3-1 TU"])
-        bp_net = bp.get_network()
-        bp_net.render("bp_net")
 
-        other_balancer = Balancer_Book.make_3x1()
+        bp_net_pairs = [
+            ("3-1 TU", Balancer_Book.make_3x1()),
 
-        other_balancer.render("balancer88TU")
-        self.assertEqual(True, bp_net.equivalent_to(other_balancer))
+        ]
+
+        for bp_name, balancer_net_ref in bp_net_pairs:
+            bp = Blueprint(Blueprint_Book.blueprint_strs[bp_name])
+            bp_net = bp.get_network()
+
+            if common.debug:
+                bp_net.render(bp_name + "_derived")
+                balancer_net_ref.render(bp_name + "_ref")
+
+            self.assertEqual(True, bp_net.equivalent_to(balancer_net_ref))
 
 class SplitterTests(unittest.TestCase):
     # test various configurations of supply and demand against actual data in factorio
