@@ -59,24 +59,24 @@ def term_str(name, frac: float) -> str:
         return name if name != "" else "1"
 
     for numerator_candidate in range(1, 10):
-        # print(f"numerator_candidate: {numerator_candidate}")
+        logger.debug(f"numerator_candidate: {numerator_candidate}")
         denominator_candidate = int(numerator_candidate / frac + 0.5)
-        # print(f"denominator_candidate: {denominator_candidate}")
+        logger.debug(f"denominator_candidate: {denominator_candidate}")
 
         if denominator_candidate == 0:
             continue
 
         if 1.0/denominator_candidate < diff_threshold_verif * 100:
-            # print(f"Denominator candidate too small")
+            logger.debug(f"Denominator candidate too small")
             continue
 
         diff = abs(frac - numerator_candidate*1.0/denominator_candidate)
-        # print(f"diff: {diff}; diff_threshold_verif: {diff_threshold_verif}")
+        logger.debug(f"diff: {diff}; diff_threshold_verif: {diff_threshold_verif}")
 
         if diff < diff_threshold_verif:
-            # print("fraction!")
+            logger.debug("fraction!")
             # other_diff = abs(numerator_candidate / frac - denominator_candidate)
-            # print(f"diff the other way: {other_diff}")
+            logger.debug(f"diff the other way: {other_diff}")
             if numerator_candidate == denominator_candidate:
                 return name if name != "" else "1"
             if name == "":
@@ -86,7 +86,7 @@ def term_str(name, frac: float) -> str:
                 return f"{num_str}/{denominator_candidate}" if denominator_candidate != 1 else f"{num_str}"
             return f"{numerator_candidate}{name}/{denominator_candidate}" if denominator_candidate != 1 else f"{numerator_candidate}{name}"
 
-    # print("no fraction")
+    logger.debug("no fraction")
     frac_str = f"{frac:.{decimals_verif}f}"
     return f"{frac_str}*{name}" if name != "" else frac_str
 

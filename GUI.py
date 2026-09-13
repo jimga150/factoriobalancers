@@ -52,17 +52,17 @@ def fetch_assets():
         if not lib_node.GetNode():
             break
         path_str = lib_node["path"].ToString().replace("\"", "")
-        # print(f"Found Steam library at {path_str}")
+        logger.debug(f"Found Steam library at {path_str}")
         game_directories.append(path_str)
         i = i + 1
 
     game_directory = None
     for x in game_directories:
         path_to_check = Path(x) / 'steamapps' / 'common' / 'Factorio'
-        # print(f"Checking for factorio install at {path_to_check}")
+        logger.debug(f"Checking for factorio install at {path_to_check}")
         if Path.exists(path_to_check):
             game_directory = path_to_check
-            # print(f"Found install.")
+            logger.debug(f"Found install.")
             break
 
     if game_directory is None:
@@ -113,7 +113,7 @@ def fetch_assets():
                 break
 
             source_file = str(full_ss_path)
-            # print('Copying: {} -> {}'.format(source_file, dest_ss_path))
+            logger.debug('Copying: {} -> {}'.format(source_file, dest_ss_path))
 
             if full_ss_path.is_file():
                 shutil.copyfile(source_file, dest_ss_path)
@@ -177,7 +177,7 @@ class BPDrawArea(QtWidgets.QWidget):
         for file in os.listdir(asset_dir):
             filename = os.fsdecode(file)
             if filename.endswith(".png"):
-                # print(os.path.join(asset_dir, filename))
+                logger.debug(os.path.join(asset_dir, filename))
                 self.ss_imgs[filename] = QImage(os.path.join(asset_dir, filename))
 
         self.sprites = {}

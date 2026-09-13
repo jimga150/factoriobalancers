@@ -97,12 +97,10 @@ class Blueprint:
         # sort entities by number so that list comparison works
         data["entities"].sort(key=lambda x: int(x["entity_number"]))
 
-        # print(type(data))
-        # print(json.dumps(data, sort_keys=True, indent=4, ))
-        # print(f"Version: {hex(data["version"])}")
-        # print("keys:")
-        # for key, value in data.items():
-        #     print(f"{key}: {value}")
+        logger.debug(type(data))
+        logger.debug(json.dumps(data, sort_keys=True, indent=4, ))
+        logger.debug(f"Version: {hex(data["version"])}")
+
         return data
 
     def get_coord_in_direction(self, x: int | float, y: int | float, direction: Direction) -> tuple[int | float, int | float]:
@@ -161,8 +159,6 @@ class Blueprint:
             self.entity_grid.append([])
             for _ in range(self.width):
                 self.entity_grid[-1].append(BPEntity())
-
-        # print(f"{len(self.tiles)=}, {len(self.tiles[0])=}")
 
         for entity in bp_entities:
 
@@ -302,8 +298,6 @@ class Blueprint:
             if entity.is_splitter():
                 self.internal_nodes[entity] = Node()
 
-        # print(self.internal_nodes)
-
         io_nodes = []
 
         ans = Balancer()
@@ -322,7 +316,7 @@ class Blueprint:
                     # use_head: True when using true splitter entity, false when using splitter cap (nearly empty entity next to it)
                     start_entity = splitter_entity if use_head else splitter_entity.splitter_sibling
                     curr_entity = start_entity
-                    # print(f"Seeking from {splitter_entity} (reverse={reverse}, use_head={use_head})")
+                    logger.debug(f"Seeking from {splitter_entity} (reverse={reverse}, use_head={use_head})")
                     other_node = None
                     while True:
 
@@ -336,7 +330,7 @@ class Blueprint:
                                 other_node = Node()
                                 io_nodes.append(other_node)
                                 connector_str = " <- " if reverse else " -> "
-                                # print(str(splitter_entity) + connector_str + f"I/O node @ ({self.get_entity_idxs(last_entity)})")
+                                logger.debug(str(splitter_entity) + connector_str + f"I/O node @ ({self.get_entity_idxs(last_entity)})")
                             else:
                                 # splitter with nothing connecting to it is not an I/O
                                 pass
@@ -349,10 +343,10 @@ class Blueprint:
                             # found dest node
                             other_node = self.internal_nodes[curr_entity]
                             connector_str = " <- " if reverse else " -> "
-                            # print(str(splitter_entity) + connector_str + str(curr_entity))
+                            logger.debug(str(splitter_entity) + connector_str + str(curr_entity))
                             break
 
-                        # print(f"\t{curr_entity}")
+                        logger.debug(f"\t{curr_entity}")
 
                         if not curr_entity.is_underground() and not curr_entity.is_belt():
                             raise RuntimeError(
@@ -372,10 +366,10 @@ class Blueprint:
                         else:
                             belt_key = (start_entity.pos_x, start_entity.pos_y, curr_entity.pos_x, curr_entity.pos_y)
 
-                        # print(f"Checking {belt_key}")
+                        logger.debug(f"Checking {belt_key}")
 
                         if belt_key in belts_made:
-                            # print(f"Belt already made")
+                            logger.debug(f"Belt already made")
                             continue
 
                         belts_made.append(belt_key)
@@ -386,7 +380,7 @@ class Blueprint:
                     else:
                         belt = Belt(node, other_node)
 
-                    # print(f"New belt: {belt}")
+                    logger.debug(f"New belt: {belt}")
 
                     ans.belts.append(belt)
 
@@ -394,7 +388,7 @@ class Blueprint:
         return ans
 
     def find_connected_entity(self, from_entity: BPEntity, reverse: bool = False) -> BPEntity:
-        # print(f"find_connected_entity called (from_entity={str(from_entity)}, {reverse=})")
+        logger.debug(f"find_connected_entity called (from_entity={str(from_entity)}, {reverse=})")
         y, x = self.get_entity_idxs(from_entity)
         if (from_entity.is_underground() and
                 ((from_entity.type == IOType.OUTPUT and reverse) or
@@ -449,7 +443,7 @@ class Blueprint:
                 ]
 
             entities_pointing_here = []
-            # print(f"\t({x}, {y}) -> ", end="")
+            debug_str = f"\t({x}, {y}) -> "
             for dir_to_try in dirs_to_try:
                 try:
                     x1, y1 = self.get_coord_in_direction(x, y, dir_to_try)
@@ -462,17 +456,17 @@ class Blueprint:
                 if (candidate_entity.direction == Direction.reverse(dir_to_try) and
                         not (candidate_entity.is_underground() and candidate_entity.type == IOType.INPUT)):
                     # this entity is pointing to from_entity (excluding undergrounds closing to this direction)
-                    # print(f"({x1}, {y1})", end="")
+                    debug_str += f"({x1}, {y1})"
                     entities_pointing_here.append(candidate_entity)
 
             if len(entities_pointing_here) == 0:
                 # nothing pointing here, return empty entity
-                # print(f"(None)")
+                logger.debug(debug_str + "(None)")
                 return BPEntity()
 
             if len(entities_pointing_here) == 1:
                 # unambiguous
-                # print("")
+                logger.debug(debug_str)
                 return entities_pointing_here[0]
 
             eph_str = "; ".join([str(x) for x in entities_pointing_here])
@@ -490,5 +484,4 @@ class Blueprint:
                 # out of bounds, return empty entity
                 return BPEntity()
 
-        # print(f"\t({x}, {y}) -> ({x1}, {y1})")
-        return self.entity_grid[y1][x1]
+        return self.entity_grid[y1][x1]        logger.debug(f"\t({x}, {y}) -> ({x1}, {y1})")
