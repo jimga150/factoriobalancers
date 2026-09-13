@@ -362,7 +362,7 @@ def output_balanced_proof(balancer: Balancer) -> bool:
 
     return is_output_balanced
 
-def test_total_balance_z3(balancer: Balancer) -> bool:
+def total_balance_proof(balancer: Balancer) -> bool:
     is_partially_tu = partially_tu_proof(balancer)
 
     is_tu = False

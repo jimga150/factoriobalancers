@@ -73,7 +73,7 @@ class NodeTests(unittest.TestCase):
                     logger.error(f"{str(node)} ({hash(node)}) ({id(node)})")
                 self.assertEqual(1, len(same_names))
 
-class Z3BalancerTests(unittest.TestCase):
+class BalancerProofTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):

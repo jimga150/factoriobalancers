@@ -101,7 +101,7 @@ if __name__ == '__main__':
     # balancer.render()
     # balancer.export_to_sat_network()
 
-    if BalancerProofs.test_total_balance_z3(balancer):
+    if BalancerProofs.total_balance_proof(balancer):
         logger.info("Pass")
     else:
         logger.info("Fail")
