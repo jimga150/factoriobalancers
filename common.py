@@ -128,7 +128,7 @@ def dicts_eq(a: dict, b: dict, debug: bool = False) -> bool:
 
     for k, v in a.items():
         if k not in b:
-            logger.debugf"{k=} not in b")
+            logger.debug(f"{k=} not in b")
             return False
         if not nested_objs_eq(v, b[k], debug):
             return False
