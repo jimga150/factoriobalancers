@@ -5,8 +5,8 @@ import shutil
 import sys
 from pathlib import Path
 
-from PySide6 import QtWidgets, QtCore
-from PySide6.QtCore import QSize, QPoint
+from PySide6 import QtWidgets
+from PySide6.QtCore import QSize, QPoint, QRect
 from PySide6.QtGui import QPainter, QImage, QColor, QStaticText
 from vdfparse import VDFParse
 
@@ -125,7 +125,7 @@ def fetch_assets():
             raise RuntimeError('No sprite sheet found for {}'.format(ss_path))
 
 class Sprite:
-    def __init__(self, img: QImage = QImage(), offset: QtCore.QPoint = QtCore.QPoint(0, 0)):
+    def __init__(self, img: QImage = QImage(), offset: QPoint = QPoint(0, 0)):
         self.img = img
         self.offset = offset
 
@@ -210,11 +210,11 @@ class BPDrawArea(QtWidgets.QMainWindow):
         # take sprite from column 15 cause it has a more clear arrow position for each spritesheet
         ss_x_offset = 15
 
-        init_sprite_loc = QtCore.QPoint(32, 38)
+        init_sprite_loc = QPoint(32, 38)
         sprite_spacing = 128
 
-        sprite_rect = QtCore.QRect(
-            init_sprite_loc + QtCore.QPoint(sprite_spacing * ss_x_offset, sprite_spacing * ss_y_offset) - self.tile_offset,
+        sprite_rect = QRect(
+            init_sprite_loc + QPoint(sprite_spacing * ss_x_offset, sprite_spacing * ss_y_offset) - self.tile_offset,
             self.sprite_window
         )
 
@@ -232,9 +232,9 @@ class BPDrawArea(QtWidgets.QMainWindow):
     def get_splitter_sprite(self, entity: BPEntity) -> Sprite:
 
         if entity.direction in [Direction.UP, Direction.DOWN]:
-            offset = QtCore.QPoint(-64, 0)
+            offset = QPoint(-64, 0)
         else:
-            offset = QtCore.QPoint(0, -64)
+            offset = QPoint(0, -64)
 
         belt_sprite = self.get_tbelt_sprite_under(entity)
 
@@ -246,48 +246,48 @@ class BPDrawArea(QtWidgets.QMainWindow):
         splitter_sprite = Sprite()
         if entity.direction == Direction.UP:
 
-            sprite_rect = QtCore.QRect(2, 5, 155, 58)
-            sprite_offset = QtCore.QPoint(1, -8)
+            sprite_rect = QRect(2, 5, 155, 58)
+            sprite_offset = QPoint(1, -8)
 
             if "turbo" in entity.prefix():
-                sprite_rect = QtCore.QRect(0, 1, 157, 63)
+                sprite_rect = QRect(0, 1, 157, 63)
 
             splitter_sprite = Sprite(self.ss_imgs[f"{entity.name}-north.png"].copy(sprite_rect), offset + sprite_offset)
 
         elif entity.direction == Direction.DOWN:
 
-            sprite_rect = QtCore.QRect(0, 5, 163, 53)
-            sprite_offset = QtCore.QPoint(-10, -4)
+            sprite_rect = QRect(0, 5, 163, 53)
+            sprite_offset = QPoint(-10, -4)
 
             splitter_sprite = Sprite(self.ss_imgs[f"{entity.name}-south.png"].copy(sprite_rect), offset + sprite_offset)
 
         elif entity.direction == Direction.LEFT:
 
-            top_sprite_rect = QtCore.QRect(1, 3, 88, 93)
+            top_sprite_rect = QRect(1, 3, 88, 93)
 
-            splitter_sprite = Sprite(self.ss_imgs[f"{entity.name}-west-top_patch.png"].copy(top_sprite_rect), offset + QtCore.QPoint(-1, -17))
+            splitter_sprite = Sprite(self.ss_imgs[f"{entity.name}-west-top_patch.png"].copy(top_sprite_rect), offset + QPoint(-1, -17))
 
-            bot_sprite_rect = QtCore.QRect(1, 3, 88, 83)
+            bot_sprite_rect = QRect(1, 3, 88, 83)
             if "turbo" in entity.prefix():
-                bot_sprite_rect = QtCore.QRect(0, 1, 88, 83)
+                bot_sprite_rect = QRect(0, 1, 88, 83)
 
-            splitter_sprite.add(Sprite(self.ss_imgs[f"{entity.name}-west.png"].copy(bot_sprite_rect), offset + QtCore.QPoint(-1, -17 + 60)))
+            splitter_sprite.add(Sprite(self.ss_imgs[f"{entity.name}-west.png"].copy(bot_sprite_rect), offset + QPoint(-1, -17 + 60)))
 
         elif entity.direction == Direction.RIGHT:
 
-            top_sprite_rect = QtCore.QRect(3, 6, 86, 98)
+            top_sprite_rect = QRect(3, 6, 86, 98)
             if "turbo" in entity.prefix():
-                top_sprite_rect = QtCore.QRect(3, 4, 86, 98)
+                top_sprite_rect = QRect(3, 4, 86, 98)
 
             splitter_sprite = Sprite(self.ss_imgs[f"{entity.name}-east-top_patch.png"].copy(top_sprite_rect),
-                                     offset + QtCore.QPoint(-1, -17))
+                                     offset + QPoint(-1, -17))
 
-            bot_sprite_rect = QtCore.QRect(4, 1, 85, 83)
+            bot_sprite_rect = QRect(4, 1, 85, 83)
             if "turbo" in entity.prefix():
-                bot_sprite_rect = QtCore.QRect(0, 1, 85, 83)
+                bot_sprite_rect = QRect(0, 1, 85, 83)
 
             splitter_sprite.add(Sprite(self.ss_imgs[f"{entity.name}-east.png"].copy(bot_sprite_rect),
-                                       offset + QtCore.QPoint(0, -17 + 71)))
+                                       offset + QPoint(0, -17 + 71)))
 
         ans.add(splitter_sprite)
         return ans
@@ -300,20 +300,20 @@ class BPDrawArea(QtWidgets.QMainWindow):
 
         ans = Sprite.from_sprite(belt_sprite)
 
-        sprite_rect = QtCore.QRect(0, 0, 1, 1)
-        offset = QtCore.QPoint(0, 0)
+        sprite_rect = QRect(0, 0, 1, 1)
+        offset = QPoint(0, 0)
         if opening_dir == Direction.UP:
-            sprite_rect = QtCore.QRect(447, 73 if entity.type == IOType.OUTPUT else 265, 108, 62)
-            offset = QtCore.QPoint(1, 0)
+            sprite_rect = QRect(447, 73 if entity.type == IOType.OUTPUT else 265, 108, 62)
+            offset = QPoint(1, 0)
         if opening_dir == Direction.DOWN:
-            sprite_rect = QtCore.QRect(63, 65 if entity.type == IOType.OUTPUT else 257, 108, 70)
-            offset = QtCore.QPoint(1, 0)
+            sprite_rect = QRect(63, 65 if entity.type == IOType.OUTPUT else 257, 108, 70)
+            offset = QPoint(1, 0)
         if opening_dir == Direction.LEFT:
-            sprite_rect = QtCore.QRect(259, 54 if entity.type == IOType.OUTPUT else 246, 84, 80)
-            offset = QtCore.QPoint(0, -10)
+            sprite_rect = QRect(259, 54 if entity.type == IOType.OUTPUT else 246, 84, 80)
+            offset = QPoint(0, -10)
         if opening_dir == Direction.RIGHT:
-            sprite_rect = QtCore.QRect(639, 54 if entity.type == IOType.OUTPUT else 246, 98, 81)
-            offset = QtCore.QPoint(0, -10)
+            sprite_rect = QRect(639, 54 if entity.type == IOType.OUTPUT else 246, 98, 81)
+            offset = QPoint(0, -10)
 
         return ans.add(Sprite(self.ss_imgs[f"{entity.name}-structure.png"].copy(sprite_rect), offset))
 
@@ -343,7 +343,7 @@ class BPDrawArea(QtWidgets.QMainWindow):
 
         r_y, r_x = self.bp.get_entity_idxs(entity)
 
-        sprite_pos = QtCore.QPoint(r_x, r_y) * self.tile_size.width()
+        sprite_pos = QPoint(r_x, r_y) * self.tile_size.width()
 
         sprite = self.get_sprite_by_entity(entity)
         p.drawImage(sprite_pos + sprite.offset, sprite.img)
