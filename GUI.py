@@ -6,8 +6,9 @@ import sys
 from pathlib import Path
 
 from PySide6 import QtWidgets
-from PySide6.QtCore import QSize, QPoint, QRect
+from PySide6.QtCore import QSize, QPoint, QRect, Qt
 from PySide6.QtGui import QPainter, QImage, QColor, QStaticText
+from PySide6.QtWidgets import QSizePolicy
 from vdfparse import VDFParse
 
 import BalancerProofs
@@ -156,7 +157,7 @@ class Sprite:
 
         return self
 
-class BPDrawArea(QtWidgets.QMainWindow):
+class BPDrawArea(QtWidgets.QWidget):
     def __init__(self, bp: Blueprint):
         super().__init__()
         self.tile_size = QSize(64, 64)
@@ -372,6 +373,27 @@ class BPDrawArea(QtWidgets.QMainWindow):
                     if not entity.is_belt():
                         self.drawEntity(p, entity)
 
+class GUI(QtWidgets.QWidget):
+
+    def __init__(self):
+        super().__init__()
+
+        layout = QtWidgets.QGridLayout()
+        self.setLayout(layout)
+
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        BPDWidget = BPDrawArea(Blueprint(Blueprint_Book.blueprints["8x8 TU yellow"]))
+        self.bp = BPDWidget.bp
+        BPDWidget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+        layout.addWidget(BPDWidget, 0, 0)
+
+        layout.addWidget(QtWidgets.QLabel("Label"), 1, 0, Qt.AlignmentFlag.AlignCenter)
+
+    def paintEvent(self, event):
+        pass
 
 if __name__ == '__main__':
 
@@ -379,7 +401,8 @@ if __name__ == '__main__':
 
     app = QtWidgets.QApplication([])
 
-    widget = BPDrawArea(Blueprint(Blueprint_Book.blueprints["8x8 TU yellow"]))
+    # widget = BPDrawArea(Blueprint(Blueprint_Book.blueprints["8x8 TU yellow"]))
+    widget = GUI()
 
     try:
         network = widget.bp.get_network()
@@ -389,9 +412,6 @@ if __name__ == '__main__':
     except Exception as e:
         logger.error("Network rendering failed:")
         logger.error(str(e))
-
-    # print(f"min (x, y) = ({widget.bp.min_x}, {widget.bp.min_y})")
-    # print(f"max (x, y) = ({widget.bp.max_x}, {widget.bp.max_y})")
 
     widget.resize(800, 800)
     widget.show()

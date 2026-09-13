@@ -30,6 +30,9 @@ common.setup_logger(logger)
 #   TODO: generate NxM redistributors
 #   TODO: generate universal NxM balancers by applying universal method to NxM balancers
 # TODO: make actual UI
+#   TODO: why wont background work on sub-widegt?
+#   TODO: make buttons to start proofs
+#   TODO: make blueprint area zoomable and scrollable
 
 
 if __name__ == '__main__':
