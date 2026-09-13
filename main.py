@@ -30,7 +30,6 @@ common.setup_logger(logger)
 #   TODO: generate NxM redistributors
 #   TODO: generate universal NxM balancers by applying universal method to NxM balancers
 # TODO: make actual UI
-# TODO: use logger
 
 
 if __name__ == '__main__':
