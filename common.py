@@ -32,8 +32,16 @@ def setup_logger(logger: logging.Logger):
         logger.setLevel(logging.INFO)
     
     if not logger.hasHandlers():
-        logger.addHandler(logging.StreamHandler(sys.stdout))
-        logger.addHandler(logging.FileHandler("main_out.txt", mode='w+'))
+        fmt = logging.Formatter("%(asctime)s: %(name)s: %(levelname)s: %(message)s")
+
+        stream_handler = logging.StreamHandler(sys.stdout)
+        # stream_handler.setFormatter(fmt)
+
+        fh = logging.FileHandler("main_out.txt", mode='w+')
+        fh.setFormatter(fmt)
+
+        logger.addHandler(stream_handler)
+        logger.addHandler(fh)
     
 setup_logger(logger)
 
