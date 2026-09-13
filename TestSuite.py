@@ -170,14 +170,15 @@ class BalancerTests(unittest.TestCase):
         ]
 
         for bp_name, balancer_net_ref in bp_net_pairs:
-            bp = Blueprint(Blueprint_Book.blueprint_strs[bp_name])
-            bp_net = bp.get_network()
+            with self.subTest(msg=bp_name):
+                bp = Blueprint(Blueprint_Book.blueprint_strs[bp_name])
+                bp_net = bp.get_network()
 
-            if common.debug:
-                bp_net.render(bp_name + "_derived")
-                balancer_net_ref.render(bp_name + "_ref")
+                if common.debug:
+                    bp_net.render(bp_name + "_derived")
+                    balancer_net_ref.render(bp_name + "_ref")
 
-            self.assertEqual(True, bp_net.equivalent_to(balancer_net_ref))
+                self.assertEqual(True, bp_net.equivalent_to(balancer_net_ref))
 
 class SplitterTests(unittest.TestCase):
     # test various configurations of supply and demand against actual data in factorio
