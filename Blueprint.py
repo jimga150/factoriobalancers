@@ -484,4 +484,15 @@ class Blueprint:
                 # out of bounds, return empty entity
                 return BPEntity()
 
-        return self.entity_grid[y1][x1]        logger.debug(f"\t({x}, {y}) -> ({x1}, {y1})")
+        logger.debug(f"\t({x}, {y}) -> ({x1}, {y1})")
+
+        candidate_entity = self.entity_grid[y1][x1]
+
+        if (candidate_entity.is_splitter() or candidate_entity.is_splitter_cap()) and candidate_entity.direction != from_entity.direction:
+            if from_entity.is_underground() or from_entity.is_belt():
+                raise RuntimeError(f"{str(from_entity)} points to the side of a splitter at {str(candidate_entity)}")
+
+            # else, assumed to be splitter. return empty entity, which will be interpreted as "connects to nothing"
+            return BPEntity()
+
+        return candidate_entity
