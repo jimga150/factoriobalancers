@@ -162,6 +162,16 @@ class BalancerTests(unittest.TestCase):
         for balancer in [self.balancer22d, self.balancer31, self.balancer44]:
             self.assertEqual(False, balancer.equivalent_to(other_balancer))
 
+    def test_bp_network(self):
+        bp = Blueprint(Blueprint_Book.blueprints["3-1 TU"])
+        bp_net = bp.get_network()
+        bp_net.render("bp_net")
+
+        other_balancer = Balancer_Book.make_3x1()
+
+        other_balancer.render("balancer88TU")
+        self.assertEqual(True, bp_net.equivalent_to(other_balancer))
+
 class SplitterTests(unittest.TestCase):
     # test various configurations of supply and demand against actual data in factorio
 
