@@ -384,7 +384,7 @@ class GUI(QtWidgets.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        BPDWidget = BPDrawArea(Blueprint(Blueprint_Book.blueprints["8x8 TU yellow"]))
+        BPDWidget = BPDrawArea(Blueprint(Blueprint_Book.blueprint_strs["8x8 TU yellow"]))
         self.bp = BPDWidget.bp
         BPDWidget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 

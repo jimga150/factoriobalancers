@@ -283,7 +283,7 @@ class SplitterTests(unittest.TestCase):
 class BlueprintTests(unittest.TestCase):
 
     def test_import_export(self):
-        for name, bp_str in Blueprint_Book.blueprints.items():
+        for name, bp_str in Blueprint_Book.blueprint_strs.items():
             with self.subTest(msg=name):
                 self.import_export_same(bp_str)
 
