@@ -75,7 +75,7 @@ def term_str(name, frac: float) -> str:
 
         if diff < diff_threshold_verif:
             logger.debug("fraction!")
-            # other_diff = abs(numerator_candidate / frac - denominator_candidate)
+            other_diff = abs(numerator_candidate / frac - denominator_candidate)
             logger.debug(f"diff the other way: {other_diff}")
             if numerator_candidate == denominator_candidate:
                 return name if name != "" else "1"
