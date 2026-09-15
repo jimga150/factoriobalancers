@@ -289,7 +289,7 @@ class Blueprint:
     def entites_as_flat_list(self) -> list[BPEntity]:
         return list(chain.from_iterable(self.entity_grid))
 
-    def get_network(self):
+    def get_network(self) -> Balancer:
 
         self.internal_nodes = {}
 
