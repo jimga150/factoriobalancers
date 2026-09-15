@@ -73,6 +73,43 @@ class IOType(enum.Enum):
             return "output"
         return "none"
 
+class Priority(enum.Enum):
+    NONE = -1
+    LEFT = 0
+    RIGHT = 1
+
+    @staticmethod
+    def from_str(arg: str):
+        if arg == "left":
+            return Priority.LEFT
+        elif arg == "right":
+            return Priority.RIGHT
+        return Priority.NONE
+
+    def __str__(self):
+        if self == Priority.LEFT:
+            return "left"
+        if self == Priority.RIGHT:
+            return "right"
+        return "none"
+
+    def __eq__(self, other):
+        if isinstance(other, Priority):
+            return super().__eq__(other)
+        if isinstance(other, Direction):
+            if other == Direction.LEFT:
+                return self == Priority.LEFT
+            elif other == Direction.RIGHT:
+                return self == Priority.RIGHT
+            elif other == Direction.NONE:
+                return self == Priority.NONE
+            else:
+                return False
+        return False
+
+    def __ne__(self, other):
+        return not (self == other)
+
 major_version_offset_bits = 6*8
 
 class BPEntity:
@@ -120,6 +157,16 @@ class BPEntity:
             self.type = IOType.from_type(entity["type"])
         except KeyError:
             self.type = IOType.NONE
+
+        try:
+            self.output_priority = Priority.from_str(entity["output_priority"])
+        except KeyError:
+            self.output_priority = Priority.NONE
+
+        try:
+            self.input_priority = Priority.from_str(entity["input_priority"])
+        except KeyError:
+            self.input_priority = Priority.NONE
 
         self.pos_x = float(entity["position"]["x"])
         self.pos_y = float(entity["position"]["y"])
@@ -225,3 +272,34 @@ class BPEntity:
 
     def is_real(self):
         return (not self.empty) and (not self.is_phantom)
+
+    # get side of splitter this BPEntity represents, from the splitters perspective
+    def get_splitter_side(self) -> Direction:
+        # splitter entity is always at the higher coordinate in the dim it spans
+        # so an up or down facing one has the entity at the higher X
+        # and a left or right facing one has the higher Y
+        if self.empty:
+            raise ValueError("This BPEntity is empty")
+        if self.direction in [Direction.UP, Direction.RIGHT]:
+            return Direction.LEFT if self.is_phantom else Direction.RIGHT
+        else:
+            return Direction.RIGHT if self.is_phantom else Direction.LEFT
+
+    # return True if this side (pointed to by this BPEntity) of this splitter has priority on the port (input or output)
+    def has_priority(self, port: IOType) -> bool:
+        if self.empty:
+            return False
+
+        splitter_side = self.get_splitter_side()
+
+        logger.debug(f"has_priority called")
+        logger.debug(f"splitter_side: {splitter_side}")
+        logger.debug(f"port: {port}")
+        logger.debug(f"output_priority: {self.output_priority}")
+        logger.debug(f"input_priority: {self.input_priority}")
+
+        if port == IOType.OUTPUT:
+            return self.output_priority == splitter_side
+        if port == IOType.INPUT:
+            return self.input_priority == splitter_side
+        return False

@@ -318,6 +318,7 @@ class Blueprint:
                     curr_entity = start_entity
                     logger.debug(f"Seeking from {splitter_entity} (reverse={reverse}, use_head={use_head})")
                     other_node = None
+                    other_node_splitter_cap = False
                     while True:
 
                         last_entity = curr_entity
@@ -338,6 +339,7 @@ class Blueprint:
 
                         if curr_entity.is_splitter_cap():
                             curr_entity = curr_entity.splitter_sibling
+                            other_node_splitter_cap = True
 
                         if curr_entity.is_splitter():
                             # found dest node
@@ -356,6 +358,23 @@ class Blueprint:
                         # no belt to be made
                         continue
 
+                    # check priority of source and dest splitter
+
+                    # remember if the belt connects to the other entity at a splitter cap,
+                    # and use that to fetch its relevant priority
+                    curr_entity_connect = curr_entity.splitter_sibling if other_node_splitter_cap else curr_entity
+                    logger.debug(f"\t{curr_entity_connect=}")
+
+                    if reverse:
+                        source_priority = curr_entity_connect.has_priority(IOType.OUTPUT)
+                        dest_priority = start_entity.has_priority(IOType.INPUT)
+                    else:
+                        source_priority = start_entity.has_priority(IOType.OUTPUT)
+                        dest_priority = curr_entity_connect.has_priority(IOType.INPUT)
+
+                    logger.debug(f"\t{source_priority=}, {dest_priority=}")
+
+                    # get "key" for belt to avoid duplicating internal belts
                     if not curr_entity.empty:
                         # other_node is from a splitter, so we need to check if we already connected these two positions
                         # this checks the positions, not the splitter head entity,
@@ -374,11 +393,12 @@ class Blueprint:
 
                         belts_made.append(belt_key)
 
+                    # make belt
                     if reverse:
                         # seeking backwards, so starting node was actually dest
-                        belt = Belt(other_node, node)
+                        belt = Belt(other_node, node, source_priority, dest_priority)
                     else:
-                        belt = Belt(node, other_node)
+                        belt = Belt(node, other_node, source_priority, dest_priority)
 
                     logger.debug(f"New belt: {belt}")
 
