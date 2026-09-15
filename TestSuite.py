@@ -165,7 +165,7 @@ class BalancerTests(unittest.TestCase):
     def test_bp_network(self):
 
         bp_net_pairs = [
-            ("3-1 TU", Balancer_Book.make_3x1()),
+            ("3-1 TU", self.balancer31),
             ("4x4 TU", self.balancer44TU),
         ]
 
