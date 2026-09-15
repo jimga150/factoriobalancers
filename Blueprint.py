@@ -10,7 +10,7 @@ from itertools import chain
 
 import common
 from BPEntity import BPEntity, Direction, Rotation, IOType
-from Balancer import Balancer
+from BalancerNetwork import BalancerNetwork
 from Belt import Belt
 from Node import Node
 
@@ -289,7 +289,7 @@ class Blueprint:
     def entites_as_flat_list(self) -> list[BPEntity]:
         return list(chain.from_iterable(self.entity_grid))
 
-    def get_network(self) -> Balancer:
+    def get_network(self) -> BalancerNetwork:
 
         self.internal_nodes = {}
 
@@ -300,7 +300,7 @@ class Blueprint:
 
         io_nodes = []
 
-        ans = Balancer()
+        ans = BalancerNetwork()
 
         # iterate over all splitter entities:
         # for each output x direction:

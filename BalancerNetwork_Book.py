@@ -1,7 +1,7 @@
 import logging
 
 import common
-from Balancer import Balancer
+from BalancerNetwork import BalancerNetwork
 from Belt import Belt
 from Node import Node
 
@@ -13,8 +13,8 @@ common.setup_logger(logger)
 def makeNxN(num_inputs: int, num_outputs: int):
     pass
 
-def make3x3() -> Balancer:
-    ans = Balancer()
+def make3x3() -> BalancerNetwork:
+    ans = BalancerNetwork()
 
     node_a = Node()
     node_b = Node()
@@ -54,8 +54,8 @@ def make3x3() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
-def make2x4_tl() -> Balancer:
-    ans = Balancer()
+def make2x4_tl() -> BalancerNetwork:
+    ans = BalancerNetwork()
 
     node_a = Node()
     node_b = Node()
@@ -79,8 +79,8 @@ def make2x4_tl() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
-def make4x4() -> Balancer:
-    ans = Balancer()
+def make4x4() -> BalancerNetwork:
+    ans = BalancerNetwork()
 
     node_a = Node()
     node_b = Node()
@@ -111,8 +111,8 @@ def make4x4() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
-def make4x4TU() -> Balancer:
-    ans = Balancer()
+def make4x4TU() -> BalancerNetwork:
+    ans = BalancerNetwork()
 
     node_a = Node()
     node_b = Node()
@@ -149,8 +149,8 @@ def make4x4TU() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
-def make_3x1() -> Balancer:
-    ans = Balancer()
+def make_3x1() -> BalancerNetwork:
+    ans = BalancerNetwork()
 
     node_a = Node()
     node_b = Node()
@@ -171,8 +171,8 @@ def make_3x1() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
-def make_3x1_bigloop() -> Balancer:
-    ans = Balancer()
+def make_3x1_bigloop() -> BalancerNetwork:
+    ans = BalancerNetwork()
 
     loop_size = 8
 
@@ -199,9 +199,9 @@ def make_3x1_bigloop() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
-def make_2x2() -> Balancer:
+def make_2x2() -> BalancerNetwork:
 
-    ans = Balancer()
+    ans = BalancerNetwork()
 
     node_a = Node()
     node_b = Node()
@@ -217,12 +217,12 @@ def make_2x2() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
-def make_2x2_double() -> Balancer:
-    return Balancer.combine_endtoend(make_2x2(), optimize=False)
+def make_2x2_double() -> BalancerNetwork:
+    return BalancerNetwork.combine_endtoend(make_2x2(), optimize=False)
 
-def make_2x2_pri_out() -> Balancer:
+def make_2x2_pri_out() -> BalancerNetwork:
 
-    ans = Balancer()
+    ans = BalancerNetwork()
 
     node_a = Node()
     node_b = Node()
@@ -238,9 +238,9 @@ def make_2x2_pri_out() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
-def make_2x1_pri_in() -> Balancer:
+def make_2x1_pri_in() -> BalancerNetwork:
 
-    ans = Balancer()
+    ans = BalancerNetwork()
 
     node_a = Node()
     node_b = Node()
@@ -254,9 +254,9 @@ def make_2x1_pri_in() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
-def make_4x3() -> Balancer:
+def make_4x3() -> BalancerNetwork:
 
-    ans = Balancer()
+    ans = BalancerNetwork()
 
     input_nodes = [Node() for _ in range(4)]
     output_nodes = [Node() for _ in range(3)]
@@ -283,13 +283,13 @@ def make_4x3() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
-def make_3x1_subbalancer() -> Balancer:
+def make_3x1_subbalancer() -> BalancerNetwork:
 
     # this is the subtree of the 4 - 4 universal balancer that takes leftover output, balances it,
     # and then loops it back to each input
     # I'm cutting out I/Os to force it to act as a 3 - 1 as it does in the 3 - 1 case for the universal balancer
 
-    ans = Balancer()
+    ans = BalancerNetwork()
 
     input_nodes = [Node() for _ in range(3)]
     output_nodes = [Node() for _ in range(1)]
@@ -314,9 +314,9 @@ def make_3x1_subbalancer() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
-def make_real_3x1() -> Balancer:
+def make_real_3x1() -> BalancerNetwork:
 
-    ans = Balancer()
+    ans = BalancerNetwork()
 
     input_nodes = [Node() for _ in range(4)]
     output_nodes = [Node() for _ in range(4)]
@@ -362,9 +362,9 @@ def make_real_3x1() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
-def make_real_3x1_reduced() -> Balancer:
+def make_real_3x1_reduced() -> BalancerNetwork:
 
-    ans = Balancer()
+    ans = BalancerNetwork()
 
     input_nodes = [Node() for _ in range(3)]
     output_node = Node()
@@ -395,9 +395,9 @@ def make_real_3x1_reduced() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
-def make_4x4_universal() -> Balancer:
+def make_4x4_universal() -> BalancerNetwork:
 
-    ans = Balancer()
+    ans = BalancerNetwork()
 
     input_nodes = [Node() for _ in range(4)]
     output_nodes = [Node() for _ in range(4)]
@@ -443,8 +443,8 @@ def make_4x4_universal() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
-def make_8x8_TU() -> Balancer:
-    ans = Balancer()
+def make_8x8_TU() -> BalancerNetwork:
+    ans = BalancerNetwork()
 
     input_nodes = [Node() for _ in range(8)]
     output_nodes = [Node() for _ in range(8)]

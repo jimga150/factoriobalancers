@@ -8,8 +8,8 @@ import z3
 
 import Blueprint_Book
 import common
-from Balancer import Balancer
-import Balancer_Book
+from BalancerNetwork import BalancerNetwork
+import BalancerNetwork_Book
 import BalancerProofs
 from Belt import ColorStrategy
 from Blueprint import Blueprint
@@ -85,21 +85,21 @@ class BalancerTests(unittest.TestCase):
             if item.endswith(".png"):
                 os.remove(os.path.join(common.output_folder, item))
 
-        cls.balancer22 = Balancer_Book.make_2x2()
-        cls.balancer22d = Balancer_Book.make_2x2_double()
-        cls.balancer31 = Balancer_Book.make_3x1()
-        cls.balancer44 = Balancer.combine_sidebyside(cls.balancer22)
-        cls.balancer44TU = Balancer.combine_endtoend(cls.balancer44)
+        cls.balancer22 = BalancerNetwork_Book.make_2x2()
+        cls.balancer22d = BalancerNetwork_Book.make_2x2_double()
+        cls.balancer31 = BalancerNetwork_Book.make_3x1()
+        cls.balancer44 = BalancerNetwork.combine_sidebyside(cls.balancer22)
+        cls.balancer44TU = BalancerNetwork.combine_endtoend(cls.balancer44)
         # cls.balancer44TU.render_all_methods("balancer44TU")
-        cls.balancer44loop = Balancer.make_tap_loop(cls.balancer44TU, cls.balancer44)
+        cls.balancer44loop = BalancerNetwork.make_tap_loop(cls.balancer44TU, cls.balancer44)
         # cls.balancer44loop.render_all_methods("balancer44loop")
-        cls.balancer88 = Balancer.combine_sidebyside(cls.balancer44)
+        cls.balancer88 = BalancerNetwork.combine_sidebyside(cls.balancer44)
         # cls.balancer88TU = Balancer.combine_endtoend(cls.balancer88)
-        cls.balancer88TU = Balancer_Book.make_8x8_TU()
+        cls.balancer88TU = BalancerNetwork_Book.make_8x8_TU()
 
     # def test_play(self):
     #     self.assertTrue(True)
-    #     self.assertEqual(False, Balancer_Book.test_input_balanced_z3(self.balancer44))
+    #     self.assertEqual(False, BalancerNetwork_Book.test_input_balanced_z3(self.balancer44))
 
     def test_2x2(self):
         self.runtest_balancer(self.balancer22, True, True, True, True, True, True)
@@ -132,7 +132,7 @@ class BalancerTests(unittest.TestCase):
     def test_8x8TU(self):
         self.runtest_balancer(self.balancer88TU, True, True, True, False, True, False)
 
-    def runtest_balancer(self, balancer: Balancer, ptu: bool, tu: bool, pi: bool, fi: bool, po: bool, fo: bool):
+    def runtest_balancer(self, balancer: BalancerNetwork, ptu: bool, tu: bool, pi: bool, fi: bool, po: bool, fo: bool):
 
         with self.subTest(msg="Partially TU"):
             self.assertEqual(ptu, BalancerProofs.partially_tu_proof(balancer))
@@ -188,7 +188,7 @@ class SplitterTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.balancer22 = Balancer_Book.make_2x2()
+        cls.balancer22 = BalancerNetwork_Book.make_2x2()
         cls.solver = cls.balancer22.get_solver()
 
     def setUp(self):

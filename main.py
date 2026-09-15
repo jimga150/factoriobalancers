@@ -2,9 +2,9 @@ import logging
 import sys
 
 import BalancerProofs
-import Balancer_Book
+import BalancerNetwork_Book
 import common
-from Balancer import Balancer
+from BalancerNetwork import BalancerNetwork
 
 import z3
 
@@ -19,6 +19,7 @@ common.setup_logger(logger)
 #   TODO: handle belt weaving
 #   TODO: handle lane interactions
 # TODO: add network -> blueprint conversion (P&R)
+#   TODO: perhaps try to port factorio SAT?
 #   TODO: use library of pre-routed balancer blueprints that larger balancers can be broken down into
 #   TODO: make an interchange generator
 #   TODO: all balancers will need to be comprised of smaller balancers (or shallower functional blocks) connected possibly by an interchange
@@ -49,31 +50,31 @@ if __name__ == '__main__':
     # for a in core:
     #     print(a)
 
-    # balancer3x3TU = Balancer.combine_endtoend(Balancer_Book.make3x3(), Balancer_Book.make3x3())
-    # balancer = Balancer_Book.combine_endtoend(balancer3x3TU, Balancer_Book.make_3x1())
-    # balancer = Balancer_Book.make_2x1_pri_in()
-    # balancer = Balancer_Book.make_3x1()
-    # balancer = Balancer_Book.make_3x1_bigloop()
-    # balancer = Balancer_Book.make_4x4_universal()
-    # balancer = Balancer_Book.make_4x4_universal_blocked()
-    # balancer = Balancer_Book.make4x4()
-    # balancer = Balancer_Book.make4x4TU()
-    # balancer = Balancer_Book.make_real_3x1_reduced()
-    # balancer = Balancer_Book.make2x4_tl()
-    # balancer = Balancer_Book.make_4x3()
-    # balancer = Balancer_Book.make3x3()
-    # balancer = Balancer_Book.make_2x2()
+    # balancer3x3TU = Balancer.combine_endtoend(BalancerNetwork_Book.make3x3(), BalancerNetwork_Book.make3x3())
+    # balancer = BalancerNetwork_Book.combine_endtoend(balancer3x3TU, BalancerNetwork_Book.make_3x1())
+    # balancer = BalancerNetwork_Book.make_2x1_pri_in()
+    # balancer = BalancerNetwork_Book.make_3x1()
+    # balancer = BalancerNetwork_Book.make_3x1_bigloop()
+    # balancer = BalancerNetwork_Book.make_4x4_universal()
+    # balancer = BalancerNetwork_Book.make_4x4_universal_blocked()
+    # balancer = BalancerNetwork_Book.make4x4()
+    # balancer = BalancerNetwork_Book.make4x4TU()
+    # balancer = BalancerNetwork_Book.make_real_3x1_reduced()
+    # balancer = BalancerNetwork_Book.make2x4_tl()
+    # balancer = BalancerNetwork_Book.make_4x3()
+    # balancer = BalancerNetwork_Book.make3x3()
+    # balancer = BalancerNetwork_Book.make_2x2()
 
     # hopefully this makes a TU 8x8
-    balancer44 = Balancer_Book.make4x4()
-    balancer44TU = Balancer.combine_endtoend(balancer44)
-    balancer88 = Balancer.combine_sidebyside(balancer44)
-    balancer88TU = Balancer.combine_endtoend(balancer88)
-    balancer88Uni = Balancer.make_tap_loop(balancer88, balancer88TU)
+    balancer44 = BalancerNetwork_Book.make4x4()
+    balancer44TU = BalancerNetwork.combine_endtoend(balancer44)
+    balancer88 = BalancerNetwork.combine_sidebyside(balancer44)
+    balancer88TU = BalancerNetwork.combine_endtoend(balancer88)
+    balancer88Uni = BalancerNetwork.make_tap_loop(balancer88, balancer88TU)
     balancer = balancer44TU
 
-    # balancer44TU = Balancer_Book.make4x4TU()
-    # balancer44 = Balancer_Book.make4x4()
+    # balancer44TU = BalancerNetwork_Book.make4x4TU()
+    # balancer44 = BalancerNetwork_Book.make4x4()
     # balancer = Balancer.make_tap_loop(balancer44)
 
     '''
@@ -90,7 +91,7 @@ if __name__ == '__main__':
     # two partial TU balancers can be combined to make a full TU balancer
     # A TU balancer rebalancing a non-TU balancer (or vice versa) makes a universal balancer
 
-    # if Balancer_Book.test_balance(balancer, exit_on_fail=False, test_input_blocking=True, test_output_blocking=True, max_threads=3):
+    # if BalancerNetwork_Book.test_balance(balancer, exit_on_fail=False, test_input_blocking=True, test_output_blocking=True, max_threads=3):
     #     print("Pass")
     # else:
     #     print("Fail")

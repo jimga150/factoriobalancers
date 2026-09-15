@@ -4,7 +4,7 @@ import logging
 import z3
 
 import common
-from Balancer import Balancer
+from BalancerNetwork import BalancerNetwork
 from Belt import ColorStrategy
 
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 common.setup_logger(logger)
 
 
-def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckSatResult, condition_name: str):
+def debug_proof(balancer: BalancerNetwork, z3solver: z3.Solver, check_result: z3.CheckSatResult, condition_name: str):
 
     if not common.debug:
         z3solver.pop()
@@ -79,7 +79,7 @@ def debug_proof(balancer: Balancer, z3solver: z3.Solver, check_result: z3.CheckS
     z3solver.pop()
 
 # raynquist refers to this as "regular"
-def partially_tu_proof(balancer: Balancer) -> bool:
+def partially_tu_proof(balancer: BalancerNetwork) -> bool:
     logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
@@ -146,7 +146,7 @@ def partially_tu_proof(balancer: Balancer) -> bool:
 
     return is_tu
 
-def tu_proof(balancer: Balancer) -> bool:
+def tu_proof(balancer: BalancerNetwork) -> bool:
     logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
@@ -182,7 +182,7 @@ def tu_proof(balancer: Balancer) -> bool:
 
     return is_tu
 
-def partially_input_balanced_proof(balancer: Balancer) -> bool:
+def partially_input_balanced_proof(balancer: BalancerNetwork) -> bool:
     logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
@@ -224,7 +224,7 @@ def partially_input_balanced_proof(balancer: Balancer) -> bool:
 
     return is_pi_balanced
 
-def input_balanced_proof(balancer: Balancer) -> bool:
+def input_balanced_proof(balancer: BalancerNetwork) -> bool:
     logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
@@ -275,7 +275,7 @@ def input_balanced_proof(balancer: Balancer) -> bool:
 
     return is_input_balanced
 
-def partially_output_balanced_proof(balancer: Balancer) -> bool:
+def partially_output_balanced_proof(balancer: BalancerNetwork) -> bool:
     logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
@@ -317,7 +317,7 @@ def partially_output_balanced_proof(balancer: Balancer) -> bool:
 
     return is_po_balanced
 
-def output_balanced_proof(balancer: Balancer) -> bool:
+def output_balanced_proof(balancer: BalancerNetwork) -> bool:
     logger.debug(f"{inspect.stack()[0][3]} called")
 
     z3solver = balancer.get_solver()
@@ -362,7 +362,7 @@ def output_balanced_proof(balancer: Balancer) -> bool:
 
     return is_output_balanced
 
-def total_balance_proof(balancer: Balancer) -> bool:
+def total_balance_proof(balancer: BalancerNetwork) -> bool:
     is_partially_tu = partially_tu_proof(balancer)
 
     is_tu = False

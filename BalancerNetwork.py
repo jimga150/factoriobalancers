@@ -24,7 +24,7 @@ except ModuleNotFoundError:
     sys.exit(1)
 
 
-class Balancer:
+class BalancerNetwork:
 
     default_img_filename = "Network"
 
@@ -38,7 +38,7 @@ class Balancer:
         self.z3solver = None
         self.total_throughput_var = None
 
-    def equivalent_to(self, other: Balancer) -> bool:
+    def equivalent_to(self, other: BalancerNetwork) -> bool:
         # true if this balancer is isomorphic to other
         this_nx = self.to_networkx()
         other_nx = other.to_networkx()
@@ -122,7 +122,7 @@ class Balancer:
 
 
     @staticmethod
-    def combine_endtoend(upstream: Balancer, downstream: Balancer | NoneType = None, optimize: bool = True) -> Balancer:
+    def combine_endtoend(upstream: BalancerNetwork, downstream: BalancerNetwork | NoneType = None, optimize: bool = True) -> BalancerNetwork:
 
         if downstream is None:
             downstream = upstream
@@ -153,7 +153,7 @@ class Balancer:
         return ans
 
     @staticmethod
-    def make_tap_loop(simple_balancer: Balancer, rebalancer: Balancer | NoneType = None) -> Balancer:
+    def make_tap_loop(simple_balancer: BalancerNetwork, rebalancer: BalancerNetwork | NoneType = None) -> BalancerNetwork:
 
         if rebalancer is None:
             rebalancer = simple_balancer
@@ -197,7 +197,7 @@ class Balancer:
         return ans
     
     @staticmethod
-    def combine_sidebyside(sub_balancer: Balancer) -> Balancer:
+    def combine_sidebyside(sub_balancer: BalancerNetwork) -> BalancerNetwork:
         ans = copy.deepcopy(sub_balancer)
         sideB = copy.deepcopy(sub_balancer)
 
@@ -337,7 +337,7 @@ class Balancer:
         g = Digraph(engine='dot', node_attr={'shape': 'rect', 'height': '0.4', 'width': '0.5'},
                     graph_attr={'rankdir': 'BT'})
 
-        view_render = name == Balancer.default_img_filename
+        view_render = name == BalancerNetwork.default_img_filename
 
         if not Path.exists(Path(common.output_folder)):
             os.makedirs(common.output_folder)
