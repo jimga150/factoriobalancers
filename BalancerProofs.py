@@ -109,8 +109,8 @@ def partially_tu_proof(balancer: Balancer) -> bool:
     output_all_saturated_var = z3.Bool("output_all_saturated")
     z3solver.assert_and_track(output_all_saturated_var == output_all_saturated_expr, "output_all_saturated_expr")
 
-    num_inputs = balancer.get_num_enabled_inputs()
-    num_outputs = balancer.get_num_enabled_outputs()
+    num_inputs = balancer.get_num_inputs()
+    num_outputs = balancer.get_num_outputs()
     if num_inputs > num_outputs:
         # input is bigger, we only care about input saturation
         z3solver.assert_and_track(input_all_saturated_var == True, "bigger_input_all_saturated")

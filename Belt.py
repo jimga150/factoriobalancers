@@ -33,8 +33,6 @@ class Belt(UniqueIDObj):
         # is the destination node prioritizing this input
         self.dest_priority = dest_priority
 
-        self.enabled = True
-
         # PyCharm gets mad if I don't put these here
         self.supply = None
         self.demand = None
@@ -82,14 +80,10 @@ class Belt(UniqueIDObj):
         return self.supply + common.diff_threshold_iter if self.pushing else self.supply
 
     def get_label(self) -> str:
-        if not self.enabled:
-            return ""
         p = "+" if self.pushing else ""
         return f"(S: {common.frac_str(self.supply)}{p}, D: {common.frac_str(self.demand)})"
 
     def get_color(self, strat: ColorStrategy = ColorStrategy.PRIORITY) -> str:
-        if not self.enabled:
-            return "white"
 
         if strat == ColorStrategy.BACKPRESSURE:
             if self.demand > self.virtual_supply():

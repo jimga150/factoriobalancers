@@ -35,60 +35,51 @@ class Splitter:
         return str(self.node)
 
     def get_output_demand(self) -> float:
-        return sum([x.demand for x in self.get_enabled_outputs()])
+        return sum([x.demand for x in self.outputs])
 
     def get_input_demand(self) -> float:
-        return sum([x.demand for x in self.get_enabled_outputs()])
+        return sum([x.demand for x in self.inputs])
 
     def is_input_proxy(self):
         return len(self.inputs) == 0
 
     def is_output_proxy(self):
         return len(self.outputs) == 0
-
-    def get_enabled_inputs(self) -> list[Belt]:
-        return [x for x in self.inputs if x.enabled]
-
-    def get_enabled_outputs(self) -> list[Belt]:
-        return [x for x in self.outputs if x.enabled]
     
     def populate_solver(self, solver: z3.Solver):
         if self.is_input_proxy() or self.is_output_proxy():
             logger.debug(f"Proxy, skipping...")
             return
 
-        enabled_inputs = self.get_enabled_inputs()
-        enabled_outputs = self.get_enabled_outputs()
+        num_inputs = len(self.inputs)
+        num_outputs = len(self.outputs)
 
-        num_enabled_inputs = len(enabled_inputs)
-        num_enabled_outputs = len(enabled_outputs)
-
-        input_demand_vars = [belt.demand_var() for belt in enabled_inputs]
-        output_demand_vars = [belt.demand_var() for belt in enabled_outputs]
+        input_demand_vars = [belt.demand_var() for belt in self.inputs]
+        output_demand_vars = [belt.demand_var() for belt in self.outputs]
         total_output_demand_var = z3.Sum(output_demand_vars)
         solver.assert_and_track(
             z3.Sum(input_demand_vars) == common.z3realMin(total_output_demand_var,
-                                                          num_enabled_inputs * Belt.max_belt_val),
+                                                          num_inputs * Belt.max_belt_val),
             f"{str(self)}_d_io_eq"
         )
 
-        input_supply_vars = [belt.supply_var() for belt in enabled_inputs]
-        output_supply_vars = [belt.supply_var() for belt in enabled_outputs]
+        input_supply_vars = [belt.supply_var() for belt in self.inputs]
+        output_supply_vars = [belt.supply_var() for belt in self.outputs]
         total_input_supply_var = z3.Sum(input_supply_vars)
         # removed because supply will now be created to force backpressure
         solver.assert_and_track(
-            common.z3realMin(total_input_supply_var, num_enabled_outputs * Belt.max_belt_val) == z3.Sum(
+            common.z3realMin(total_input_supply_var, num_outputs * Belt.max_belt_val) == z3.Sum(
                 output_supply_vars),
             f"{str(self)}_s_io_eq"
         )
 
-        output_pushing_vars = [belt.pushing_var() for belt in enabled_outputs]
-        input_virtual_supply_vars = [belt.virtual_supply_var() for belt in enabled_inputs]
+        output_pushing_vars = [belt.pushing_var() for belt in self.outputs]
+        input_virtual_supply_vars = [belt.virtual_supply_var() for belt in self.inputs]
         total_input_virtual_supply_var = z3.Sum(input_virtual_supply_vars)
 
-        # input_flow_vars = [belt.flow_var() for belt in enabled_inputs]
+        # input_flow_vars = [belt.flow_var() for belt in self.inputs]
         # total_input_flow_var = z3.Sum(input_flow_vars)
-        # output_flow_vars = [belt.flow_var() for belt in enabled_outputs]
+        # output_flow_vars = [belt.flow_var() for belt in self.outputs]
         # total_output_flow_var = z3.Sum(output_flow_vars)
         # solver.assert_and_track(
         #     common.z3realMin(total_input_flow_var, num_enabled_outputs*Belt.max_belt_val) == total_output_flow_var,
@@ -99,7 +90,7 @@ class Splitter:
         # Handle demand of inputs
         # -------------------------------------------------------------
 
-        has_priority_input = any([x.dest_priority for x in enabled_inputs])
+        has_priority_input = any([x.dest_priority for x in self.inputs])
 
         no_backpressure = z3.And(
             z3.If(input_supply_vars[0] == Belt.max_belt_val, input_demand_vars[0] == Belt.max_belt_val,
@@ -118,7 +109,7 @@ class Splitter:
             #   priority input demand = min(total demand, pri supply)
             #   (demand of other input derivable from self _d_io_eq rule)
 
-            priority_belt = next(x for x in enabled_inputs if x.dest_priority)
+            priority_belt = next(x for x in self.inputs if x.dest_priority)
             priority_belt_demand_var = priority_belt.demand_var()
             priority_belt_supply_var = priority_belt.supply_var()
 
@@ -158,7 +149,7 @@ class Splitter:
             )
 
             to_add = z3.If(
-                min_virtual_input_supply_var * num_enabled_inputs >= total_output_demand_var,
+                min_virtual_input_supply_var * num_inputs >= total_output_demand_var,
                 input_demand_vars[0] == input_demand_vars[-1],
                 uneven_backpressure_cond
             )
@@ -171,7 +162,7 @@ class Splitter:
         # Handle supply of outputs
         # -------------------------------------------------------------
 
-        has_priority_output = any(x.source_priority for x in enabled_outputs)
+        has_priority_output = any(x.source_priority for x in self.outputs)
 
         # both supply > their demands
         both_backpressure = z3.And(
@@ -198,7 +189,7 @@ class Splitter:
             # else (only priority output flowing)
             #   priority output supply = total flow
 
-            priority_belt = next(x for x in enabled_outputs if x.source_priority)
+            priority_belt = next(x for x in self.outputs if x.source_priority)
             priority_belt_supply_var = priority_belt.supply_var()
             priority_belt_demand_var = priority_belt.demand_var()
             priority_belt_pushing_var = priority_belt.pushing_var()
@@ -248,7 +239,7 @@ class Splitter:
             )
 
             solver.assert_and_track(z3.If(
-                min_output_demand_var * num_enabled_outputs >= total_input_supply_var,
+                min_output_demand_var * num_outputs >= total_input_supply_var,
                 z3.And(output_supply_vars[0] == output_supply_vars[-1], output_pushing_vars[0] == False,
                        output_pushing_vars[-1] == False),
                 uneven_supply_cond),

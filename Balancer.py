@@ -101,10 +101,10 @@ class Balancer:
         belts_to_remove = []
         for node in self.nodes:
             splitter = self.get_splitter(node)
-            if len(splitter.get_enabled_inputs()) > 2:
+            if len(splitter.inputs) > 2:
                 raise AssertionError(f"Error: {node} has more than 2 inputs. This balancer is illegal.")
 
-            outputs = splitter.get_enabled_outputs()
+            outputs = splitter.outputs
             if len(outputs) > 2:
                 raise AssertionError(f"Error: {node} has more than 2 outputs. This balancer is illegal.")
 
@@ -112,7 +112,7 @@ class Balancer:
                 nodes_to_remove.append(outputs[0].dest)
                 belts_to_remove.extend(outputs)
                 splitter_to_remove = self.get_splitter(outputs[0].dest)
-                for b in splitter_to_remove.get_enabled_outputs():
+                for b in splitter_to_remove.outputs:
                     b.source = node
 
         for node in nodes_to_remove:
@@ -329,18 +329,6 @@ class Balancer:
     def get_num_inputs(self) -> int:
         return len(self.get_inputs())
 
-    def get_enabled_inputs(self) -> list[Belt]:
-        return [x for x in self.get_inputs() if x.enabled]
-
-    def get_enabled_outputs(self) -> list[Belt]:
-        return [x for x in self.get_outputs() if x.enabled]
-
-    def get_num_enabled_inputs(self) -> int:
-        return len(self.get_enabled_inputs())
-
-    def get_num_enabled_outputs(self) -> int:
-        return len(self.get_enabled_outputs())
-
     def render_all_methods(self, name: str = default_img_filename) -> None:
         for cs in ColorStrategy:
             self.render(f"{name} ({ColorStrategy(cs)})", cs)
@@ -359,7 +347,7 @@ class Balancer:
         for node in self.nodes:
             try:
                 splitter = self.get_splitter(node)
-                if len(splitter.get_enabled_inputs()) > 0 or len(splitter.get_enabled_outputs()) > 0:
+                if len(splitter.inputs) > 0 or len(splitter.outputs) > 0:
                     valid_nodes.append(node)
             except ArgumentError:
                 continue
@@ -384,8 +372,6 @@ class Balancer:
                 s.node(str(node))
 
         for belt in self.belts:
-            if not belt.enabled:
-                continue
             g.edge(str(belt.source), str(belt.dest), label=belt.get_label(), color=belt.get_color(color_strat))
         g.render(name, format='png', view=view_render, cleanup=True)
 
@@ -395,9 +381,6 @@ class Balancer:
 
         i = 1
         for belt in self.belts:
-            if not belt.enabled:
-                belt_indices[belt] = -1
-                continue
             if self.get_splitter(belt.source).is_input_proxy():
                 belt_indices[belt] = 0
                 continue

@@ -443,19 +443,6 @@ def make_4x4_universal() -> Balancer:
     ans.postprocess_nodes()
     return ans
 
-def make_4x4_universal_blocked() -> Balancer:
-
-    ans = make_4x4_universal()
-
-    ans.get_inputs()[0].enabled = False
-
-    outputs = ans.get_outputs()
-    outputs[0].enabled = False
-    outputs[1].enabled = False
-    outputs[2].enabled = False
-
-    return ans
-
 def make_8x8_TU() -> Balancer:
     ans = Balancer()
 
