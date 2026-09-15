@@ -77,15 +77,6 @@ class Splitter:
         input_virtual_supply_vars = [belt.virtual_supply_var() for belt in self.inputs]
         total_input_virtual_supply_var = z3.Sum(input_virtual_supply_vars)
 
-        # input_flow_vars = [belt.flow_var() for belt in self.inputs]
-        # total_input_flow_var = z3.Sum(input_flow_vars)
-        # output_flow_vars = [belt.flow_var() for belt in self.outputs]
-        # total_output_flow_var = z3.Sum(output_flow_vars)
-        # solver.assert_and_track(
-        #     common.z3realMin(total_input_flow_var, num_enabled_outputs*Belt.max_belt_val) == total_output_flow_var,
-        #     f"{str(self)}_f_io_eq"
-        # )
-
         # -------------------------------------------------------------
         # Handle demand of inputs
         # -------------------------------------------------------------
@@ -144,7 +135,6 @@ class Splitter:
             uneven_backpressure_cond = z3.If(
                 total_input_supply_var >= total_output_demand_var,
                 uneven_backpressure,
-                # input_demand_vars[0] - input_virtual_supply_vars[0] == input_demand_vars[-1] - input_virtual_supply_vars[-1]
                 no_backpressure
             )
 
@@ -172,9 +162,6 @@ class Splitter:
                   z3.And(output_supply_vars[0] > output_demand_vars[0], output_pushing_vars[0] == False)),
             z3.If(output_demand_vars[-1] == Belt.max_belt_val, output_supply_vars[-1] == Belt.max_belt_val,
                   z3.And(output_supply_vars[-1] > output_demand_vars[-1], output_pushing_vars[-1] == False))
-            # ,
-            # # enforce supply in/out equality for this since we don't have to oversupply artificially
-            # z3.Sum(output_supply_vars) == total_input_supply_var
         )
 
         if has_priority_output:
@@ -219,15 +206,12 @@ class Splitter:
             #   both supply > their demands
 
             min_output_demand_var = common.z3realMin(output_demand_vars[0], output_demand_vars[-1])
-            max_output_demand_var = common.z3realMax(output_demand_vars[0], output_demand_vars[-1])
 
             uneven_supply = z3.And(
                 output_supply_vars[0] <= output_demand_vars[0],
                 output_supply_vars[-1] <= output_demand_vars[-1],
                 output_supply_vars[0] >= min_output_demand_var,
                 output_supply_vars[-1] >= min_output_demand_var,
-                # # set in/out supply equality to account for oversupply amount to lower demand output belt
-                # z3.Sum(output_supply_vars) == total_input_supply_var + Balancer.oversupply_amt
                 output_pushing_vars[0] == (output_demand_vars[0] == min_output_demand_var),
                 output_pushing_vars[-1] == (output_demand_vars[-1] == min_output_demand_var),
             )
