@@ -16,7 +16,7 @@ import Blueprint_Book
 import common
 from BPEntity import BPEntity, Direction, Rotation, IOType
 from Blueprint import Blueprint
-
+from Interchange import make_interchange_bp_str
 
 logger = logging.getLogger(__name__)
 common.setup_logger(logger)
@@ -384,7 +384,10 @@ class GUI(QtWidgets.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        BPDWidget = BPDrawArea(Blueprint(Blueprint_Book.blueprint_strs["8x8 TU yellow"]))
+        # bp = Blueprint(Blueprint_Book.blueprint_strs["8x8 TU yellow"])
+        bp = Blueprint(make_interchange_bp_str(6, 4, "express"))
+
+        BPDWidget = BPDrawArea(bp)
         self.bp = BPDWidget.bp
         BPDWidget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
@@ -404,14 +407,14 @@ if __name__ == '__main__':
     # widget = BPDrawArea(Blueprint(Blueprint_Book.blueprints["8x8 TU yellow"]))
     widget = GUI()
 
-    try:
-        network = widget.bp.get_network()
-        network.render()
-        for fxn in BalancerProofs.all_z3_tests:
-            logger.info(f"{fxn.__name__}: {fxn(network)}")
-    except Exception as e:
-        logger.error("Network rendering failed:")
-        logger.error(str(e))
+    # try:
+    #     network = widget.bp.get_network()
+    #     network.render()
+    #     for fxn in BalancerProofs.all_z3_tests:
+    #         logger.info(f"{fxn.__name__}: {fxn(network)}")
+    # except Exception as e:
+    #     logger.error("Network rendering failed:")
+    #     logger.error(str(e))
 
     widget.resize(800, 800)
     widget.show()
