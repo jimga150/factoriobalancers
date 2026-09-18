@@ -241,7 +241,6 @@ class BalancerNetwork:
         for belt in self.belts:
             logger.debug(f"Belt {belt}")
 
-            # removed since oversupply logic can force supply to be greater than belt capacity
             self.z3solver.assert_and_track(belt.supply_var() <= Belt.max_belt_val, f"{str(belt)}_s_lte_{Belt.max_belt_val}")
             self.z3solver.assert_and_track(belt.supply_var() >= 0, f"{str(belt)}_s_gte_0")
             self.z3solver.assert_and_track(belt.demand_var() <= Belt.max_belt_val, f"{str(belt)}_d_lte_{Belt.max_belt_val}")
@@ -251,8 +250,6 @@ class BalancerNetwork:
 
         for belt in self.get_inputs():
             self.z3solver.assert_and_track(belt.pushing_var() == False, f"{str(belt)}_p_false")
-            # # gotta assert them on the input supplies since they will not be driven from our oversupply rules
-            # self.z3solver.assert_and_track(belt.supply_var() <= Belt.max_belt_val, f"{str(belt)}_s_lte_{Belt.max_belt_val}")
 
         for node in self.nodes:
             try:
@@ -270,14 +267,14 @@ class BalancerNetwork:
             for belt in self.get_inputs():
                 int_supply = z3.Int(f"{belt.varname()}_supply_int")
                 self.z3solver.assert_and_track(
-                    int_supply == belt.supply_var(),#*common.ext_var_quant_denom,
+                    int_supply == belt.supply_var(),
                     f"{belt}_s_quant_{common.ext_var_quant_denom}"
                 )
 
             for belt in self.get_outputs():
                 int_demand = z3.Int(f"{belt.varname()}_demand_int")
                 self.z3solver.assert_and_track(
-                    int_demand == belt.demand_var(),#*common.ext_var_quant_denom,
+                    int_demand == belt.demand_var(),
                     f"{belt}_d_quant_{common.ext_var_quant_denom}"
                 )
 
