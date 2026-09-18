@@ -19,7 +19,6 @@ common.setup_logger(logger)
 #   TODO: handle belt weaving
 #   TODO: handle lane interactions
 # TODO: add network -> blueprint conversion (P&R)
-#   TODO: call SAT P&R for now
 #   TODO: use smaller balancer as pre-solved cell, place two in larger grid with an interchange (and splitter row) to make
 #   TODO: all balancers will need to be comprised of smaller balancers (or shallower functional blocks) connected possibly by an interchange
 # TODO: generate balancer networks
