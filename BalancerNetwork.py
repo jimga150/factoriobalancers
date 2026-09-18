@@ -379,10 +379,13 @@ class BalancerNetwork:
 
         belt_indices = dict()
 
-        i = 1
+        i = 2
         for belt in self.belts:
             if self.get_splitter(belt.source).is_input_proxy():
                 belt_indices[belt] = 0
+                continue
+            if self.get_splitter(belt.dest).is_output_proxy():
+                belt_indices[belt] = 1
                 continue
             belt_indices[belt] = i
             i += 1
