@@ -16,7 +16,7 @@ import BalancerProofs
 import common
 from BPEntity import BPEntity, Direction, Rotation, IOType
 from Blueprint import Blueprint
-from factorio_sat_callable import *
+import factorio_sat_callable as sat
 
 logger = logging.getLogger(__name__)
 common.setup_logger(logger)
@@ -384,10 +384,12 @@ class GUI(QtWidgets.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # bp = Blueprint(blueprint(interchange(6, 4, 8, True)[0], True, level="express")[0])
+        # bp = Blueprint(sat.blueprint(sat.interchange(6, 4, 8, True)[0], True, level="express")[0])
         balancer = BalancerNetwork_Book.make4x4()
         sat_net_str = balancer.export_to_sat_network()
-        bp = Blueprint(blueprint(belt_balancer(sat_net_str, 10, 4, fast=True, underground_length=8)[0], True, level="express")[0])
+        sat_bp = sat.belt_balancer(sat_net_str, 10, 4, fast=True, underground_length=8)[0]
+        bp_str = sat.blueprint(sat_bp, True, level="express")[0]
+        bp = Blueprint(bp_str)
 
         BPDWidget = BPDrawArea(bp)
         self.bp = BPDWidget.bp
