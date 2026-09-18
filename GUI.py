@@ -16,9 +16,7 @@ import BalancerProofs
 import common
 from BPEntity import BPEntity, Direction, Rotation, IOType
 from Blueprint import Blueprint
-from factorio_sat_callable.belt_balancer import belt_balancer
-from factorio_sat_callable.blueprint import blueprint
-from factorio_sat_callable.interchange import interchange
+from factorio_sat_callable import *
 
 logger = logging.getLogger(__name__)
 common.setup_logger(logger)
