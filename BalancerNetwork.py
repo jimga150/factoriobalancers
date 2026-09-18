@@ -375,7 +375,7 @@ class BalancerNetwork:
             g.edge(str(belt.source), str(belt.dest), label=belt.get_label(), color=belt.get_color(color_strat))
         g.render(name, format='png', view=view_render, cleanup=True)
 
-    def export_to_sat_network(self) -> None:
+    def export_to_sat_network(self) -> str:
 
         belt_indices = dict()
 
@@ -405,5 +405,4 @@ class BalancerNetwork:
             line = input_line + " " + output_line
             sat_network_str += line + "\n"
 
-        with open("sat_network.txt", "w") as f:
-            f.write(sat_network_str)
+        return sat_network_str
