@@ -90,11 +90,11 @@ class BalancerNetwork:
             same_names = [x for x in self.nodes if str(x) == str(node)]
             if len(same_names) > 1:
                 logger.error(f"Error: {node} has a duplicate in the node list. Nodes:")
-                for node in self.nodes:
-                    logger.error(f"{str(node)} ({hash(node)}) ({id(node)})")
+                for n in self.nodes:
+                    logger.error(f"{str(n)} ({hash(n)}) ({id(n)})")
                 logger.error("same_names:")
-                for node in same_names:
-                    logger.error(f"{str(node)} ({hash(node)}) ({id(node)})")
+                for n in same_names:
+                    logger.error(f"{str(n)} ({hash(n)}) ({id(n)})")
                 raise AssertionError(f"{node} has a duplicate in the node list.")
 
         nodes_to_remove = []
