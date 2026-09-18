@@ -1,21 +1,23 @@
 from io import TextIOWrapper
 from types import NoneType
 
-import factorio_sat.blueprint
 from factorio_sat.interchange import *
-from factorio_sat.solver import Grid
-from factorio_sat.util import set_number, set_numbers
 
-def custom_interchange(
-        height: int,
+# finds an interchange for building composite balancers
+# returns a list of strings
+# each string representing a tile grid solution
+# use blueprint to parse these strings into factorio blueprints
+def interchange(
         width: int,
+        height: int,
         underground_length: int = 4,
         alternating: bool = False,
         rot_symmetry: bool = False,
-        partial: TextIOWrapper | NoneType = None,
+        all: bool = False,
         solver: str = "Glucose3",
-        gen_all: bool = False,
+        partial: TextIOWrapper | NoneType = None,
 ) -> list[str]:
+
     if height < 1:
         raise RuntimeError('Height not positive')
 
@@ -81,36 +83,14 @@ def custom_interchange(
 
     for solution in grid.itersolve(solver=solver, ignore_colour=True):
         ans.append(json.dumps(solution.tolist()))
-        if not gen_all:
+        if not all:
             break
+
+    if len(ans) == 0:
+        raise RuntimeError('No solution found')
 
     return ans
 
 
-def make_interchange_bp_str(width: int, height: int, belt_level: str = "normal") -> str:
-    bl = factorio_sat.blueprint.TransportBeltLevel.NORMAL
-    underground_len = 4
-
-    if belt_level == "turbo":
-        raise NotImplemented
-    elif belt_level == "express":
-        underground_len = 8
-        bl = factorio_sat.blueprint.TransportBeltLevel.EXPRESS
-    elif belt_level == "fast":
-        underground_len = 6
-        bl = factorio_sat.blueprint.TransportBeltLevel.FAST
-
-    interchange_sat_dict_strs = custom_interchange(height, width, alternating=True, underground_length=underground_len)
-
-    if len(interchange_sat_dict_strs) == 0:
-        raise RuntimeError('No interchange')
-
-    interchange_sat_dict_str = interchange_sat_dict_strs[0]
-
-    tiles = np.array(json.loads(interchange_sat_dict_str))
-    tiles = np.vectorize(factorio_sat.blueprint.read_tile)(tiles)
-
-    sat_bp = factorio_sat.blueprint.make_blueprint(tiles, f"interchange {width}x{height}", bl)
-    bp_str = factorio_sat.blueprint.encode_blueprint(sat_bp)
-
-    return bp_str
+if __name__ == '__main__':
+    main()

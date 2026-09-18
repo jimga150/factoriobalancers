@@ -19,9 +19,8 @@ common.setup_logger(logger)
 #   TODO: handle belt weaving
 #   TODO: handle lane interactions
 # TODO: add network -> blueprint conversion (P&R)
-#   TODO: perhaps try to port factorio SAT?
-#   TODO: use library of pre-routed balancer blueprints that larger balancers can be broken down into
-#   TODO: make an interchange generator
+#   TODO: call SAT P&R for now
+#   TODO: use smaller balancer as pre-solved cell, place two in larger grid with an interchange (and splitter row) to make
 #   TODO: all balancers will need to be comprised of smaller balancers (or shallower functional blocks) connected possibly by an interchange
 # TODO: generate balancer networks
 #   TODO: generate 2^nx2^n balancers

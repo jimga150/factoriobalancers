@@ -11,12 +11,11 @@ from PySide6.QtGui import QPainter, QImage, QColor, QStaticText
 from PySide6.QtWidgets import QSizePolicy
 from vdfparse import VDFParse
 
-import BalancerProofs
-import Blueprint_Book
 import common
 from BPEntity import BPEntity, Direction, Rotation, IOType
 from Blueprint import Blueprint
-from Interchange import make_interchange_bp_str
+from factorio_sat_callable.blueprint import blueprint
+from factorio_sat_callable.interchange import interchange
 
 logger = logging.getLogger(__name__)
 common.setup_logger(logger)
@@ -384,8 +383,7 @@ class GUI(QtWidgets.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # bp = Blueprint(Blueprint_Book.blueprint_strs["8x8 TU yellow"])
-        bp = Blueprint(make_interchange_bp_str(6, 4, "express"))
+        bp = Blueprint(blueprint(interchange(6, 4, 8, True)[0], True, level="express")[0])
 
         BPDWidget = BPDrawArea(bp)
         self.bp = BPDWidget.bp
