@@ -11,9 +11,12 @@ from PySide6.QtGui import QPainter, QImage, QColor, QStaticText
 from PySide6.QtWidgets import QSizePolicy
 from vdfparse import VDFParse
 
+import BalancerNetwork_Book
+import BalancerProofs
 import common
 from BPEntity import BPEntity, Direction, Rotation, IOType
 from Blueprint import Blueprint
+from factorio_sat_callable.belt_balancer import belt_balancer
 from factorio_sat_callable.blueprint import blueprint
 from factorio_sat_callable.interchange import interchange
 
@@ -383,7 +386,10 @@ class GUI(QtWidgets.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        bp = Blueprint(blueprint(interchange(6, 4, 8, True)[0], True, level="express")[0])
+        # bp = Blueprint(blueprint(interchange(6, 4, 8, True)[0], True, level="express")[0])
+        balancer = BalancerNetwork_Book.make4x4()
+        sat_net_str = balancer.export_to_sat_network()
+        bp = Blueprint(blueprint(belt_balancer(sat_net_str, 10, 4, fast=True, underground_length=8)[0], True, level="express")[0])
 
         BPDWidget = BPDrawArea(bp)
         self.bp = BPDWidget.bp
@@ -405,14 +411,14 @@ if __name__ == '__main__':
     # widget = BPDrawArea(Blueprint(Blueprint_Book.blueprints["8x8 TU yellow"]))
     widget = GUI()
 
-    # try:
-    #     network = widget.bp.get_network()
-    #     network.render()
-    #     for fxn in BalancerProofs.all_z3_tests:
-    #         logger.info(f"{fxn.__name__}: {fxn(network)}")
-    # except Exception as e:
-    #     logger.error("Network rendering failed:")
-    #     logger.error(str(e))
+    try:
+        network = widget.bp.get_network()
+        network.render()
+        for fxn in BalancerProofs.all_z3_tests:
+            logger.info(f"{fxn.__name__}: {fxn(network)}")
+    except Exception as e:
+        logger.error("Network rendering failed:")
+        logger.error(str(e))
 
     widget.resize(800, 800)
     widget.show()
