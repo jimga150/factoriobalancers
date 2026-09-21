@@ -41,10 +41,10 @@ class Splitter:
         return sum([x.demand for x in self.inputs])
 
     def is_input_proxy(self):
-        return len(self.inputs) == 0
+        return self.node.is_input
 
     def is_output_proxy(self):
-        return len(self.outputs) == 0
+        return self.node.is_output
     
     def populate_solver(self, solver: z3.Solver):
         if self.is_input_proxy() or self.is_output_proxy():

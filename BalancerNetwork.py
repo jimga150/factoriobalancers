@@ -314,11 +314,7 @@ class BalancerNetwork:
     def get_outputs(self) -> list[Belt]:
         return [x for x in self.belts if self.is_output(x)]
 
-    def is_input(self, belt: Belt) -> bool:
-        return len([x for x in self.belts if x.dest == belt.source]) == 0
-
-    def is_output(self, belt: Belt) -> bool:
-        return len([x for x in self.belts if x.source == belt.dest]) == 0
+        return [x for x in self.belts if x.is_output()]
 
     def get_num_outputs(self) -> int:
         return len(self.get_outputs())

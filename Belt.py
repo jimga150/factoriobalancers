@@ -47,6 +47,12 @@ class Belt(UniqueIDObj):
     def __str__(self):
         return f"{self.source}->{self.dest} ({self.id})"
 
+    def is_input(self) -> bool:
+        return self.source.is_input
+
+    def is_output(self) -> bool:
+        return self.dest.is_output
+
     def varname(self):
         return f"{self.source}_to_{self.dest}_{str(hash(self))[-4:]}"
 
