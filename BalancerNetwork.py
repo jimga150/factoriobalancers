@@ -55,11 +55,41 @@ class BalancerNetwork:
             ans.add_edge(belt.source, belt.dest, source_priority=belt.source_priority, dest_priority=belt.dest_priority)
         return ans
 
-    def postprocess_nodes(self, optimize: bool = True):
-        self.nodes.clear()
+    def postprocess_nodes(self, optimize: bool = True, re_mark_ios: bool = False):
+
+        logger.debug(f"postprocess_nodes called, {optimize=}, {re_mark_ios=}")
+
         self.z3solver = None
         self.total_throughput_var = None
 
+        self.nodes = set()
+
+        for belt in self.belts:
+            self.nodes.add(belt.source)
+            self.nodes.add(belt.dest)
+
+        self.nodes = list(self.nodes)
+
+        # if any inputs have been marked, skip IO detection
+        IOs_marked = any([x.source.is_input for x in self.belts])
+
+        if re_mark_ios:
+            logger.debug(f"Re-marking IOs, Will mark any detected input or output nodes using the respective flag")
+            self.mark_ios()
+        elif IOs_marked:
+            logger.debug(f"IO markings detected, will not re-mark any detected input or output nodes")
+        else:
+            logger.debug(f"Will mark any detected input or output nodes using the respective flag")
+            self.mark_ios()
+
+        self.trim_nodes()
+
+        self.check_nodes()
+
+        if optimize:
+            self.optimize()
+
+    def mark_ios(self):
         min_input_char = ord('A')
         max_input_char = ord('Z')
         input_char = min_input_char
@@ -67,24 +97,30 @@ class BalancerNetwork:
         output_idx = 1
         for belt in self.belts:
 
-            if belt.source not in self.nodes:
-                self.nodes.append(belt.source)
-            if belt.dest not in self.nodes:
-                self.nodes.append(belt.dest)
+            belt_is_input = len([x for x in self.belts if x.dest == belt.source]) == 0
+            belt_is_output = len([x for x in self.belts if x.source == belt.dest]) == 0
 
-            if self.is_input(belt):
+            if belt_is_input:
+                logger.debug(f"Marking {belt.source} as input {str(chr(input_char))}")
                 belt.source.name = str(chr(input_char))
+                belt.source.is_input = True
                 input_char += 1
                 if input_char > max_input_char:
                     raise RuntimeError(f"Can't handle more than {max_input_char - min_input_char} inputs.")
             else:
                 belt.source.name = ""
+                belt.source.is_input = False
 
-            if self.is_output(belt):
+            if belt_is_output:
+                logger.debug(f"Marking {belt.dest} as output O{output_idx}")
                 belt.dest.name = f"O{output_idx}"
+                belt.dest.is_output = True
                 output_idx += 1
             else:
                 belt.dest.name = ""
+                belt.dest.is_output = False
+
+    def check_nodes(self):
 
         for node in self.nodes:
             same_names = [x for x in self.nodes if str(x) == str(node)]
@@ -97,8 +133,6 @@ class BalancerNetwork:
                     logger.error(f"{str(n)} ({hash(n)}) ({id(n)})")
                 raise AssertionError(f"{node} has a duplicate in the node list.")
 
-        nodes_to_remove = []
-        belts_to_remove = []
         for node in self.nodes:
             splitter = self.get_splitter(node)
             if len(splitter.inputs) > 2:
@@ -108,7 +142,50 @@ class BalancerNetwork:
             if len(outputs) > 2:
                 raise AssertionError(f"Error: {node} has more than 2 outputs. This balancer is illegal.")
 
-            if optimize and len(outputs) == 2 and outputs[0].dest == outputs[1].dest:
+    def trim_nodes(self):
+
+        while True:
+
+            nodes_to_remove = []
+            belts_to_remove = []
+
+            trimmed_node = False
+
+            for node in self.nodes:
+                splitter = self.get_splitter(node)
+                logger.debug(f"Checking node {node} for trim")
+                logger.debug(f"Inputs: {', '.join([str(x) for x in splitter.inputs])}")
+                logger.debug(f"Outputs: {', '.join([str(x) for x in splitter.outputs])}")
+                if not node.is_input and len(splitter.inputs) == 0:
+                    logger.debug(f"regular node has no inputs: {node}")
+                    nodes_to_remove.append(node)
+                    belts_to_remove.extend(splitter.outputs)
+                if not node.is_output and len(splitter.outputs) == 0:
+                    logger.debug(f"regular node has no outputs: {node}")
+                    nodes_to_remove.append(node)
+                    belts_to_remove.extend(splitter.inputs)
+
+            if len(nodes_to_remove) > 0 or len(belts_to_remove) > 0:
+                trimmed_node = True
+
+            for node in nodes_to_remove:
+                logger.debug(f"Trimming node {node}")
+                self.nodes.remove(node)
+            for belt in belts_to_remove:
+                logger.debug(f"Trimming belt {belt}")
+                self.belts.remove(belt)
+
+            if not trimmed_node:
+                break
+
+
+    def optimize(self):
+        nodes_to_remove = []
+        belts_to_remove = []
+        for node in self.nodes:
+            outputs = self.get_splitter(node).outputs
+            if len(outputs) == 2 and outputs[0].dest == outputs[1].dest:
+                logger.debug(f"Splitters outputs go to same spot: {outputs[0]}")
                 nodes_to_remove.append(outputs[0].dest)
                 belts_to_remove.extend(outputs)
                 splitter_to_remove = self.get_splitter(outputs[0].dest)
@@ -116,10 +193,11 @@ class BalancerNetwork:
                     b.source = node
 
         for node in nodes_to_remove:
+            logger.debug(f"optimizing out node {node}")
             self.nodes.remove(node)
         for belt in belts_to_remove:
+            logger.debug(f"optimizing out belt {belt}")
             self.belts.remove(belt)
-
 
     @staticmethod
     def combine_endtoend(upstream: BalancerNetwork, downstream: BalancerNetwork | NoneType = None, optimize: bool = True) -> BalancerNetwork:
@@ -133,10 +211,19 @@ class BalancerNetwork:
         upstream_output_belts = ans.get_outputs()
         downstream_input_belts = downstream_copy.get_inputs()
 
-        assert len(upstream_output_belts) == len(downstream_input_belts)
+        # unmark I/Os in stitching layer, will be trimmed if not connected
+        for belt in upstream_output_belts:
+            belt.dest.is_output = False
+
+        for belt in downstream_input_belts:
+            belt.dest.is_input = False
+
+        # assert len(upstream_output_belts) == len(downstream_input_belts)
+
+        num_e2e_conns = min(len(upstream_output_belts), len(downstream_input_belts))
 
         # connect all upstream output to all downstream inputs using a dummy splitter
-        for belt_idx in range(len(upstream_output_belts)):
+        for belt_idx in range(num_e2e_conns):
 
             output_belt = upstream_output_belts[belt_idx]
             input_belt = downstream_input_belts[belt_idx]
@@ -145,7 +232,7 @@ class BalancerNetwork:
             output_belt.dest_priority = input_belt.dest_priority
 
         for belt in downstream_copy.belts:
-            if downstream_copy.is_input(belt):
+            if belt.is_input():
                 continue
             ans.belts.append(belt)
 
@@ -185,10 +272,10 @@ class BalancerNetwork:
         input_idx = 0
         output_idx = 0
         for belt in excess_rebalancer.belts:
-            if excess_rebalancer.is_input(belt):
+            if belt.is_input():
                 belt.source = pri_out_nodes[output_idx]
                 output_idx += 1
-            if excess_rebalancer.is_output(belt):
+            if belt.is_output():
                 belt.dest = pri_in_nodes[input_idx]
                 input_idx += 1
             ans.belts.append(belt)
@@ -227,7 +314,7 @@ class BalancerNetwork:
             ans.belts.append(Belt(merge_node, new_out_node_1))
             ans.belts.append(Belt(merge_node, new_out_node_2))
 
-        ans.postprocess_nodes()
+        ans.postprocess_nodes(re_mark_ios=True)
         return ans
 
     def get_solver(self) -> z3.Solver:
@@ -309,11 +396,9 @@ class BalancerNetwork:
         return Splitter(inputs, outputs)
 
     def get_inputs(self) -> list[Belt]:
-        return [x for x in self.belts if self.is_input(x)]
+        return [x for x in self.belts if x.is_input()]
 
     def get_outputs(self) -> list[Belt]:
-        return [x for x in self.belts if self.is_output(x)]
-
         return [x for x in self.belts if x.is_output()]
 
     def get_num_outputs(self) -> int:
