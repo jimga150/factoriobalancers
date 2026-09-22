@@ -26,7 +26,7 @@ common.setup_logger(logger)
 #   TODO: generate TU balancers
 #   TODO: generate universal NxM balancers by applying universal method to NxM balancers
 # TODO: make actual UI
-#   TODO: why wont background work on sub-widegt?
+#   TODO: why wont background work on sub-widget?
 #   TODO: make buttons to start proofs
 #   TODO: make blueprint area zoomable and scrollable
 
