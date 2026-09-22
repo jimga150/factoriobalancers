@@ -22,9 +22,8 @@ common.setup_logger(logger)
 #   TODO: use smaller balancer as pre-solved cell, place two in larger grid with an interchange (and splitter row) to make
 #   TODO: all balancers will need to be comprised of smaller balancers (or shallower functional blocks) connected possibly by an interchange
 # TODO: generate balancer networks
-#   TODO: generate 2^nx2^n balancers
-#   TODO: generate NXN balancers
-#   TODO: generate NxM redistributors
+#   TODO: fix bug with 1:N or N:1 balancers not being TU (N>4)
+#   TODO: generate TU balancers
 #   TODO: generate universal NxM balancers by applying universal method to NxM balancers
 # TODO: make actual UI
 #   TODO: why wont background work on sub-widegt?

@@ -9,9 +9,67 @@ from Node import Node
 logger = logging.getLogger(__name__)
 common.setup_logger(logger)
 
+def make_NxM(num_inputs: int, num_outputs: int) -> BalancerNetwork:
 
-def makeNxN(num_inputs: int, num_outputs: int):
-    pass
+    if num_inputs == num_outputs:
+        return make_NxN(num_inputs)
+
+    upstream = make_NxN(num_inputs)
+    downstream = make_NxN(num_outputs)
+
+    ans = BalancerNetwork.combine_endtoend(upstream, downstream)
+
+    # if either input or output count is 1,
+    # and the other count isnt a power of two (meaning there's a loopback involved),
+    # set that IO to priority to ensure TU
+    if num_outputs == 1 and not common.is_pow_2(num_inputs):
+        ans.get_outputs()[0].source_priority = True
+
+    if num_inputs == 1 and not common.is_pow_2(num_outputs):
+        ans.get_inputs()[0].dest_priority = True
+
+    assert ans.get_num_inputs() == num_inputs
+    assert ans.get_num_outputs() == num_outputs
+
+    return ans
+
+def make_NxN(num_ios: int) -> BalancerNetwork:
+
+    if num_ios == 0:
+        ans = BalancerNetwork()
+    elif num_ios == 1:
+        ans = make1x1()
+    elif num_ios == 2:
+        ans = make_2x2()
+    else:
+        # find the next lowest even number A, use that balancer as a baseline
+        # this will consist of two A/2 size balancers combined side by side
+        A = num_ios
+        if num_ios % 2:
+            A += 1
+
+        ans = make_NxN(int(A/2))
+
+        ans = BalancerNetwork.combine_sidebyside(ans)
+
+        # loopback remaining I/Os
+        ans.loopback_ios(A - num_ios)
+
+    assert ans.get_num_inputs() == ans.get_num_outputs()
+    assert ans.get_num_inputs() == num_ios
+
+    return ans
+
+def make1x1() -> BalancerNetwork:
+    ans = BalancerNetwork()
+
+    node_a = Node()
+    node_o1 = Node()
+
+    ans.belts.append(Belt(node_a, node_o1))
+
+    ans.postprocess_nodes()
+    return ans
 
 def make3x3() -> BalancerNetwork:
     ans = BalancerNetwork()

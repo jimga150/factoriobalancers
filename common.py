@@ -163,3 +163,6 @@ def lists_eq(a: list, b: list, debug: bool = False) -> bool:
             return False
 
     return True
+
+def is_pow_2(n: int) -> bool:
+    return n & (n - 1) == 0 and n != 0

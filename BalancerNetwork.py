@@ -317,6 +317,29 @@ class BalancerNetwork:
         ans.postprocess_nodes(re_mark_ios=True)
         return ans
 
+    def loopback_ios(self, num_to_loop_back: int):
+
+        if num_to_loop_back == 0:
+            return
+
+        assert num_to_loop_back <= self.get_num_inputs()
+        assert num_to_loop_back <= self.get_num_outputs()
+
+        inputs = self.get_inputs()
+        outputs = self.get_outputs()
+
+        belts_to_remove = []
+
+        for i in range(num_to_loop_back):
+            # output and input nodes will be garbage collected in postprocess
+            outputs[i].dest = inputs[i].dest
+            belts_to_remove.append(inputs[i])
+
+        for belt in belts_to_remove:
+            self.belts.remove(belt)
+
+        self.postprocess_nodes()
+
     def get_solver(self) -> z3.Solver:
 
         if self.z3solver is not None:
