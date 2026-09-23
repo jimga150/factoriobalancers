@@ -84,10 +84,10 @@ class BalancerNetwork:
 
         self.trim_nodes()
 
-        self.check_nodes()
-
         if optimize:
             self.optimize()
+
+        self.check_nodes()
 
     def mark_ios(self):
         min_input_char = ord('A')
