@@ -23,6 +23,7 @@ common.setup_logger(logger)
 #   TODO: all balancers will need to be comprised of smaller balancers (or shallower functional blocks) connected possibly by an interchange
 # TODO: generate balancer networks
 #   TODO: fix bug with 1:N or N:1 balancers not being TU (N>4)
+#       TODO: in balancers: find any loops, prioritize any splitter inputs representing net inputs to the loop
 #   TODO: generate TU balancers
 #   TODO: generate universal NxM balancers by applying universal method to NxM balancers
 # TODO: make actual UI
