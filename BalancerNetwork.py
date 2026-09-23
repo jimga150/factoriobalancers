@@ -144,40 +144,53 @@ class BalancerNetwork:
 
     def trim_nodes(self):
 
-        while True:
+        nx_graph = self.to_networkx()
 
-            nodes_to_remove = []
-            belts_to_remove = []
+        nodes_to_remove = []
+        belts_to_remove = []
 
-            trimmed_node = False
+        input_nodes = [x.source for x in self.get_inputs()]
+        output_nodes = [x.dest for x in self.get_outputs()]
+        internal_nodes = [x for x in self.nodes if x not in input_nodes and x not in output_nodes]
 
-            for node in self.nodes:
-                splitter = self.get_splitter(node)
-                logger.debug(f"Checking node {node} for trim")
-                logger.debug(f"Inputs: {', '.join([str(x) for x in splitter.inputs])}")
-                logger.debug(f"Outputs: {', '.join([str(x) for x in splitter.outputs])}")
-                if not node.is_input and len(splitter.inputs) == 0:
-                    logger.debug(f"regular node has no inputs: {node}")
-                    nodes_to_remove.append(node)
-                    belts_to_remove.extend(splitter.outputs)
-                if not node.is_output and len(splitter.outputs) == 0:
-                    logger.debug(f"regular node has no outputs: {node}")
-                    nodes_to_remove.append(node)
-                    belts_to_remove.extend(splitter.inputs)
+        # key is Node
+        # value is bool
+        connects_to_inputs = {x: False for x in internal_nodes}
+        connects_to_outputs = {x: False for x in internal_nodes}
 
-            if len(nodes_to_remove) > 0 or len(belts_to_remove) > 0:
-                trimmed_node = True
+        for in_node in input_nodes:
+            for med_node in internal_nodes:
+                if connects_to_inputs[med_node]:
+                    # already found input connection
+                    continue
+                connects_to_inputs[med_node] = networkx.has_path(nx_graph, in_node, med_node)
 
-            for node in nodes_to_remove:
-                logger.debug(f"Trimming node {node}")
-                self.nodes.remove(node)
-            for belt in belts_to_remove:
-                logger.debug(f"Trimming belt {belt}")
-                self.belts.remove(belt)
+        for out_node in output_nodes:
+            for med_node in internal_nodes:
+                if connects_to_outputs[med_node]:
+                    # already found input connection
+                    continue
+                connects_to_outputs[med_node] = networkx.has_path(nx_graph, med_node, out_node)
 
-            if not trimmed_node:
-                break
+        for med_node in internal_nodes:
+            if connects_to_inputs[med_node] and connects_to_outputs[med_node]:
+                continue
 
+            nodes_to_remove.append(med_node)
+
+            # queue all connected belts for deletion
+            splitter = self.get_splitter(med_node)
+            belts_to_remove.extend(splitter.inputs)
+            belts_to_remove.extend(splitter.outputs)
+
+        belts_to_remove = list(set(belts_to_remove))
+
+        for node in nodes_to_remove:
+            logger.debug(f"Trimming node {node}")
+            self.nodes.remove(node)
+        for belt in belts_to_remove:
+            logger.debug(f"Trimming belt {belt}")
+            self.belts.remove(belt)
 
     def optimize(self):
         nodes_to_remove = []
