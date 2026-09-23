@@ -457,18 +457,9 @@ class BalancerNetwork:
             os.makedirs(common.output_folder)
         name = str(Path(common.output_folder) / name)
 
-        valid_nodes = []
-        for node in self.nodes:
-            try:
-                splitter = self.get_splitter(node)
-                if len(splitter.inputs) > 0 or len(splitter.outputs) > 0:
-                    valid_nodes.append(node)
-            except ArgumentError:
-                continue
-
-        input_splitters = [x for x in valid_nodes if self.get_splitter(x).is_input_proxy()]
-        output_splitters = [x for x in valid_nodes if self.get_splitter(x).is_output_proxy()]
-        middle_splitters = [x for x in valid_nodes if x not in input_splitters and x not in output_splitters]
+        input_splitters = [x for x in self.nodes if self.get_splitter(x).is_input_proxy()]
+        output_splitters = [x for x in self.nodes if self.get_splitter(x).is_output_proxy()]
+        middle_splitters = [x for x in self.nodes if x not in input_splitters and x not in output_splitters]
 
         with g.subgraph() as s:
             s.attr(rank='source')
