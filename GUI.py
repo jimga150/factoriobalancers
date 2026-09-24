@@ -12,6 +12,7 @@ import BalancerProofs
 import BluePrintRenderer
 from Blueprint import Blueprint
 import factorio_sat_callable as sat
+from QtAppInst import app
 
 logger = logging.getLogger(__name__)
 common.setup_logger(logger)
@@ -62,9 +63,6 @@ class GUI(QtWidgets.QWidget):
 
 if __name__ == '__main__':
 
-    app = QtWidgets.QApplication([])
-
-    # widget = BPDrawArea(Blueprint(Blueprint_Book.blueprints["8x8 TU yellow"]))
     widget = GUI()
 
     try:
