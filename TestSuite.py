@@ -74,24 +74,27 @@ class NodeTests(unittest.TestCase):
                 self.assertEqual(1, len(same_names))
 
 class BalancerTests(unittest.TestCase):
-    def runtest_balancer(self, balancer: BalancerNetwork, ptu: bool, tu: bool, pi: bool, fi: bool, po: bool, fo: bool):
+    def runtest_balancer(self, balancer: BalancerNetwork, ptu: bool, tu: bool, pi: bool, fi: bool, po: bool, fo: bool, name: str = ""):
 
-        with self.subTest(msg="Partially TU"):
+        if len(name) > 0:
+            name += " "
+
+        with self.subTest(msg=f"{name}Partially TU"):
             self.assertEqual(ptu, BalancerProofs.partially_tu_proof(balancer))
 
-        with self.subTest(msg="TU"):
+        with self.subTest(msg=f"{name}TU"):
             self.assertEqual(tu, BalancerProofs.tu_proof(balancer))
 
-        with self.subTest(msg="Partially Input Balanced"):
+        with self.subTest(msg=f"{name}Partially Input Balanced"):
             self.assertEqual(pi, BalancerProofs.partially_input_balanced_proof(balancer))
 
-        with self.subTest(msg="Input balanced"):
+        with self.subTest(msg=f"{name}Input balanced"):
             self.assertEqual(fi, BalancerProofs.input_balanced_proof(balancer))
 
-        with self.subTest(msg="Partially Output Balanced"):
+        with self.subTest(msg=f"{name}Partially Output Balanced"):
             self.assertEqual(po, BalancerProofs.partially_output_balanced_proof(balancer))
 
-        with self.subTest(msg="Output Balanced"):
+        with self.subTest(msg=f"{name}Output Balanced"):
             self.assertEqual(fo, BalancerProofs.output_balanced_proof(balancer))
 
 class CustomBalancerTests(BalancerTests):
@@ -191,9 +194,8 @@ class BookBalancerTests(BalancerTests):
     def test_NxN(self):
         max_n = 8
         for n in range(1, max_n+1):
-            with self.subTest(msg=f"{n}x{n}"):
-                balancer = BalancerNetwork_Book.make_NxN(n)
-                self.runtest_balancer(balancer, True, n <= 2, True, n <= 2, True, n <= 2)
+            balancer = BalancerNetwork_Book.make_NxN(n)
+            self.runtest_balancer(balancer, True, n <= 2, True, n <= 2, True, n <= 2, f"{n}x{n}")
 
     def test_NxM(self):
         max_in = 6
@@ -206,18 +208,17 @@ class BookBalancerTests(BalancerTests):
         self.runtest_NxM_balancer(1, 5)
 
     def runtest_NxM_balancer(self, num_inputs: int, num_outputs: int):
-        with self.subTest(msg=f"{num_inputs}x{num_outputs}"):
-            logger.info(f"Testing {num_inputs}x{num_outputs} balancer")
-            balancer = BalancerNetwork_Book.make_NxM(num_inputs, num_outputs)
-            self.runtest_balancer(
-                balancer,
-                True,
-                (num_inputs <= 2 and num_outputs <= 2) or num_inputs == 1 or num_outputs == 1,
-                True,
-                num_inputs <= 2,
-                True,
-                num_outputs <= 2
-            )
+        balancer = BalancerNetwork_Book.make_NxM(num_inputs, num_outputs)
+        self.runtest_balancer(
+            balancer,
+            True,
+            (num_inputs <= 2 and num_outputs <= 2) or num_inputs == 1 or num_outputs == 1,
+            True,
+            num_inputs <= 2,
+            True,
+            num_outputs <= 2,
+            f"{num_inputs}x{num_outputs}"
+        )
 
 class SplitterTests(unittest.TestCase):
     # test various configurations of supply and demand against actual data in factorio
