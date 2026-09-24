@@ -35,11 +35,12 @@ class Blueprint:
         self.label = None
         self.icons = None
 
+        self.network = None
+        self.net_mapping = None
+
         self.bp_dict = Blueprint.decode_blueprint_str(bp_str)
         self.entity_grid = []
         self.parse_bp_dict(self.bp_dict)
-
-        self.internal_nodes = None
 
     def __str__(self):
         dir_graph = "Direction graph:\n"
@@ -289,18 +290,26 @@ class Blueprint:
     def entites_as_flat_list(self) -> list[BPEntity]:
         return list(chain.from_iterable(self.entity_grid))
 
-    def get_network(self) -> BalancerNetwork:
+    def get_network(self) -> tuple[BalancerNetwork, dict]:
 
-        self.internal_nodes = {}
+        if self.network is not None:
+            return self.network, self.net_mapping
+
+        # key is BPEntity
+        # value is Belt or Node
+        self.net_mapping = {}
+
+        internal_nodes = {}
 
         # make nodes for each splitter
         for entity in self.entites_as_flat_list():
             if entity.is_splitter():
-                self.internal_nodes[entity] = Node()
+                internal_nodes[entity] = Node()
+                self.net_mapping[entity] = internal_nodes[entity]
 
         io_nodes = []
 
-        ans = BalancerNetwork()
+        self.network = BalancerNetwork()
 
         # iterate over all splitter entities:
         # for each output x direction:
@@ -310,7 +319,7 @@ class Blueprint:
 
         belts_made = []
 
-        for splitter_entity, node in self.internal_nodes.items():
+        for splitter_entity, node in internal_nodes.items():
             for reverse in [True, False]:
                 for use_head in [True, False]:
                     # use_head: True when using true splitter entity, false when using splitter cap (nearly empty entity next to it)
@@ -319,6 +328,7 @@ class Blueprint:
                     logger.debug(f"Seeking from {splitter_entity} (reverse={reverse}, use_head={use_head})")
                     other_node = None
                     other_node_splitter_cap = False
+                    belts_visited = []
                     while True:
 
                         last_entity = curr_entity
@@ -330,6 +340,7 @@ class Blueprint:
                                 # empty entity, found I/O belt
                                 other_node = Node()
                                 io_nodes.append(other_node)
+                                self.net_mapping[last_entity] = other_node
                                 connector_str = " <- " if reverse else " -> "
                                 logger.debug(str(splitter_entity) + connector_str + f"I/O node @ ({self.get_entity_idxs(last_entity)})")
                             else:
@@ -343,7 +354,7 @@ class Blueprint:
 
                         if curr_entity.is_splitter():
                             # found dest node
-                            other_node = self.internal_nodes[curr_entity]
+                            other_node = internal_nodes[curr_entity]
                             connector_str = " <- " if reverse else " -> "
                             logger.debug(str(splitter_entity) + connector_str + str(curr_entity))
                             break
@@ -353,6 +364,8 @@ class Blueprint:
                         if not curr_entity.is_underground() and not curr_entity.is_belt():
                             raise RuntimeError(
                                 "Belt in balancer faces an entity that is not a splitter, belt, or underground.")
+
+                        belts_visited.append(curr_entity)
 
                     if other_node is None:
                         # no belt to be made
@@ -402,10 +415,13 @@ class Blueprint:
 
                     logger.debug(f"New belt: {belt}")
 
-                    ans.belts.append(belt)
+                    self.network.belts.append(belt)
 
-        ans.postprocess_nodes()
-        return ans
+                    for visited_entity in belts_visited:
+                        self.net_mapping[visited_entity] = belt
+
+        self.network.postprocess_nodes()
+        return self.network, self.net_mapping
 
     def find_connected_entity(self, from_entity: BPEntity, reverse: bool = False) -> BPEntity:
         logger.debug(f"find_connected_entity called (from_entity={str(from_entity)}, {reverse=})")

@@ -359,8 +359,8 @@ def drawEntity(bp: Blueprint, p: QPainter, entity: BPEntity):
     sprite = get_sprite_by_entity(entity)
     p.drawImage(sprite_pos + sprite.offset, sprite.img)
 
-    if common.debug and entity.is_splitter() and bp.internal_nodes is not None:
-        node = bp.internal_nodes[entity]
+    if common.debug and bp.net_mapping is not None:
+        node = bp.net_mapping[entity]
         p.drawStaticText(sprite_pos, QStaticText(str(node)))
 
 def paintBPTo(bp: Blueprint, p: QPainter):

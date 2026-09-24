@@ -159,7 +159,7 @@ class CustomBalancerNetworkTests(BalancerNetworkTests):
         for bp_name, balancer_net_ref in bp_net_pairs:
             with self.subTest(msg=bp_name):
                 bp = Blueprint(Blueprint_Book.blueprint_strs[bp_name])
-                bp_net = bp.get_network()
+                bp_net, net_map = bp.get_network()
 
                 if common.debug:
                     bp_net.render(bp_name + "_derived")
