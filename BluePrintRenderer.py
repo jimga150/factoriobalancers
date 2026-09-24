@@ -20,6 +20,8 @@ asset_dir = "assets"
 ss_imgs = {}
 sprites = {}
 
+app = QtWidgets.QApplication([])
+
 
 def fetch_assets():
     logger.debug("Fetching assets from Factorio")
