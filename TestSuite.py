@@ -73,7 +73,7 @@ class NodeTests(unittest.TestCase):
                     logger.error(f"{str(node)} ({hash(node)}) ({id(node)})")
                 self.assertEqual(1, len(same_names))
 
-class BalancerTests(unittest.TestCase):
+class BalancerNetworkTests(unittest.TestCase):
     def runtest_balancer(self, balancer: BalancerNetwork, ptu: bool, tu: bool, pi: bool, fi: bool, po: bool, fo: bool, name: str = ""):
 
         if len(name) > 0:
@@ -97,7 +97,7 @@ class BalancerTests(unittest.TestCase):
         with self.subTest(msg=f"{name}Output Balanced"):
             self.assertEqual(fo, BalancerProofs.output_balanced_proof(balancer))
 
-class CustomBalancerTests(BalancerTests):
+class CustomBalancerNetworkTests(BalancerNetworkTests):
 
     @classmethod
     def setUpClass(cls):
@@ -189,7 +189,7 @@ class CustomBalancerTests(BalancerTests):
 
                 self.assertEqual(True, bp_net.equivalent_to(balancer_net_ref))
 
-class BookBalancerTests(BalancerTests):
+class BookBalancerNetworkTests(BalancerNetworkTests):
 
     def test_NxN(self):
         max_n = 8
@@ -202,12 +202,12 @@ class BookBalancerTests(BalancerTests):
         max_out = 6
         for num_inputs in range(1, max_in + 1):
             for num_outputs in range(1, max_out+1):
-                self.runtest_NxM_balancer(num_inputs, num_outputs)
+                self.make_runtest_NxM_balancer(num_inputs, num_outputs)
 
     def test_play(self):
-        self.runtest_NxM_balancer(1, 5)
+        self.make_runtest_NxM_balancer(1, 5)
 
-    def runtest_NxM_balancer(self, num_inputs: int, num_outputs: int):
+    def make_runtest_NxM_balancer(self, num_inputs: int, num_outputs: int):
         balancer = BalancerNetwork_Book.make_NxM(num_inputs, num_outputs)
         self.runtest_balancer(
             balancer,
