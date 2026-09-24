@@ -19,15 +19,7 @@ def make_NxM(num_inputs: int, num_outputs: int) -> BalancerNetwork:
 
     ans = BalancerNetwork.combine_endtoend(upstream, downstream)
 
-    # if either input or output count is 1,
-    # and the other count isnt a power of two (meaning there's a loopback involved),
-    # set that IO to priority to ensure TU
-    # TODO: change this to instead check if the relevant splitter has a loopback
-    if num_outputs == 1 and not common.is_pow_2(num_inputs):
-        ans.get_outputs()[0].source_priority = True
-
-    if num_inputs == 1 and not common.is_pow_2(num_outputs):
-        ans.get_inputs()[0].dest_priority = True
+    ans.opt_loop_flow()
 
     assert ans.get_num_inputs() == num_inputs
     assert ans.get_num_outputs() == num_outputs
