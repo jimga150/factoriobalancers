@@ -363,6 +363,9 @@ def drawEntity(bp: Blueprint, p: QPainter, entity: BPEntity):
         p.drawStaticText(sprite_pos, QStaticText(str(node)))
 
 def paintBPTo(bp: Blueprint, p: QPainter):
+
+    p.save()
+
     p.scale(0.8, 0.8)
     p.translate(0, 16)
     for y in range(0, bp.height):
@@ -375,3 +378,5 @@ def paintBPTo(bp: Blueprint, p: QPainter):
             entity = bp.entity_grid[y][x]
             if not entity.is_belt():
                 drawEntity(bp, p, entity)
+
+    p.restore()
