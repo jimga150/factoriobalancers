@@ -21,7 +21,7 @@ common.setup_logger(logger)
 
 class Blueprint:
 
-    def __init__(self, bp_str: str):
+    def __init__(self):
 
         self.max_y = None
         self.min_y = None
@@ -38,9 +38,13 @@ class Blueprint:
         self.network = None
         self.net_mapping = None
 
-        self.bp_dict = Blueprint.decode_blueprint_str(bp_str)
         self.entity_grid = []
-        self.parse_bp_dict(self.bp_dict)
+
+    @staticmethod
+    def from_bp_str(bp_str: str) -> Blueprint:
+        ans = Blueprint()
+        ans.parse_bp_dict(Blueprint.decode_blueprint_str(bp_str))
+        return ans
 
     def __str__(self):
         dir_graph = "Direction graph:\n"
@@ -532,3 +536,30 @@ class Blueprint:
             return BPEntity()
 
         return candidate_entity
+
+    def enumerate(self):
+        # call after populating an entity grid
+        # also calculates new positions of entities, anchored on the current min_y and min_x
+
+        if self.min_x is None:
+            self.min_x = 0
+
+        if self.min_y is None:
+            self.min_y = 0
+
+        self.height = len(self.entity_grid)
+        self.width = len(self.entity_grid[0])
+        self.max_y = self.min_y
+        self.max_x = self.min_x
+        e_num = 1
+        for y in range(self.height):
+            for x in range(self.width):
+                entity = self.entity_grid[y][x]
+                entity.entity_number = e_num
+                e_num += 1
+                entity.pos_x = x + self.min_x
+                entity.pos_y = y + self.min_y
+                if entity.pos_x > self.max_x:
+                    self.max_x = entity.pos_x
+                if entity.pos_y > self.max_y:
+                    self.max_y = entity.pos_y

@@ -158,7 +158,7 @@ class CustomBalancerNetworkTests(BalancerNetworkTests):
 
         for bp_name, balancer_net_ref in bp_net_pairs:
             with self.subTest(msg=bp_name):
-                bp = Blueprint(Blueprint_Book.blueprint_strs[bp_name])
+                bp = Blueprint.from_bp_str(Blueprint_Book.blueprint_strs[bp_name])
                 bp_net, net_map = bp.get_network()
 
                 if common.debug:
@@ -315,11 +315,14 @@ class BlueprintTests(unittest.TestCase):
                 self.import_export_same(bp_str)
 
     def import_export_same(self, bp_str: str):
-        # imports a blueprint string, export it, then import it again and test if the blueprints are identical
-        bp = Blueprint(bp_str)
+        # imports a blueprint string, export it, and test if the blueprint strings decode identically
+        bp = Blueprint.from_bp_str(bp_str)
         export_str = bp.to_bp_str()
-        bp2 = Blueprint(export_str)
-        self.assertEqual(True, common.dicts_eq(bp.bp_dict, bp2.bp_dict, debug=common.debug))
+
+        bp_dict_1 = Blueprint.decode_blueprint_str(bp_str)
+        bp_dict_2 = Blueprint.decode_blueprint_str(export_str)
+
+        self.assertEqual(True, common.dicts_eq(bp_dict_1, bp_dict_2, debug=common.debug))
 
 
 if __name__ == '__main__':
