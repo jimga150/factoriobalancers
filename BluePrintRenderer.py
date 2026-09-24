@@ -382,3 +382,22 @@ def paintBPTo(bp: Blueprint, p: QPainter):
                 drawEntity(bp, p, entity)
 
     p.restore()
+
+def render(bp: Blueprint, filename: str):
+    width = bp.width * tile_size.width()
+    height = bp.height * tile_size.height()
+    img = QImage(width, height, QImage.Format.Format_RGB888)
+    img.fill(QColor(0, 0, 0, 0))
+
+    if common.debug and bp.net_mapping is None:
+        # make network map to reference in render
+        bp.get_network()
+
+    with QPainter(img) as painter:
+        paintBPTo(bp, painter)
+
+    filepath = str(Path(common.output_folder) / filename)
+    if not filepath.endswith(".png"):
+        filepath += ".png"
+
+    img.save(filepath)

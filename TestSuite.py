@@ -6,6 +6,7 @@ from multiprocessing.dummy import Pool
 
 import z3
 
+import BluePrintRenderer
 import Blueprint_Book
 import common
 from BalancerNetwork import BalancerNetwork
@@ -163,6 +164,7 @@ class CustomBalancerNetworkTests(BalancerNetworkTests):
                 if common.debug:
                     bp_net.render(bp_name + "_derived")
                     balancer_net_ref.render(bp_name + "_ref")
+                    BluePrintRenderer.render(bp, bp_name + "_bp")
 
                 self.assertEqual(True, bp_net.equivalent_to(balancer_net_ref))
 
