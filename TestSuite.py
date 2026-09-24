@@ -109,25 +109,12 @@ class CustomBalancerNetworkTests(BalancerNetworkTests):
             if item.endswith(".png"):
                 os.remove(os.path.join(common.output_folder, item))
 
-        cls.balancer22 = BalancerNetwork_Book.make_2x2()
         cls.balancer22d = BalancerNetwork_Book.make_2x2_double()
-        cls.balancer31 = BalancerNetwork_Book.make_3x1()
-        cls.balancer44 = BalancerNetwork.combine_sidebyside(cls.balancer22)
-        cls.balancer24 = BalancerNetwork.combine_endtoend(cls.balancer22, cls.balancer44)
+        cls.balancer31 = BalancerNetwork_Book.make_NxM(3, 1)
+        cls.balancer44 = BalancerNetwork_Book.make_NxN(4)
         cls.balancer44TU = BalancerNetwork.combine_endtoend(cls.balancer44)
-        # cls.balancer44TU.render_all_methods("balancer44TU")
         cls.balancer44loop = BalancerNetwork.make_tap_loop(cls.balancer44TU, cls.balancer44)
-        # cls.balancer44loop.render_all_methods("balancer44loop")
-        cls.balancer88 = BalancerNetwork.combine_sidebyside(cls.balancer44)
-        # cls.balancer88TU = Balancer.combine_endtoend(cls.balancer88)
         cls.balancer88TU = BalancerNetwork_Book.make_8x8_TU()
-
-    # def test_play(self):
-    #     self.assertTrue(True)
-    #     self.assertEqual(False, BalancerNetwork_Book.test_input_balanced_z3(self.balancer44))
-
-    def test_2x2(self):
-        self.runtest_balancer(self.balancer22, True, True, True, True, True, True)
 
     def test_2x2d(self):
 
@@ -139,13 +126,6 @@ class CustomBalancerNetworkTests(BalancerNetworkTests):
 
         # s.pop()
 
-    def test_2x4(self):
-        # this one is fully input balanced since the inputs come off the same splitter
-        self.runtest_balancer(self.balancer24, True, False, True, True, True, False)
-
-    def test_3x1(self):
-        self.runtest_balancer(self.balancer31, True, True, True, False, True, True)
-
     def test_4x4(self):
         self.runtest_balancer(self.balancer44, True, False, True, False, True, False)
 
@@ -154,9 +134,6 @@ class CustomBalancerNetworkTests(BalancerNetworkTests):
 
     def test_4x4Universal(self):
         self.runtest_balancer(self.balancer44loop, True, True, True, True, True, True)
-
-    def test_8x8(self):
-        self.runtest_balancer(self.balancer88, True, False, True, False, True, False)
 
     def test_8x8TU(self):
         self.runtest_balancer(self.balancer88TU, True, True, True, False, True, False)

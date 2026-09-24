@@ -62,7 +62,7 @@ if __name__ == '__main__':
     # balancer = BalancerNetwork_Book.make_2x2()
 
     # hopefully this makes a TU 8x8
-    balancer44 = BalancerNetwork_Book.make4x4()
+    balancer44 = BalancerNetwork_Book.make_NxN(4)
     balancer44TU = BalancerNetwork.combine_endtoend(balancer44)
     balancer88 = BalancerNetwork.combine_sidebyside(balancer44)
     balancer88TU = BalancerNetwork.combine_endtoend(balancer88)

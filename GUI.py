@@ -385,7 +385,7 @@ class GUI(QtWidgets.QWidget):
         layout.setSpacing(0)
 
         # bp = Blueprint(sat.blueprint(sat.interchange(6, 4, 8, True)[0], True, level="express")[0])
-        balancer = BalancerNetwork_Book.make4x4()
+        balancer = BalancerNetwork_Book.make_NxN(4)
         sat_net_str = balancer.export_to_sat_network()
         sat_bp = sat.belt_balancer(sat_net_str, 10, 4, fast=True, underground_length=8)[0]
         bp_str = sat.blueprint(sat_bp, True, level="express")[0]
