@@ -221,6 +221,9 @@ class BPEntity:
 
         ans["entity_number"] = self.entity_number
 
+        ans["output_priority"] = str(self.output_priority)
+        ans["input_priority"] = str(self.input_priority)
+
         return ans
 
     def is_belt(self) -> bool:
