@@ -11,6 +11,8 @@ common.setup_logger(logger)
 
 def make_NxM(num_inputs: int, num_outputs: int) -> BalancerNetwork:
 
+    logger.info(f"Making balancer with {num_inputs} inputs and {num_outputs} outputs ({num_inputs}x{num_outputs})")
+
     if num_inputs == num_outputs:
         return make_NxN(num_inputs)
 
@@ -27,6 +29,7 @@ def make_NxM(num_inputs: int, num_outputs: int) -> BalancerNetwork:
     return ans
 
 def make_NxN(num_ios: int) -> BalancerNetwork:
+    logger.info(f"Making {num_ios}x{num_ios} balancer")
 
     if num_ios == 0:
         ans = BalancerNetwork()
