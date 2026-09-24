@@ -91,67 +91,80 @@ class BalancerNetwork:
 
     def opt_loop_flow(self):
 
-        if self.get_num_inputs() > 1:
-            # this doesnt work for NxM balancers where N > 1
+        balancer_input = None
+        balancer_output = None
+
+        if self.get_num_inputs() == 1:
+            balancer_input = self.get_inputs()[0]
+
+        if self.get_num_outputs() == 1:
+            balancer_output = self.get_outputs()[0]
+
+        if balancer_input is None and balancer_output is None:
+            # this only applies:
+            # 1. output priorities for N:1 balancers
+            # 2. input priorities for 1:N balancers
             return
 
-        balancer_input = self.get_inputs()[0]
+        if balancer_input is not None and balancer_output is not None:
+            # this is a 1x1 balancer, what are we doing here
+            return
 
-        nx_graph = self.to_networkx()
-
+        # input priority procedure:
         # find any cycles in the balancer
         # for each cycle, find any belts which input to the cycle at some point,
         # that have a path to an input that does NOT involve any of the nodes of the cycle
         # these belts are pure inputs to that cycle, and should be prioritized
         # assuming the balancer has only one input overall
 
-        cycles_found = set()
+        # output priority procedure is the same, but looking for pure OUTPUTS from a cycle
 
-        for node in self.nodes:
+        nx_graph = self.to_networkx()
 
-            try:
-                cycle = networkx.find_cycle(nx_graph, node, orientation='original')
-            except networkx.exception.NetworkXNoCycle:
-                continue
+        cycles = list(networkx.simple_cycles(nx_graph))
 
-            cycles_found.add(tuple(cycle))
+        for cycle in cycles:
 
-        for cycle in list(cycles_found):
-
-            cycle = list(cycle)
+            logger.debug(', '.join(str(x) for x in cycle))
 
             graph_sans_cycle = nx_graph.copy()
 
-            cycle_nodes = set()
-            cycle_edges = set()
-            for edge in cycle:
-                cycle_nodes.add(edge[0])
-                cycle_nodes.add(edge[1])
-                cycle_edges.add(edge)
-
-            for edge in cycle_edges:
-                logger.debug(f"removing edge {edge[0]} -> {edge[1]}")
-                graph_sans_cycle.remove_edge(edge[0], edge[1])
-
-            for node in cycle_nodes:
+            for node in cycle:
                 logger.debug(f"removing node {node}")
                 graph_sans_cycle.remove_node(node)
 
-            for node in cycle_nodes:
+            for node in cycle:
                 splitter = self.get_splitter(node)
-                for belt in splitter.inputs:
-                    if belt.source in cycle_nodes:
-                        # this belt is part of the cycle, ignore
-                        continue
-                    if belt != balancer_input and (not networkx.has_path(graph_sans_cycle, balancer_input.dest, belt.source)):
-                        # without the cycle, no path to this belt
-                        # so this belt isnt a "pure" input, meaning the input
-                        # had to pass through the cycle before it got here anyways
-                        # (skip this check if the input belt we're checking is literally the balancer input--
-                        # this path check would fail but this is a pure input in that case)
-                        continue
-                    # set priority
-                    belt.dest_priority = True
+
+                if balancer_input is not None:
+                    for belt in splitter.inputs:
+                        if belt.source in cycle:
+                            # this belt is part of the cycle, ignore
+                            continue
+                        if belt != balancer_input and (not networkx.has_path(graph_sans_cycle, balancer_input.dest, belt.source)):
+                            # without the cycle, no path to this belt
+                            # so this belt isn't a "pure" input, meaning the input
+                            # had to pass through the cycle before it got here anyways
+                            # (skip this check if the input belt we're checking is literally the balancer input--
+                            # this path check would fail but this is a pure input in that case)
+                            continue
+                        # found pure input to a cycle. set priority
+                        belt.dest_priority = True
+
+                if balancer_output is not None:
+                    for belt in splitter.outputs:
+                        if belt.dest in cycle:
+                            # this belt is part of the cycle, ignore
+                            continue
+                        if belt != balancer_output and (not networkx.has_path(graph_sans_cycle, balancer_output.source, belt.dest)):
+                            # without the cycle, no path to this belt
+                            # so this belt isn't a "pure" output, meaning the belt
+                            # had to pass through the cycle some more before it got to the balancer output
+                            # (skip this check if the output belt we're checking is literally the balancer output--
+                            # this path check would fail but this is a pure output in that case)
+                            continue
+                        # found pure output from a cycle. set priority
+                        belt.source_priority = True
 
     def mark_ios(self):
         min_input_char = ord('A')
