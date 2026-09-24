@@ -4,6 +4,7 @@ import shutil
 import sys
 from pathlib import Path
 
+from PySide6 import QtWidgets
 from PySide6.QtCore import QPoint, QRect, QSize
 from PySide6.QtGui import QColor, QImage, QPainter, QStaticText, QPen
 from vdfparse import VDFParse
