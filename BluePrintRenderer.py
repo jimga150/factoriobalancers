@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import QPoint, QRect, QSize
-from PySide6.QtGui import QColor, QImage, QPainter, QStaticText
+from PySide6.QtGui import QColor, QImage, QPainter, QStaticText, QPen
 from vdfparse import VDFParse
 
 from BPEntity import *
@@ -368,6 +368,7 @@ def paintBPTo(bp: Blueprint, p: QPainter):
 
     p.scale(0.8, 0.8)
     p.translate(0, 16)
+    p.setPen(QPen(QColor(255, 255, 255)))
     for y in range(0, bp.height):
         for x in range(0, bp.width):
             entity = bp.entity_grid[y][x]
