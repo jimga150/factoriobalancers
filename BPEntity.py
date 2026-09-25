@@ -42,7 +42,7 @@ class Direction(enum.Enum):
             return Direction.DOWN if rot == Rotation.CW else Direction.UP
         elif direc == Direction.LEFT:
             return Direction.UP if rot == Rotation.CW else Direction.DOWN
-        raise RuntimeError('Invalid direction')
+        raise RuntimeError(f'Invalid direction: {direc}')
 
     def is_vertical(self) -> bool:
         return self in [Direction.UP, Direction.DOWN]

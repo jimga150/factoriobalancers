@@ -563,3 +563,31 @@ class Blueprint:
                     self.max_x = entity.pos_x
                 if entity.pos_y > self.max_y:
                     self.max_y = entity.pos_y
+
+    def rotate(self, rot: Rotation):
+
+        new_entity_grid = []
+
+        for y in range(self.width):
+            new_entity_grid.append([])
+            for x in range(self.height):
+                new_entity_grid[-1].append(BPEntity())
+
+        for y in range(self.height):
+            for x in range(self.width):
+
+                entity = self.entity_grid[y][x]
+                if entity.empty:
+                    continue
+
+                entity.direction = Direction.turn(entity.direction, rot)
+                if rot == Rotation.CCW:
+                    new_entity_grid[self.width-x-1][y] = entity
+                else:
+                    if entity.is_splitter() or entity.is_splitter_cap():
+                        # need to switch splitter entites with their splitter caps. positions will fix themselves later
+                        entity = entity.splitter_sibling
+                    new_entity_grid[x][self.height-y-1] = entity
+
+        self.entity_grid = new_entity_grid
+        self.enumerate()

@@ -1,8 +1,9 @@
+import copy
 import logging
 import sys
 
 from PySide6 import QtWidgets
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QPainter, QColor
 from PySide6.QtWidgets import QSizePolicy
 
@@ -10,6 +11,7 @@ import common
 import BalancerNetwork_Book
 import BalancerProofs
 import BluePrintRenderer
+from BPEntity import Rotation
 from Blueprint import Blueprint
 import factorio_sat_callable as sat
 from QtAppInst import app
@@ -21,6 +23,8 @@ class BPDrawArea(QtWidgets.QWidget):
     def __init__(self, bp: Blueprint):
         super().__init__()
         self.bp = bp
+        self.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding)
+        self.setMinimumSize(QSize(bp.width*BluePrintRenderer.tile_size.width(), bp.height*BluePrintRenderer.tile_size.height()))
 
     def paintEvent(self, event):
 
@@ -54,9 +58,21 @@ class GUI(QtWidgets.QWidget):
         self.bp = BPDWidget.bp
         BPDWidget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-        layout.addWidget(BPDWidget, 0, 0)
+        layout.addWidget(BPDWidget, 0, 0, 1, 2)
 
-        layout.addWidget(QtWidgets.QLabel("Label"), 1, 0, Qt.AlignmentFlag.AlignCenter)
+        bp2 = copy.deepcopy(BPDWidget.bp)
+        bp2.rotate(Rotation.CW)
+        BPDWidget2 = BPDrawArea(bp2)
+
+        layout.addWidget(BPDWidget2, 1, 0)
+
+        bp3 = copy.deepcopy(BPDWidget.bp)
+        bp3.rotate(Rotation.CCW)
+        BPDWidget3 = BPDrawArea(bp3)
+
+        layout.addWidget(BPDWidget3, 1, 1)
+
+        layout.addWidget(QtWidgets.QLabel("Label"), 2, 0, Qt.AlignmentFlag.AlignCenter)
 
     def paintEvent(self, event):
         pass
