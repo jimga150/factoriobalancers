@@ -56,20 +56,16 @@ class GUI(QtWidgets.QWidget):
 
         BPDWidget = BPDrawArea(bp)
         self.bp = BPDWidget.bp
-        BPDWidget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
         layout.addWidget(BPDWidget, 0, 0, 1, 2)
 
         bp2 = copy.deepcopy(BPDWidget.bp)
         bp2.rotate(Rotation.CW)
         BPDWidget2 = BPDrawArea(bp2)
-
         layout.addWidget(BPDWidget2, 1, 0)
 
         bp3 = copy.deepcopy(BPDWidget.bp)
         bp3.rotate(Rotation.CCW)
         BPDWidget3 = BPDrawArea(bp3)
-
         layout.addWidget(BPDWidget3, 1, 1)
 
         layout.addWidget(QtWidgets.QLabel("Label"), 2, 0, Qt.AlignmentFlag.AlignCenter)
@@ -90,7 +86,6 @@ if __name__ == '__main__':
         logger.error("Network rendering failed:")
         logger.error(str(e))
 
-    widget.resize(800, 800)
     widget.show()
 
     sys.exit(app.exec())
