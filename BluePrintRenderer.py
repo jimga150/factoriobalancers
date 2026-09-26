@@ -4,7 +4,6 @@ import shutil
 import sys
 from pathlib import Path
 
-from PySide6 import QtWidgets
 from PySide6.QtCore import QPoint, QRect, QSize
 from PySide6.QtGui import QColor, QImage, QPainter, QStaticText, QPen
 from vdfparse import VDFParse
@@ -353,6 +352,8 @@ def drawEntity(bp: Blueprint, p: QPainter, entity: BPEntity):
 
     r_y, r_x = bp.get_entity_idxs(entity)
 
+    # logger.debug(f"Drawing entity {str(entity)} at ({r_x}, {r_y})")
+
     sprite_pos = QPoint(r_x, r_y) * tile_size.width()
 
     sprite = get_sprite_by_entity(entity)
@@ -369,13 +370,15 @@ def paintBPTo(bp: Blueprint, p: QPainter):
     p.scale(0.8, 0.8)
     p.translate(0, 16)
     p.setPen(QPen(QColor(255, 255, 255)))
-    for y in range(0, bp.height):
-        for x in range(0, bp.width):
+    logger.debug(f"Dimensions: {bp.width=}, {bp.height=}")
+    for y in range(bp.height):
+        for x in range(bp.width):
+            # logger.debug(f"--Drawing entity at {x}, {y}")
             entity = bp.entity_grid[y][x]
             if entity.is_belt():
                 drawEntity(bp, p, entity)
-    for y in range(0, bp.height):
-        for x in range(0, bp.width):
+    for y in range(bp.height):
+        for x in range(bp.width):
             entity = bp.entity_grid[y][x]
             if not entity.is_belt():
                 drawEntity(bp, p, entity)
