@@ -182,6 +182,8 @@ class BPEntity:
         self.bend = Rotation.NONE
 
     def __str__(self):
+        if self.empty:
+            return "[empty entity]"
         return f"{self.name} @ ({self.pos_x}, {self.pos_y})"
 
     def __eq__(self, other):
