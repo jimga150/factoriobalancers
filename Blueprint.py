@@ -46,6 +46,27 @@ class Blueprint:
         ans.parse_bp_dict(Blueprint.decode_blueprint_str(bp_str))
         return ans
 
+    @staticmethod
+    def combine_sidebyside(sub_bp: Blueprint) -> Blueprint:
+        # stamp down two right next to each other
+        # calculate distance needed ahead for belts to become all adjacent
+        # at that distance - 1, stamp down an interchange
+        # use as partial solution for Factorio-SAT
+
+        new_entity_grid = []
+        new_width = sub_bp.width * 2
+        for y in range(sub_bp.height):
+            new_entity_grid.append([])
+            for x in range(new_width):
+                entity = sub_bp.entity_grid[y][x % sub_bp.width]
+                new_entity_grid[-1].append(entity)
+
+        ans = Blueprint()
+        ans.entity_grid = new_entity_grid
+        ans.enumerate()
+
+        return ans
+
     def __str__(self):
         dir_graph = "Direction graph:\n"
         dir_graph += "-" * (self.width * 2 + 1)

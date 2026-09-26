@@ -65,6 +65,7 @@ class GUI(QtWidgets.QWidget):
 
         bp3 = copy.deepcopy(BPDWidget.bp)
         bp3.rotate(Rotation.CCW)
+        bp3 = Blueprint.combine_sidebyside(bp3)
         BPDWidget3 = BPDrawArea(bp3)
         layout.addWidget(BPDWidget3, 1, 1)
 
