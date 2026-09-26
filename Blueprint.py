@@ -542,21 +542,30 @@ class Blueprint:
         # also calculates new positions of entities, anchored on the current min_y and min_x
 
         if self.min_x is None:
-            self.min_x = 0
+            self.min_x = 0.5
 
         if self.min_y is None:
-            self.min_y = 0
+            self.min_y = 0.5
 
         self.height = len(self.entity_grid)
         self.width = len(self.entity_grid[0])
         self.max_y = self.min_y
         self.max_x = self.min_x
         e_num = 1
+        entity_ids_seen = []
         for y in range(self.height):
             for x in range(self.width):
+
                 entity = self.entity_grid[y][x]
+
+                if id(entity) in entity_ids_seen:
+                    entity = copy.deepcopy(entity)
+                    self.entity_grid[y][x] = entity
+                entity_ids_seen.append(id(entity))
+
                 entity.entity_number = e_num
                 e_num += 1
+
                 entity.pos_x = x + self.min_x
                 entity.pos_y = y + self.min_y
                 if entity.pos_x > self.max_x:
