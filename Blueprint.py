@@ -23,10 +23,8 @@ class Blueprint:
 
     def __init__(self):
 
-        self.max_y = None
         self.min_y = None
         self.min_x = None
-        self.max_x = None
         self.width = None
         self.height = None
 
@@ -165,21 +163,19 @@ class Blueprint:
 
         entities = blueprint["entities"]
 
-        self.max_x = -sys.maxsize - 1
-        self.min_x = sys.maxsize
-        self.min_y = self.min_x
-        self.max_y = self.max_x
+        self.min_x = self.min_y = sys.maxsize
+        max_x = max_y = -sys.maxsize
 
         bp_entities = [BPEntity(self.version, x) for x in entities]
 
         for entity in bp_entities:
             self.min_x = min(self.min_x, entity.pos_x)
             self.min_y = min(self.min_y, entity.pos_y)
-            self.max_x = max(self.max_x, entity.pos_x)
-            self.max_y = max(self.max_y, entity.pos_y)
+            max_x = max(max_x, entity.pos_x)
+            max_y = max(max_y, entity.pos_y)
 
-        self.width = int(self.max_x - self.min_x + 1 + 0.5)
-        self.height = int(self.max_y - self.min_y + 1 + 0.5)
+        self.height = round(max_y - self.min_y + 1)
+        self.width = round(max_x - self.min_x + 1)
 
         for _ in range(self.height):
             self.entity_grid.append([])
@@ -568,14 +564,10 @@ class Blueprint:
         if self.min_y is None:
             self.min_y = 0.5
 
-        self.height = len(self.entity_grid)
-        self.width = len(self.entity_grid[0])
-        self.max_y = self.min_y
-        self.max_x = self.min_x
         e_num = 1
         entity_ids_seen = []
-        for y in range(self.height):
-            for x in range(self.width):
+        for y in range(len(self.entity_grid)):
+            for x in range(len(self.entity_grid[0])):
 
                 entity = self.entity_grid[y][x]
 
@@ -584,15 +576,29 @@ class Blueprint:
                     self.entity_grid[y][x] = entity
                 entity_ids_seen.append(id(entity))
 
+                # assign positions to all entities
+                entity.pos_x = x + self.min_x
+                entity.pos_y = y + self.min_y
+
+                if entity.is_splitter():
+                    if entity.direction in [Direction.UP, Direction.DOWN]:
+                        entity.pos_x -= 0.5
+                    else:
+                        entity.pos_y -= 0.5
+
+                if entity.empty:
+                    # skip min/max X calcs and enumeration for empty entities
+                    continue
+
+                if entity.is_phantom:
+                    # skip enumeration for splitter phantoms
+                    continue
+
                 entity.entity_number = e_num
                 e_num += 1
 
-                entity.pos_x = x + self.min_x
-                entity.pos_y = y + self.min_y
-                if entity.pos_x > self.max_x:
-                    self.max_x = entity.pos_x
-                if entity.pos_y > self.max_y:
-                    self.max_y = entity.pos_y
+        self.width = len(self.entity_grid[0])
+        self.height = len(self.entity_grid)
 
     def rotate(self, rot: Rotation):
 
