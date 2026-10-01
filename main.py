@@ -14,16 +14,14 @@ from Belt import ColorStrategy
 logger = logging.getLogger(__name__)
 common.setup_logger(logger)
 
-
+# TODO: generate balancer networks
+#   TODO: base off of blueprints
+#   TODO: combine blueprints as pre solved cells, using SAT to fill in gaps
+#   TODO: generate TU balancers
+#   TODO: generate universal NxM balancers by applying universal method to NxM balancers
 # TODO: add blueprint -> network conversion (network parsing)
 #   TODO: handle belt weaving
 #   TODO: handle lane interactions
-# TODO: add network -> blueprint conversion (P&R)
-#   TODO: use smaller balancer as pre-solved cell, place two in larger grid with an interchange (and splitter row) to make
-#   TODO: all balancers will need to be comprised of smaller balancers (or shallower functional blocks) connected possibly by an interchange
-# TODO: generate balancer networks
-#   TODO: generate TU balancers
-#   TODO: generate universal NxM balancers by applying universal method to NxM balancers
 # TODO: make actual UI
 #   TODO: why wont background work on sub-widget?
 #   TODO: make buttons to start proofs
