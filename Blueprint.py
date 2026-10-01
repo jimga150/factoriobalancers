@@ -45,6 +45,13 @@ class Blueprint:
         return ans
 
     @staticmethod
+    def from_entity_grid(entity_grid: list[list[BPEntity]]) -> Blueprint:
+        ans = Blueprint()
+        ans.entity_grid = entity_grid
+        ans.enumerate()
+        return ans
+
+    @staticmethod
     def combine_sidebyside(sub_bp: Blueprint) -> Blueprint:
         # stamp down two right next to each other
         # calculate distance needed ahead for belts to become all adjacent
