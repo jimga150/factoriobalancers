@@ -177,6 +177,7 @@ class Blueprint:
         self.height = round(max_y - self.min_y + 1)
         self.width = round(max_x - self.min_x + 1)
 
+        self.entity_grid = []
         for _ in range(self.height):
             self.entity_grid.append([])
             for _ in range(self.width):
