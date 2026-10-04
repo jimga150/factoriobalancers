@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 
 import z3
@@ -44,6 +45,11 @@ def setup_logger(logger: logging.Logger):
         logger.addHandler(fh)
     
 setup_logger(logger)
+
+def clear_output_folder():
+    for item in os.listdir(output_folder):
+        if item.endswith(".png"):
+            os.remove(os.path.join(output_folder, item))
 
 def term_str(name, frac: float) -> str:
 

@@ -103,12 +103,7 @@ class CustomBalancerNetworkTests(BalancerNetworkTests):
     @classmethod
     def setUpClass(cls):
 
-        # remove all PNGs
-        test = os.listdir(common.output_folder)
-
-        for item in test:
-            if item.endswith(".png"):
-                os.remove(os.path.join(common.output_folder, item))
+        common.clear_output_folder()
 
         cls.balancer22d = BalancerNetwork_Book.make_2x2_double()
         cls.balancer31 = BalancerNetwork_Book.make_NxM(3, 1)
