@@ -566,6 +566,8 @@ class Blueprint:
         # call after populating an entity grid
         # also calculates new positions of entities, anchored on the current min_y and min_x
 
+        self.net_mapping = None
+
         if self.min_x is None:
             self.min_x = 0.5
 
