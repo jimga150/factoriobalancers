@@ -1,4 +1,3 @@
-from io import TextIOWrapper
 from types import NoneType
 
 from factorio_sat.belt_balancer import *
@@ -25,7 +24,7 @@ def parse_network_str(net_str: str) -> list[tuple[int, int]]:
     return network
 
 def belt_balancer(
-        network: str | TextIOWrapper,
+        network: str,
         width: int,
         height: int,
         turn_90: bool = False,
@@ -44,7 +43,7 @@ def belt_balancer(
         underground_length: int = 4,
         all: bool = False,
         solver: str = 'Glucose3',
-        partial: TextIOWrapper | NoneType = None,
+        partial: str | NoneType = None,
 ) -> list[str]:
 
     if underground_length == -1:
@@ -59,12 +58,7 @@ def belt_balancer(
     if break_symmetry and turn_90:
         raise RuntimeError('--break-symmetry and --90 are mutually exclusive')
 
-    if isinstance(network, str):
-        network = parse_network_str(network)
-    else:
-        network = open_network(network)
-        network.close()
-
+    network = parse_network_str(network)
     network = deduplicate_network(network)
 
     grid = create_balancer(network, width, height, underground_length)
@@ -95,8 +89,7 @@ def belt_balancer(
     optimisations.prevent_empty_along_underground(grid)
 
     if partial is not None:
-        with partial:
-            set_nonempty_tiles(grid, partial.read())
+        set_nonempty_tiles(grid, partial)
 
     if turn_90:
         setup_balancer_ends_90(grid, network, use_ends)
