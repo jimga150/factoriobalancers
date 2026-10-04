@@ -7,17 +7,17 @@ from factorio_sat.interchange import *
 def interchange_aw(
         height: int,
         underground_length: int = 4
-) -> str:
+) -> list[str]:
 
     if height == 2:
-        return interchange(1, height, underground_length, True)[0]
+        return interchange(1, height, underground_length, True)
 
     min_width = 6
     max_width = 20
     curr_width = min_width
     while True:
         try:
-            return interchange(curr_width, height, underground_length, True)[0]
+            return interchange(curr_width, height, underground_length, True)
         except RuntimeError as e:
             if "solution" not in str(e):
                 raise e
