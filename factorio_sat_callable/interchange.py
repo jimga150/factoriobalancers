@@ -1,4 +1,3 @@
-from io import TextIOWrapper
 from types import NoneType
 
 from factorio_sat.interchange import *
@@ -38,7 +37,7 @@ def interchange(
         rot_symmetry: bool = False,
         all: bool = False,
         solver: str = "Glucose3",
-        partial: TextIOWrapper | NoneType = None,
+        partial: str | NoneType = None,
 ) -> list[str]:
 
     if height < 1:
@@ -99,8 +98,7 @@ def interchange(
     require_correct_transport_through_edges(grid)
 
     if partial is not None:
-        with partial:
-            belt_balancer.set_nonempty_tiles(grid, partial.read())
+        belt_balancer.set_nonempty_tiles(grid, partial)
 
     ans = []
 
