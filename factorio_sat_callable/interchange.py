@@ -3,6 +3,29 @@ from types import NoneType
 
 from factorio_sat.interchange import *
 
+# interchange with adaptable width (width as in if the interchange goes left to right)
+# finds the smallest interchange of a given number of IOs
+def interchange_aw(
+        height: int,
+        underground_length: int = 4
+) -> str:
+
+    if height == 2:
+        return interchange(1, height, underground_length, True)[0]
+
+    min_width = 6
+    max_width = 20
+    curr_width = min_width
+    while True:
+        try:
+            return interchange(curr_width, height, underground_length, True)[0]
+        except RuntimeError as e:
+            if "solution" not in str(e):
+                raise e
+        curr_width += 1
+        if curr_width > max_width:
+            raise RuntimeError('Max width reached')
+
 # finds an interchange for building composite balancers
 # returns a list of strings
 # each string representing a tile grid solution
