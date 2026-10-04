@@ -359,7 +359,7 @@ def drawEntity(bp: Blueprint, p: QPainter, entity: BPEntity):
     sprite = get_sprite_by_entity(entity)
     p.drawImage(sprite_pos + sprite.offset, sprite.img)
 
-    if common.debug and bp.net_mapping is not None:
+    if common.debug and bp.net_mapping is not None and entity in bp.net_mapping:
         node = bp.net_mapping[entity]
         p.drawStaticText(sprite_pos, QStaticText(str(node)))
 
