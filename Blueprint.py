@@ -13,7 +13,7 @@ from BPEntity import BPEntity, Direction, Rotation, IOType
 from BalancerNetwork import BalancerNetwork
 from Belt import Belt
 from Node import Node
-
+import factorio_sat_callable as sat
 
 logger = logging.getLogger(__name__)
 common.setup_logger(logger)
@@ -25,10 +25,10 @@ class Blueprint:
 
         self.min_y = None
         self.min_x = None
-        self.width = None
-        self.height = None
+        self.width = 0
+        self.height = 0
 
-        self.version = None
+        self.version = BPEntity.default_version
         self.description = None
         self.label = None
         self.icons = None

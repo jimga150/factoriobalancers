@@ -123,7 +123,9 @@ class BPEntity:
 
     belt_prefixes = ["fast", "express", "turbo"]
 
-    def __init__(self, version: int = 1, entity: dict | None = None):
+    default_version = 1
+
+    def __init__(self, version: int = default_version, entity: dict | None = None):
 
         self.empty = entity is None
 
