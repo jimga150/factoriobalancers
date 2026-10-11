@@ -1,27 +1,7 @@
 from types import NoneType
 
 from factorio_sat.belt_balancer import *
-
-def parse_network_str(net_str: str) -> list[tuple[int, int]]:
-    network = []
-    for line in net_str.splitlines():
-        line = line.strip()
-        if len(line) == 0:
-            continue
-
-        if line.startswith('#'):
-            continue
-
-        colours = [int(colour) for colour in line.split()]
-
-        for i, colour in enumerate(colours):
-            if colour == -1:
-                colours[i] = None
-
-        if len(colours) != 4:
-            raise ValueError('Invalid network string')
-        network.append((tuple(colours[:2]), tuple(colours[2:])))
-    return network
+from . import sat_common
 
 def belt_balancer(
         network: str,
@@ -58,7 +38,7 @@ def belt_balancer(
     if break_symmetry and turn_90:
         raise RuntimeError('--break-symmetry and --90 are mutually exclusive')
 
-    network = parse_network_str(network)
+    network = sat_common.parse_network_str(network)
     network = deduplicate_network(network)
 
     grid = create_balancer(network, width, height, underground_length)
