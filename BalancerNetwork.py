@@ -392,10 +392,9 @@ class BalancerNetwork:
             sideA_output = sideA_outputs[i]
             sideB_output = sideB_outputs[i]
 
-            # reuse an output proxy node as the merge splitter
-            merge_node = sideA_output.dest
+            merge_node = Node()
             new_out_node_1 = sideB_output.dest
-            new_out_node_2 = Node()
+            new_out_node_2 = sideA_output.dest
 
             sideA_output.dest = merge_node
             sideB_output.dest = merge_node
