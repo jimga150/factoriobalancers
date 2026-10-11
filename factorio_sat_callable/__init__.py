@@ -1,2 +1,3 @@
 from factorio_sat_callable.belt_balancer import belt_balancer
-from factorio_sat_callable.interchange import interchange, interchange_awfrom factorio_sat_callable.blueprint import blueprint_encode, blueprint_decode
+from factorio_sat_callable.blueprint import blueprint_encode, blueprint_decode
+from factorio_sat_callable.interchange import interchange, interchange_aw
