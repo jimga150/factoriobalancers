@@ -240,12 +240,14 @@ class BPEntity:
         return BPEntity.NAME_BELT in self.name
 
     def is_splitter(self) -> bool:
-        if self.empty:
+        if self.empty or self.is_phantom:
             return False
         return BPEntity.NAME_SPLITTER in self.name
 
     def is_splitter_cap(self) -> bool:
-        return self.empty and self.splitter_sibling is not None
+        if self.empty:
+            return False
+        return self.is_phantom
 
     def is_underground(self) -> bool:
         if self.empty:

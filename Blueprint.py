@@ -364,37 +364,38 @@ class Blueprint:
 
                         curr_entity = self.find_connected_entity(curr_entity, reverse)
 
+                        if curr_entity.is_splitter_cap():
+                            curr_entity = curr_entity.splitter_sibling
+                            other_node_splitter_cap = True
+
                         if curr_entity.empty:
                             if last_entity.is_belt() or last_entity.is_underground():
                                 # empty entity, found I/O belt
                                 other_node = Node()
                                 io_nodes.append(other_node)
                                 self.net_mapping[last_entity] = other_node
+                                belts_visited.remove(last_entity)
+                                logger.debug(f"net_mapping[{last_entity}] = {other_node}")
                                 connector_str = " <- " if reverse else " -> "
                                 logger.debug(str(splitter_entity) + connector_str + f"I/O node @ ({self.get_entity_idxs(last_entity)})")
                             else:
                                 # splitter with nothing connecting to it is not an I/O
                                 pass
                             break
-
-                        if curr_entity.is_splitter_cap():
-                            curr_entity = curr_entity.splitter_sibling
-                            other_node_splitter_cap = True
-
-                        if curr_entity.is_splitter():
+                        elif curr_entity.is_splitter():
                             # found dest node
                             other_node = internal_nodes[curr_entity]
                             connector_str = " <- " if reverse else " -> "
                             logger.debug(str(splitter_entity) + connector_str + str(curr_entity))
                             break
-
-                        logger.debug(f"\t{curr_entity}")
-
-                        if not curr_entity.is_underground() and not curr_entity.is_belt():
+                        elif not curr_entity.is_underground() and not curr_entity.is_belt():
                             raise RuntimeError(
                                 "Belt in balancer faces an entity that is not a splitter, belt, or underground.")
+                        else:
+                            # visited belt/underground, track it
+                            belts_visited.append(curr_entity)
 
-                        belts_visited.append(curr_entity)
+                        logger.debug(f"\t{curr_entity}")
 
                     if other_node is None:
                         # no belt to be made
