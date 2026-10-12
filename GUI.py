@@ -47,11 +47,12 @@ class GUI(QtWidgets.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # bp = Blueprint(sat.blueprint(sat.interchange(6, 4, 8, True)[0], True, level="express")[0])
-        balancer = BalancerNetwork_Book.make_NxN(4)
+        # bp = Blueprint.from_bp_str(sat.blueprint(sat.interchange(6, 4, 8, True)[0], True, level="express")[0])
+        balancer = BalancerNetwork_Book.make_NxN(3)
         sat_net_str = balancer.export_to_sat_network()
         sat_bp = sat.belt_balancer(sat_net_str, 10, 4, fast=True, underground_length=8)[0]
         bp_str = sat.blueprint_encode(sat_bp, level="express")[0]
+        logger.info(bp_str)
         bp = Blueprint.from_bp_str(bp_str)
 
         BPDWidget = BPDrawArea(bp)
