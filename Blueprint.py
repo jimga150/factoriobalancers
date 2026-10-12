@@ -58,19 +58,67 @@ class Blueprint:
         # at that distance - 1, stamp down an interchange
         # use as partial solution for Factorio-SAT
 
-        new_entity_grid = []
+        network, _ = sub_bp.get_network()
+
+        if common.debug:
+            BluePrintRenderer.render(sub_bp, "sub_bp")
+            network.render("sub_bp_network")
+
+        desired_network = BalancerNetwork.combine_sidebyside(network)
+
+        if common.debug:
+            network.render("desired_network")
+
+        desired_sat_network = desired_network.export_to_sat_network()
+
+        logger.debug(f"Sat: {desired_sat_network}")
+
+        if common.debug:
+            sat.network_render(desired_sat_network)
+
         new_width = sub_bp.width * 2
-        for y in range(sub_bp.height):
+
+        # interchange = Blueprint.from_bp_str(
+        #     sat.blueprint(
+        #         sat.interchange_aw(new_width, 8)[0],
+        #         True,
+        #         level="express"
+        #     )[0]
+        # )
+        #
+        # # rotate to point up
+        # interchange.rotate(Rotation.CCW)
+        # logger.debug(f"Interchange: {interchange.width}x{interchange.height}")
+
+        new_entity_grid = []
+        # new_height = sub_bp.height + interchange.height
+        new_height = sub_bp.height
+        for y in range(new_height):
             new_entity_grid.append([])
             for x in range(new_width):
+                # if y >= interchange.height:
+                #     entity = sub_bp.entity_grid[y - interchange.height][x % sub_bp.width]
+                # elif y < interchange.height and x < interchange.width:
+                #     entity = interchange.entity_grid[y][x]
+                # else:
+                #     entity = BPEntity()
                 entity = sub_bp.entity_grid[y][x % sub_bp.width]
                 new_entity_grid[-1].append(entity)
 
-        ans = Blueprint()
-        ans.entity_grid = new_entity_grid
-        ans.enumerate()
+        partialbp = Blueprint.from_entity_grid(new_entity_grid)
 
-        return ans
+        # # prep for usage in SAT: needs to go W->E
+        # partialbp.rotate(Rotation.CW)
+        #
+        # partial_str = partialbp.to_bp_str()
+        #
+        # sat_ans = sat.belt_balancer(desired_sat_network, partialbp.width + 6, partialbp.height, partial=partial_str)
+        # ans_bp_str = sat.blueprint_encode(sat_ans)[0]
+
+        # return Blueprint.from_bp_str(ans_bp_str)
+        return partialbp
+
+
 
     def __str__(self):
         dir_graph = "Direction graph:\n"
