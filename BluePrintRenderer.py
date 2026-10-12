@@ -359,7 +359,7 @@ def drawEntity(bp: Blueprint, p: QPainter, entity: BPEntity):
 
     if common.debug and bp.net_mapping is not None and entity in bp.net_mapping:
         node = bp.net_mapping[entity]
-        p.drawStaticText(sprite_pos, QStaticText(str(node)))
+        p.drawStaticText(sprite_pos, QStaticText(str(node) + f" ({hex(node.id)[2:]})"))
 
 def paintBPTo(bp: Blueprint, p: QPainter):
 
