@@ -4,7 +4,7 @@ import os
 import sys
 from argparse import ArgumentError
 from pathlib import Path
-from types import NoneType
+from typing import Optional
 
 import z3
 import networkx
@@ -290,7 +290,7 @@ class BalancerNetwork:
             self.belts.remove(belt)
 
     @staticmethod
-    def combine_endtoend(upstream: BalancerNetwork, downstream: BalancerNetwork | NoneType = None, optimize: bool = True) -> BalancerNetwork:
+    def combine_endtoend(upstream: BalancerNetwork, downstream: Optional[BalancerNetwork] = None, optimize: bool = True) -> BalancerNetwork:
 
         if downstream is None:
             downstream = upstream
@@ -330,7 +330,7 @@ class BalancerNetwork:
         return ans
 
     @staticmethod
-    def make_tap_loop(simple_balancer: BalancerNetwork, rebalancer: BalancerNetwork | NoneType = None) -> BalancerNetwork:
+    def make_tap_loop(simple_balancer: BalancerNetwork, rebalancer: Optional[BalancerNetwork] = None) -> BalancerNetwork:
 
         if rebalancer is None:
             rebalancer = simple_balancer

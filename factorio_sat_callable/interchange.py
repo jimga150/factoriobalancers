@@ -1,4 +1,4 @@
-from types import NoneType
+from typing import Optional
 
 from factorio_sat.interchange import *
 
@@ -37,7 +37,7 @@ def interchange(
         rot_symmetry: bool = False,
         all: bool = False,
         solver: str = "Glucose3",
-        partial: str | NoneType = None,
+        partial: Optional[str] = None,
 ) -> list[str]:
 
     if height < 1:

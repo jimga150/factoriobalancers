@@ -1,4 +1,4 @@
-from types import NoneType
+from typing import Optional
 
 from factorio_sat.belt_balancer import *
 from . import sat_common
@@ -23,7 +23,7 @@ def belt_balancer(
         underground_length: int = 4,
         all: bool = False,
         solver: str = 'Glucose3',
-        partial: str | NoneType = None,
+        partial: Optional[str] = None,
 ) -> list[str]:
 
     if underground_length == -1:

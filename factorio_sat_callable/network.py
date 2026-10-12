@@ -1,4 +1,4 @@
-from types import NoneType
+from typing import Optional
 
 from factorio_sat.network import *
 from . import sat_common
@@ -11,7 +11,7 @@ def network_create(network_filename: str, size: int):
     network = create_benes_network(size)
     save_network(network_filename, network)
 
-def network_render(network: str, output_filename: str | NoneType = None, engine: str = 'dot'):
+def network_render(network: str, output_filename: Optional[str] = None, engine: str = 'dot'):
     network = sat_common.parse_network_str(network)
     plot(network, output_filename, engine)
 
