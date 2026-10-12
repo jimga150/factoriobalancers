@@ -147,8 +147,6 @@ def populate_spritesheets():
             ss_imgs[filename] = QImage(os.path.join(asset_dir, filename))
 
     ss_populated = True
-            
-populate_spritesheets()
 
 class Sprite:
     def __init__(self, img: QImage = QImage(), offset: QPoint = QPoint(0, 0)):
@@ -364,6 +362,9 @@ def drawEntity(bp: Blueprint, p: QPainter, entity: BPEntity):
         p.drawStaticText(sprite_pos, QStaticText(str(node)))
 
 def paintBPTo(bp: Blueprint, p: QPainter):
+
+    if not ss_populated:
+        populate_spritesheets()
 
     p.save()
 
