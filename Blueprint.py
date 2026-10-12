@@ -321,8 +321,13 @@ class Blueprint:
 
     def get_network(self) -> tuple[BalancerNetwork, dict]:
 
+        logger.debug(f"get_network called")
+
         if self.network is not None:
+            logger.debug(f"returning existing network and mapping")
             return self.network, self.net_mapping
+
+        logger.debug(f"making new existing network and mapping")
 
         # key is BPEntity
         # value is Belt or Node
@@ -335,6 +340,7 @@ class Blueprint:
             if entity.is_splitter():
                 internal_nodes[entity] = Node()
                 self.net_mapping[entity] = internal_nodes[entity]
+                logger.debug(f"Adding {entity} to internal_nodes")
 
         io_nodes = []
 
@@ -354,7 +360,7 @@ class Blueprint:
                     # use_head: True when using true splitter entity, false when using splitter cap (nearly empty entity next to it)
                     start_entity = splitter_entity if use_head else splitter_entity.splitter_sibling
                     curr_entity = start_entity
-                    logger.debug(f"Seeking from {splitter_entity} (reverse={reverse}, use_head={use_head})")
+                    logger.debug(f"Seeking from {splitter_entity} ({reverse=}, {use_head=}) (start_entity={start_entity})")
                     other_node = None
                     other_node_splitter_cap = False
                     belts_visited = []
@@ -449,6 +455,7 @@ class Blueprint:
 
                     for visited_entity in belts_visited:
                         self.net_mapping[visited_entity] = belt
+                        logger.debug(f"net_mapping[{visited_entity}] = {belt}")
 
         self.network.postprocess_nodes()
         return self.network, self.net_mapping
