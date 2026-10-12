@@ -3,13 +3,15 @@ import sys
 
 import BalancerProofs
 import BalancerNetwork_Book
+import BluePrintRenderer
+from Blueprint import Blueprint
 import common
 from BalancerNetwork import BalancerNetwork
 
 import z3
 
 from Belt import ColorStrategy
-
+import factorio_sat_callable as sat
 
 logger = logging.getLogger(__name__)
 common.setup_logger(logger)
@@ -29,6 +31,18 @@ common.setup_logger(logger)
 
 
 if __name__ == '__main__':
+
+    # bp_str = Blueprint().to_bp_str()
+    # print(bp_str)
+    # print(Blueprint.decode_blueprint_str(bp_str))
+
+    # common.clear_output_folder()
+    # for n in range(2, 20, 2):
+    #     for ul in [4, 6, 8, 10]:
+    #         bp = Blueprint.from_bp_str(sat.blueprint_encode(sat.interchange_aw(n, ul)[0])[0])
+    #         BluePrintRenderer.render(bp, f"{n}_{ul}")
+    #
+    # sys.exit(0)
 
     # p1, p2, p3 = z3.Bools('p1 p2 p3')
     # x, y = z3.Ints('x y')
