@@ -418,15 +418,15 @@ class Blueprint:
                     logger.debug(f"\t{source_priority=}, {dest_priority=}")
 
                     # get "key" for belt to avoid duplicating internal belts
-                    if not curr_entity.empty:
+                    if not curr_entity_connect.empty:
                         # other_node is from a splitter, so we need to check if we already connected these two positions
                         # this checks the positions, not the splitter head entity,
                         # so two belts between the same two splitters will still both be added this way
                         if reverse:
                             # seeking backwards, so starting node was actually dest
-                            belt_key = (curr_entity.pos_x, curr_entity.pos_y, start_entity.pos_x, start_entity.pos_y)
+                            belt_key = (curr_entity_connect.pos_x, curr_entity_connect.pos_y, start_entity.pos_x, start_entity.pos_y)
                         else:
-                            belt_key = (start_entity.pos_x, start_entity.pos_y, curr_entity.pos_x, curr_entity.pos_y)
+                            belt_key = (start_entity.pos_x, start_entity.pos_y, curr_entity_connect.pos_x, curr_entity_connect.pos_y)
 
                         logger.debug(f"Checking {belt_key}")
 
