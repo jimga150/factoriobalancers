@@ -7,7 +7,9 @@ import sys
 
 import zlib
 from itertools import chain
+from types import NoneType
 
+import BluePrintRenderer
 import common
 from BPEntity import BPEntity, Direction, Rotation, IOType
 from BalancerNetwork import BalancerNetwork
