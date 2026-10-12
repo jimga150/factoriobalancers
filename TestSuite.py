@@ -1,6 +1,5 @@
 import copy
 import logging
-import os
 import unittest
 from multiprocessing.dummy import Pool
 
@@ -16,6 +15,7 @@ from Belt import ColorStrategy
 from Blueprint import Blueprint
 from Node import Node
 import UniqueIDObj
+import factorio_sat_callable as sat
 
 
 logger = logging.getLogger(__name__)
@@ -317,7 +317,24 @@ class BlueprintTests(unittest.TestCase):
         bp_dict_1 = Blueprint.decode_blueprint_str(bp_str)
         bp_dict_2 = Blueprint.decode_blueprint_str(export_str)
 
+        logger.info(export_str)
+
         self.assertEqual(True, common.dicts_eq(bp_dict_1, bp_dict_2, debug=common.debug))
+
+    def test_network_sat_network(self):
+        for n in range(2, 5+1):
+            with self.subTest(n=n):
+                bn = BalancerNetwork_Book.make_NxN(n)
+                sat_net_str = bn.export_to_sat_network()
+                logger.debug(sat_net_str)
+                if common.debug:
+                    sat.network_render(sat_net_str, f"{n}_sat_net.png")
+                sat_bp = sat.belt_balancer(sat_net_str, 6 + 2*n, int(float(n)/2 + 1)*2, underground_length=8)[0]
+                bp_str = sat.blueprint_encode(sat_bp, level="express")[0]
+                bp = Blueprint.from_bp_str(bp_str)
+                BluePrintRenderer.render(bp, f"{n}_bp.png")
+                bn2, _ = bp.get_network()
+                self.assertEqual(True, bn.equivalent_to(bn2))
 
 
 if __name__ == '__main__':
