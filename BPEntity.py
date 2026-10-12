@@ -170,15 +170,19 @@ class BPEntity:
         except KeyError:
             self.input_priority = Priority.NONE
 
-        self.pos_x = float(entity["position"]["x"])
-        self.pos_y = float(entity["position"]["y"])
-
-        # cast to ints if they can be accurately, since blueprint comparison will read round numbers as ints
-        if self.pos_x.is_integer():
-            self.pos_x = int(round(self.pos_x))
-
-        if self.pos_y.is_integer():
-            self.pos_y = int(round(self.pos_y))
+        # for most entites, these coordinates point to the middle of a square.
+        # for the top left (single tile) entity, this would be (0.5, 0.5)
+        # splitters are positioned in the center of the tile coordinate pointing parallel to their facing direction,
+        # and on the line passing through their middle, for the coordinate perpendicular to them.
+        # i.e. a splitter facing north may be positioned at x=2, y=1.5
+        # here we round them all down.
+        # this makes the happy coincidence where the splitter "head" entity
+        # (the entity that gets represented for the splitter)
+        # which is always in the greater perpendicular coordinate
+        # is also positioned this way in the new integer system
+        # this is corrected on export
+        self.pos_x = int(entity["position"]["x"])
+        self.pos_y = int(entity["position"]["y"])
 
         # to be filled in later
         self.bend = Rotation.NONE
@@ -210,18 +214,18 @@ class BPEntity:
         if self.type != IOType.NONE:
             ans["type"] = str(self.type)
 
-        # # most entities define "center" as the center of the single tile
-        # x_center = self.pos_x + 0.5
-        # y_center = self.pos_y + 0.5
-        #
-        # # splitters place the center on the line between the halves
-        # if BPEntity.NAME_SPLITTER in self.name:
-        #     if self.direction in [Direction.UP, Direction.DOWN]:
-        #         x_center = self.pos_x
-        #     else:
-        #         y_center = self.pos_y
+        # most entities define "center" as the center of the single tile
+        x_center = self.pos_x + 0.5
+        y_center = self.pos_y + 0.5
 
-        ans["position"] = {"x": self.pos_x, "y": self.pos_y}
+        # splitters place the center on the line between the halves
+        if self.is_splitter():
+            if self.direction in [Direction.UP, Direction.DOWN]:
+                x_center = self.pos_x
+            else:
+                y_center = self.pos_y
+
+        ans["position"] = {"x": x_center, "y": y_center}
 
         ans["entity_number"] = self.entity_number
 

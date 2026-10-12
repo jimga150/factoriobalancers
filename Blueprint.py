@@ -569,10 +569,10 @@ class Blueprint:
         self.net_mapping = None
 
         if self.min_x is None:
-            self.min_x = 0.5
+            self.min_x = 0
 
         if self.min_y is None:
-            self.min_y = 0.5
+            self.min_y = 0
 
         e_num = 1
         entity_ids_seen = []
@@ -589,12 +589,6 @@ class Blueprint:
                 # assign positions to all entities
                 entity.pos_x = x + self.min_x
                 entity.pos_y = y + self.min_y
-
-                if entity.is_splitter():
-                    if entity.direction in [Direction.UP, Direction.DOWN]:
-                        entity.pos_x -= 0.5
-                    else:
-                        entity.pos_y -= 0.5
 
                 if entity.empty:
                     # skip min/max X calcs and enumeration for empty entities
