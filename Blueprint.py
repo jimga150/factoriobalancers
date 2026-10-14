@@ -49,7 +49,7 @@ class Blueprint:
     @staticmethod
     def from_entity_grid(entity_grid: list[list[BPEntity]]) -> Blueprint:
         ans = Blueprint()
-        ans.entity_grid = entity_grid
+        ans.entity_grid = copy.deepcopy(entity_grid)
         ans.enumerate()
         return ans
 
