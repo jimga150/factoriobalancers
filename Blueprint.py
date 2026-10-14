@@ -7,7 +7,7 @@ import sys
 
 import zlib
 from itertools import chain
-from types import NoneType
+from typing import Optional
 
 import BluePrintRenderer
 import common
