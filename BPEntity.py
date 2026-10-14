@@ -221,9 +221,9 @@ class BPEntity:
         # splitters place the center on the line between the halves
         if self.is_splitter():
             if self.direction in [Direction.UP, Direction.DOWN]:
-                x_center += 0.5
+                x_center -= 0.5
             else:
-                y_center += 0.5
+                y_center -= 0.5
 
         ans["position"] = {"x": x_center, "y": y_center}
 
