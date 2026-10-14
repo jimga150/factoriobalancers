@@ -673,18 +673,34 @@ class Blueprint:
 
         for y in range(self.height):
             for x in range(self.width):
+                entity = self.entity_grid[y][x]
+                if not entity.is_splitter():
+                    continue
+                # swap splitter heads with phantoms, in specific situations
+                if rot == Rotation.CW and entity.direction in [Direction.LEFT, Direction.RIGHT] or \
+                        rot == Rotation.CCW and entity.direction in [Direction.UP, Direction.DOWN]:
+                    ss_y, ss_x = self.get_entity_idxs(entity.splitter_sibling)
+                    self.entity_grid[ss_y][ss_x] = entity
+                    self.entity_grid[y][x] = entity.splitter_sibling
+
+        for y in range(self.height):
+            for x in range(self.width):
+                entity = self.entity_grid[y][x]
+                if entity.empty:
+                    continue
+                # rotate all entities in place
+                entity.direction = Direction.turn(entity.direction, rot)
+
+        for y in range(self.height):
+            for x in range(self.width):
 
                 entity = self.entity_grid[y][x]
                 if entity.empty:
                     continue
 
-                entity.direction = Direction.turn(entity.direction, rot)
                 if rot == Rotation.CCW:
                     new_entity_grid[self.width-x-1][y] = entity
                 else:
-                    if entity.is_splitter() or entity.is_splitter_cap():
-                        # need to switch splitter entites with their splitter caps. positions will fix themselves later
-                        entity = entity.splitter_sibling
                     new_entity_grid[x][self.height-y-1] = entity
 
         self.entity_grid = new_entity_grid
