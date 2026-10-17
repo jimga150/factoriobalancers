@@ -625,6 +625,7 @@ class Blueprint:
         # also calculates new positions of entities, anchored on the current min_y and min_x
 
         self.net_mapping = None
+        self.version = None
 
         if self.min_x is None:
             self.min_x = 0
@@ -658,6 +659,10 @@ class Blueprint:
 
                 entity.entity_number = e_num
                 e_num += 1
+
+                if self.version is None:
+                    # pull the version of the blueprint from the first real entity
+                    self.version = entity.version
 
         self.width = len(self.entity_grid[0])
         self.height = len(self.entity_grid)
