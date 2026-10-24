@@ -238,7 +238,7 @@ def get_tbelt_sprite_under(entity: BPEntity) -> Sprite:
 
 def get_splitter_sprite(entity: BPEntity) -> Sprite:
 
-    if entity.direction in [Direction.UP, Direction.DOWN]:
+    if entity.direction.is_vertical():
         offset = QPoint(-64, 0)
     else:
         offset = QPoint(0, -64)

@@ -252,7 +252,7 @@ class Blueprint:
                 # make copy of splitter entity at that coord
                 splitter_cap_entity = copy.deepcopy(entity)
 
-                if entity.direction in [Direction.UP, Direction.DOWN]:
+                if entity.direction.is_vertical():
                     self.entity_grid[y][x - 1] = splitter_cap_entity
                     splitter_cap_entity.pos_x = entity.pos_x - 1
                     splitter_cap_entity.pos_y = entity.pos_y
@@ -682,8 +682,8 @@ class Blueprint:
                 if not entity.is_splitter():
                     continue
                 # swap splitter heads with phantoms, in specific situations
-                if rot == Rotation.CW and entity.direction in [Direction.LEFT, Direction.RIGHT] or \
-                        rot == Rotation.CCW and entity.direction in [Direction.UP, Direction.DOWN]:
+                if (rot == Rotation.CW and entity.direction.is_horizontal()) or \
+                        (rot == Rotation.CCW and entity.direction.is_vertical()):
                     ss_y, ss_x = self.get_entity_idxs(entity.splitter_sibling)
                     self.entity_grid[ss_y][ss_x] = entity
                     self.entity_grid[y][x] = entity.splitter_sibling
