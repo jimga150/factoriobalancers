@@ -638,12 +638,16 @@ class Blueprint:
         for y in range(len(self.entity_grid)):
             for x in range(len(self.entity_grid[0])):
 
-                entity = self.entity_grid[y][x]
+                entity: BPEntity = self.entity_grid[y][x]
+
+                old_id = id(entity)
 
                 if id(entity) in entity_ids_seen:
                     entity = copy.deepcopy(entity)
                     self.entity_grid[y][x] = entity
                 entity_ids_seen.append(id(entity))
+
+                new_id = id(entity)
 
                 # assign positions to all entities
                 entity.pos_x = x + self.min_x
@@ -652,6 +656,8 @@ class Blueprint:
                 if entity.empty:
                     # skip min/max X calcs and enumeration for empty entities
                     continue
+
+                logger.debug(f"\t{entity} ({hex(old_id)[3:]}) -> ({hex(new_id)[3:]})")
 
                 if entity.is_phantom:
                     # skip enumeration for splitter phantoms
@@ -687,6 +693,9 @@ class Blueprint:
                     ss_y, ss_x = self.get_entity_idxs(entity.splitter_sibling)
                     self.entity_grid[ss_y][ss_x] = entity
                     self.entity_grid[y][x] = entity.splitter_sibling
+                    logger.debug(f"Swapped splitter head/phantom: "
+                                 f"Head is {self.entity_grid[ss_y][ss_x]} now @ {ss_x}, {ss_y}; "
+                                 f"Phantom is {self.entity_grid[y][x]} now @ {x}, {y}")
 
         for y in range(self.height):
             for x in range(self.width):

@@ -346,11 +346,12 @@ def get_sprite_by_entity(entity: BPEntity) -> Sprite:
 def drawEntity(bp: Blueprint, p: QPainter, entity: BPEntity):
 
     if not entity.is_real():
+        logger.debug(f"Not real...")
         return
 
     r_y, r_x = bp.get_entity_idxs(entity)
 
-    # logger.debug(f"Drawing entity {str(entity)} at ({r_x}, {r_y})")
+    logger.debug(f"Drawing entity {str(entity)} at ({r_x}, {r_y})")
 
     sprite_pos = QPoint(r_x, r_y) * tile_size.width()
 
@@ -382,6 +383,7 @@ def paintBPTo(bp: Blueprint, p: QPainter):
         for x in range(bp.width):
             entity = bp.entity_grid[y][x]
             if not entity.is_belt():
+                logger.debug(f"Drawing nonbelt at {x}, {y} ({hex(id(entity))[3:]})")
                 drawEntity(bp, p, entity)
 
     p.restore()
