@@ -341,7 +341,7 @@ class Blueprint:
                     # implies not connected from left so the input of the belt bends right (so it bends counterclockwise)
                     entity.bend = Rotation.CW
 
-    def to_bp_dict(self) -> dict:
+    def to_bp_dict(self, max_x: Optional[int] = None, max_y: Optional[int] = None) -> dict:
         bp_dict = {
             "entities": [],
             "version": self.version,
@@ -354,14 +354,18 @@ class Blueprint:
             bp_dict["description"] = self.description
 
         for y in range(self.height):
+            if max_y is not None and y > max_y:
+                continue
             for x in range(self.width):
+                if max_x is not None and x > max_x:
+                    continue
                 bp_entity = self.entity_grid[y][x]
                 if bp_entity.is_real():
                     bp_dict["entities"].append(bp_entity.to_entity_dict())
         return {"blueprint": bp_dict}
 
-    def to_bp_str(self) -> str:
-        raw_bytes = json.dumps(self.to_bp_dict()).encode('utf-8')
+    def to_bp_str(self, max_x: Optional[int] = None, max_y: Optional[int] = None) -> str:
+        raw_bytes = json.dumps(self.to_bp_dict(max_x, max_y)).encode('utf-8')
         compressed = zlib.compress(raw_bytes, level=9)
         string = base64.b64encode(compressed).decode('utf-8')
         return '0' + string
