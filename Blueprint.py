@@ -670,6 +670,35 @@ class Blueprint:
                     # pull the version of the blueprint from the first real entity
                     self.version = entity.version
 
+        # reestablish splitter sibling links
+        for y in range(len(self.entity_grid)):
+            for x in range(len(self.entity_grid[0])):
+
+                entity: BPEntity = self.entity_grid[y][x]
+
+                if not entity.is_splitter():
+                    continue
+
+                # if entity.direction in [Direction.UP, Direction.RIGHT]:
+                #     return Direction.RIGHT
+                # else:
+                #     return Direction.LEFT
+
+                ss_x = entity.pos_x
+                ss_y = entity.pos_y
+
+                if entity.direction.is_vertical():
+                    ss_x -= 1
+                else:
+                    ss_y -= 1
+
+                ss_entity: BPEntity = self.entity_grid[ss_y][ss_x]
+
+                entity.splitter_sibling = ss_entity
+                ss_entity.splitter_sibling = entity
+
+                logger.debug(f"\tRe-linked {entity} and {ss_entity}")
+
         self.width = len(self.entity_grid[0])
         self.height = len(self.entity_grid)
 
