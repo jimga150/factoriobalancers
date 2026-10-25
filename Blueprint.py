@@ -111,18 +111,27 @@ class Blueprint:
         partial_str = partialbp.to_bp_str()
         # return Blueprint.from_bp_str(partial_str)
 
-        sat_ans = sat.belt_balancer(
-            desired_sat_network,
-            partialbp.width + 6,
-            partialbp.height,
-            edge_splitters=True,
-            glue_splitters=True,
-            prevent_mergeable_underground=True,
-            prevent_bad_patterns=True,
-            ungroup_ios=True,
-            underground_length=10,
-            partial=partial_str
-        )
+        sat_ans = ''
+
+        for interchange_width in range(6, 11):
+            try:
+                sat_ans = sat.belt_balancer(
+                    desired_sat_network,
+                    partialbp.width + interchange_width,
+                    partialbp.height,
+                    edge_splitters=True,
+                    glue_splitters=True,
+                    prevent_mergeable_underground=True,
+                    prevent_bad_patterns=True,
+                    ungroup_ios=True,
+                    underground_length=10,
+                    partial=partial_str
+                )
+                break
+            except RuntimeError as e:
+                if "No solutions found" not in str(e):
+                    raise e
+                # else, move on to higher grid space
 
         ans_bp_str = sat.blueprint_encode(sat_ans)[0]
 
