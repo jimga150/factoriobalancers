@@ -9,6 +9,7 @@ def belt_balancer(
         height: int,
         turn_90: bool = False,
         turn_180: bool = False,
+        ungroup_ios: bool = False,
         custom: bool = False,
         edge_splitters: bool = False,
         edge_belts: bool = False,
@@ -37,6 +38,9 @@ def belt_balancer(
 
     if break_symmetry and turn_90:
         raise RuntimeError('--break-symmetry and --90 are mutually exclusive')
+
+    if not ungroup_ios and turn_180:
+        raise RuntimeError('--turn-180 and --ungroup-ios are mutually exclusive')
 
     network = sat_common.parse_network_str(network)
     network = deduplicate_network(network)
@@ -72,13 +76,13 @@ def belt_balancer(
         set_nonempty_tiles(grid, partial)
 
     if turn_90:
-        setup_balancer_ends_90(grid, network, use_ends)
+        setup_balancer_ends_90(grid, network, not ungroup_ios, use_ends)
     elif turn_180:
         setup_balancer_ends_180(grid, network)
     elif custom:
         pass
     else:
-        setup_balancer_ends(grid, network, aligned, use_ends)
+        setup_balancer_ends(grid, network, aligned, not ungroup_ios, use_ends)
 
     ans = []
 
