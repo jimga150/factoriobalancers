@@ -135,7 +135,10 @@ class Blueprint:
 
         ans_bp_str = sat.blueprint_encode(sat_ans)[0]
 
-        return Blueprint.from_bp_str(ans_bp_str)
+        ans = Blueprint.from_bp_str(ans_bp_str)
+        ans.rotate(Rotation.CCW)
+
+        return ans
 
     def __str__(self):
         dir_graph = "Direction graph:\n"
