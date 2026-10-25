@@ -67,10 +67,6 @@ class Blueprint:
             network.render("sub_bp_network")
 
         desired_network = BalancerNetwork.combine_sidebyside(network)
-
-        if common.debug:
-            network.render("desired_network")
-
         desired_sat_network = desired_network.export_to_sat_network()
 
         logger.debug(f"Sat: {desired_sat_network}")
@@ -80,47 +76,57 @@ class Blueprint:
 
         new_width = sub_bp.width * 2
 
-        # interchange = Blueprint.from_bp_str(
-        #     sat.blueprint(
-        #         sat.interchange_aw(new_width, 8)[0],
-        #         True,
-        #         level="express"
-        #     )[0]
-        # )
-        #
-        # # rotate to point up
-        # interchange.rotate(Rotation.CCW)
-        # logger.debug(f"Interchange: {interchange.width}x{interchange.height}")
-
         new_entity_grid = []
-        # new_height = sub_bp.height + interchange.height
         new_height = sub_bp.height
         for y in range(new_height):
             new_entity_grid.append([])
             for x in range(new_width):
-                # if y >= interchange.height:
-                #     entity = sub_bp.entity_grid[y - interchange.height][x % sub_bp.width]
-                # elif y < interchange.height and x < interchange.width:
-                #     entity = interchange.entity_grid[y][x]
-                # else:
-                #     entity = BPEntity()
                 entity = sub_bp.entity_grid[y][x % sub_bp.width]
                 new_entity_grid[-1].append(entity)
 
         partialbp = Blueprint.from_entity_grid(new_entity_grid)
 
-        # # prep for usage in SAT: needs to go W->E
-        # partialbp.rotate(Rotation.CW)
+        # prep for usage in SAT: needs to go W->E
+        partialbp.rotate(Rotation.CW)
+        # return partialbp
+
+
+        # subbp_rot = copy.deepcopy(sub_bp)
+        # subbp_rot.rotate(Rotation.CW)
+        # partial_str = subbp_rot.to_bp_str()
         #
-        # partial_str = partialbp.to_bp_str()
-        #
-        # sat_ans = sat.belt_balancer(desired_sat_network, partialbp.width + 6, partialbp.height, partial=partial_str)
+        # sat_ans = sat.belt_balancer(
+        #     network.export_to_sat_network(),
+        #     subbp_rot.width+1,
+        #     subbp_rot.height+1,
+        #     # fast=True,
+        #     underground_length=10,
+        #     partial=partial_str
+        # )
         # ans_bp_str = sat.blueprint_encode(sat_ans)[0]
-
         # return Blueprint.from_bp_str(ans_bp_str)
-        return partialbp
 
 
+        # partial_str = partialbp.to_bp_str(partialbp.min_x, partialbp.min_y+5)
+        partial_str = partialbp.to_bp_str()
+        # return Blueprint.from_bp_str(partial_str)
+
+        sat_ans = sat.belt_balancer(
+            desired_sat_network,
+            partialbp.width + 6,
+            partialbp.height,
+            edge_splitters=True,
+            glue_splitters=True,
+            prevent_mergeable_underground=True,
+            prevent_bad_patterns=True,
+            ungroup_ios=True,
+            underground_length=10,
+            partial=partial_str
+        )
+
+        ans_bp_str = sat.blueprint_encode(sat_ans)[0]
+
+        return Blueprint.from_bp_str(ans_bp_str)
 
     def __str__(self):
         dir_graph = "Direction graph:\n"
