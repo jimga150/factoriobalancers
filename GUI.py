@@ -7,6 +7,7 @@ from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QPainter, QColor
 from PySide6.QtWidgets import QSizePolicy
 
+import Blueprint_Book
 import common
 import BalancerNetwork_Book
 import BalancerProofs
@@ -49,15 +50,34 @@ class GUI(QtWidgets.QWidget):
 
         # bp = Blueprint.from_bp_str(sat.blueprint(sat.interchange(6, 4, 8, True)[0], True, level="express")[0])
         balancer = BalancerNetwork_Book.make_NxN(3)
+        # balancer.render("temp")
         sat_net_str = balancer.export_to_sat_network()
+        logger.debug(sat_net_str)
         sat_bp = sat.belt_balancer(sat_net_str, 10, 4, fast=True, underground_length=8)[0]
         bp_str = sat.blueprint_encode(sat_bp, level="express")[0]
+        # bp_str = Blueprint_Book.blueprint_strs["2x2"]
         logger.info(bp_str)
         bp = Blueprint.from_bp_str(bp_str)
+        # bp.rotate(Rotation.CCW)
+        self.bp = bp
 
         BPDWidget = BPDrawArea(bp)
-        self.bp = BPDWidget.bp
+        # layout.addWidget(BPDWidget, 0, 0)
         layout.addWidget(BPDWidget, 0, 0, 1, 2)
+
+        # bp_temp = copy.deepcopy(BPDWidget.bp)
+        # for i in range(3):
+        #     bp_temp = copy.deepcopy(bp_temp)
+        #     bp_temp.rotate(Rotation.CW)
+        #     BPWidget_temp = BPDrawArea(bp_temp)
+        #     layout.addWidget(BPWidget_temp, 0, i+1)
+        #
+        # bp_temp = copy.deepcopy(BPDWidget.bp)
+        # for i in range(3):
+        #     bp_temp = copy.deepcopy(bp_temp)
+        #     bp_temp.rotate(Rotation.CCW)
+        #     BPWidget_temp = BPDrawArea(bp_temp)
+        #     layout.addWidget(BPWidget_temp, 1, i+1)
 
         bp2 = copy.deepcopy(BPDWidget.bp)
         bp2.rotate(Rotation.CW)
