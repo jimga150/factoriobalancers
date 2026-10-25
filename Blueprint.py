@@ -107,8 +107,8 @@ class Blueprint:
         # return Blueprint.from_bp_str(ans_bp_str)
 
 
-        # partial_str = partialbp.to_bp_str(partialbp.min_x, partialbp.min_y+5)
-        partial_str = partialbp.to_bp_str()
+        partial_str = partialbp.to_bp_str(partialbp.min_x + partialbp.width - 2, partialbp.min_y + partialbp.height)
+        # partial_str = partialbp.to_bp_str()
         # return Blueprint.from_bp_str(partial_str)
 
         sat_ans = ''
