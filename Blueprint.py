@@ -113,7 +113,7 @@ class Blueprint:
 
         sat_ans = ''
 
-        for interchange_width in range(6, 11):
+        for interchange_width in range(5, 11):
             try:
                 sat_ans = sat.belt_balancer(
                     desired_sat_network,
