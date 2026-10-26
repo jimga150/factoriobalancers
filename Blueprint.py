@@ -669,6 +669,8 @@ class Blueprint:
         self.net_mapping = None
         self.version = None
 
+        max_x = max_y = 0
+
         e_num = 1
         entity_ids_seen = []
         for y in range(len(self.entity_grid)):
@@ -692,6 +694,9 @@ class Blueprint:
                 if entity.empty:
                     # skip min/max X calcs and enumeration for empty entities
                     continue
+
+                max_x = max(max_x, entity.pos_x)
+                max_y = max(max_y, entity.pos_y)
 
                 logger.debug(f"\t{entity} ({hex(old_id)[3:]}) -> ({hex(new_id)[3:]})")
 
@@ -735,8 +740,8 @@ class Blueprint:
 
                 logger.debug(f"\tRe-linked {entity} and {ss_entity}")
 
-        self.width = len(self.entity_grid[0])
-        self.height = len(self.entity_grid)
+        self.width = max_x + 1
+        self.height = max_y + 1
 
     def rotate(self, rot: Rotation):
 
