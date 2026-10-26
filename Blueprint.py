@@ -225,11 +225,6 @@ class Blueprint:
             return x - 1, y
         raise RuntimeError('Invalid direction')
 
-    def get_entity_idxs(self, entity: BPEntity) -> tuple[int, int]:
-        y = int(entity.pos_y + 0.5)
-        x = int(entity.pos_x + 0.5)
-        return y, x
-
     def parse_bp_dict(self, blueprint: dict):
 
         self.version = int(blueprint["version"])
@@ -267,7 +262,7 @@ class Blueprint:
             entity.pos_x -= min_x
             entity.pos_y -= min_y
 
-            y, x = self.get_entity_idxs(entity)
+            y, x = entity.pos
 
             self.entity_grid[y][x] = entity
 
@@ -480,7 +475,7 @@ class Blueprint:
                                 belts_visited.remove(last_entity)
                                 logger.debug(f"net_mapping[{last_entity}] = {other_node}")
                                 connector_str = " <- " if reverse else " -> "
-                                logger.debug(str(splitter_entity) + connector_str + f"I/O node @ ({self.get_entity_idxs(last_entity)})")
+                                logger.debug(str(splitter_entity) + connector_str + f"I/O node @ ({last_entity.pos})")
                             else:
                                 # splitter with nothing connecting to it is not an I/O
                                 pass
@@ -559,7 +554,7 @@ class Blueprint:
 
     def find_connected_entity(self, from_entity: BPEntity, reverse: bool = False) -> BPEntity:
         logger.debug(f"find_connected_entity called (from_entity={str(from_entity)}, {reverse=})")
-        y, x = self.get_entity_idxs(from_entity)
+        y, x = from_entity.pos
         if (from_entity.is_underground() and
                 ((from_entity.type == IOType.OUTPUT and reverse) or
                  (from_entity.type == IOType.INPUT and not reverse))):
@@ -760,7 +755,7 @@ class Blueprint:
                 # swap splitter heads with phantoms, in specific situations
                 if (rot == Rotation.CW and entity.direction.is_horizontal()) or \
                         (rot == Rotation.CCW and entity.direction.is_vertical()):
-                    ss_y, ss_x = self.get_entity_idxs(entity.splitter_sibling)
+                    ss_y, ss_x = entity.splitter_sibling.pos
                     self.entity_grid[ss_y][ss_x] = entity
                     self.entity_grid[y][x] = entity.splitter_sibling
                     logger.debug(f"Swapped splitter head/phantom: "

@@ -349,7 +349,7 @@ def drawEntity(bp: Blueprint, p: QPainter, entity: BPEntity):
         logger.debug(f"Not real...")
         return
 
-    r_y, r_x = bp.get_entity_idxs(entity)
+    r_y, r_x = entity.pos
 
     logger.debug(f"Drawing entity {str(entity)} at ({r_x}, {r_y})")
 

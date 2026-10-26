@@ -202,6 +202,10 @@ class BPEntity:
     def __hash__(self):
         return hash(self.entity_number)
 
+    @property
+    def pos(self) -> tuple[int, int]:
+        return self.pos_y, self.pos_x
+
     def to_entity_dict(self) -> dict:
 
         if not self.is_real():
