@@ -17,8 +17,7 @@ logger = logging.getLogger(__name__)
 common.setup_logger(logger)
 
 # TODO: generate balancer networks
-#   TODO: base off of blueprints
-#   TODO: combine blueprints as pre solved cells, using SAT to fill in gaps
+#   TODO: add generic generator and tests
 #   TODO: generate TU balancers
 #   TODO: generate universal NxM balancers by applying universal method to NxM balancers
 # TODO: add blueprint -> network conversion (network parsing)
