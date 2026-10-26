@@ -111,7 +111,10 @@ class Blueprint:
 
         sat_ans = ''
 
-        for interchange_width in range(5, 11):
+        ichange_min_width = 5
+        ichange_max_width = 10
+
+        for interchange_width in range(ichange_min_width, ichange_max_width+1):
             try:
                 sat_ans = sat.belt_balancer(
                     desired_sat_network,
@@ -130,6 +133,9 @@ class Blueprint:
                 if "No solutions found" not in str(e):
                     raise e
                 # else, move on to higher grid space
+
+        if len(sat_ans) == 0:
+            raise RuntimeError(f"No Solutions Found for intechange width <= {ichange_max_width}")
 
         ans_bp_str = sat.blueprint_encode(sat_ans)[0]
 
