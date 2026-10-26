@@ -366,6 +366,14 @@ class Blueprint:
                     # implies not connected from left so the input of the belt bends right (so it bends counterclockwise)
                     entity.bend = Rotation.CW
 
+#  ROFL:ROFL:ROFL:ROFL
+#          _^___
+#  L    __/   [] \
+# LOL===__        \
+#  L      \________]
+#          I   I
+#         --------/
+
     def to_bp_dict(self, x_bounds: Optional[tuple[int, int]] = None, y_bounds: Optional[tuple[int, int]] = None) -> dict:
         bp_dict = {
             "entities": [],
