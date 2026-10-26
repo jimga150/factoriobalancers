@@ -144,6 +144,104 @@ class Blueprint:
 
         return ans
 
+    @staticmethod
+    def combine_endtoend(upstream: Blueprint, downstream: Optional[Blueprint] = None) -> Blueprint:
+        # stamp down one
+        # stamp down the other, overlapping I/Os
+        # trim nodes
+
+        # turn to face L->R
+        upstream.rotate(Rotation.CW)
+
+        if downstream is None:
+            downstream = upstream
+        elif downstream != upstream:
+            downstream.rotate(Rotation.CW)
+
+        u_net, _ = upstream.get_network()
+        d_net, _ = downstream.get_network()
+
+        desired_network = BalancerNetwork.combine_endtoend(u_net, d_net, False)
+
+        if common.debug:
+            desired_network.render("desired_network")
+
+        desired_sat_network = desired_network.export_to_sat_network()
+
+        # get downstream BP without input belts
+        d_str = downstream.to_bp_str((1, downstream.width), (0, downstream.height))
+        downstream = Blueprint.from_bp_str(d_str)
+
+        # get upstream BP without output belts
+        u_str = upstream.to_bp_str((0, downstream.width-1), (0, downstream.height))
+        upstream = Blueprint.from_bp_str(u_str)
+
+        new_height = max(upstream.height, downstream.height)
+
+        max_inter_spacing = 7
+
+        new_width = upstream.width + downstream.width + max_inter_spacing
+
+        new_entity_grid_templ = []
+        for y in range(new_height):
+            new_entity_grid_templ.append([])
+            for x in range(new_width):
+                new_entity_grid_templ[-1].append(BPEntity())
+
+        upstream_y_offset = (new_height - upstream.height) // 2
+        upstream_x_offset = 0
+
+        downstream_y_offset = (new_height - downstream.height) // 2
+
+        sat_ans = []
+
+        for inter_spacing in range(0, max_inter_spacing+1):
+            downstream_x_offset = upstream.width + inter_spacing
+
+            new_entity_grid = copy.deepcopy(new_entity_grid_templ)
+
+            for y in range(upstream.height):
+                for x in range(upstream.width):
+                    new_entity_grid[y + upstream_y_offset][x + upstream_x_offset] = upstream.entity_grid[y][x]
+
+            for y in range(downstream.height):
+                for x in range(downstream.width):
+                    new_entity_grid[y + downstream_y_offset][x + downstream_x_offset] = downstream.entity_grid[y][x]
+
+            partialbp = Blueprint.from_entity_grid(new_entity_grid)
+            # partialbp.rotate(Rotation.CCW)
+            # return partialbp
+            partial_str = partialbp.to_bp_str()
+
+            try:
+                sat_ans = sat.belt_balancer(
+                    desired_sat_network,
+                    partialbp.width,
+                    partialbp.height,
+                    edge_splitters=True,
+                    glue_splitters=True,
+                    prevent_mergeable_underground=True,
+                    prevent_bad_patterns=True,
+                    ungroup_ios=True,
+                    underground_length=10,
+                    partial=partial_str
+                )
+                break
+            except RuntimeError as e:
+                if "No solutions found" not in str(e):
+                    raise e
+                # else, move on to higher grid space
+
+        if len(sat_ans) == 0:
+            raise RuntimeError(f"No solutions found for inter-balancer spacing <= {max_inter_spacing}")
+
+        ans_bp_str = sat.blueprint_encode(sat_ans)[0]
+
+        ans = Blueprint.from_bp_str(ans_bp_str)
+        ans.rotate(Rotation.CCW)
+
+        return ans
+
     def __str__(self):
         dir_graph = "Direction graph:\n"
         dir_graph += "-" * (self.width * 2 + 1)

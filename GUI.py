@@ -80,7 +80,8 @@ class GUI(QtWidgets.QWidget):
         #     layout.addWidget(BPWidget_temp, 1, i+1)
 
         bp2 = copy.deepcopy(BPDWidget.bp)
-        bp2.rotate(Rotation.CW)
+        bp2.rotate(Rotation.CCW)
+        bp2 = bp2.combine_endtoend(bp2)
         BPDWidget2 = BPDrawArea(bp2)
         layout.addWidget(BPDWidget2, 1, 0)
 
