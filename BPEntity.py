@@ -171,7 +171,7 @@ class BPEntity:
         except KeyError:
             self.input_priority = Priority.NONE
 
-        # for most entites, these coordinates point to the middle of a square.
+        # for most entities, these coordinates point to the middle of a square.
         # for the top left (single tile) entity, this would be (0.5, 0.5)
         # splitters are positioned in the center of the tile coordinate pointing parallel to their facing direction,
         # and on the line passing through their middle, for the coordinate perpendicular to them.
