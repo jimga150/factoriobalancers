@@ -1,5 +1,6 @@
 import enum
 import logging
+from typing import Optional
 
 import common
 
@@ -125,7 +126,7 @@ class BPEntity:
 
     default_version = 1
 
-    def __init__(self, version: int = default_version, entity: dict | None = None):
+    def __init__(self, version: int = default_version, entity: Optional[dict] = None):
 
         self.empty = entity is None
 
