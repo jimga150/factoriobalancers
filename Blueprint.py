@@ -25,8 +25,6 @@ class Blueprint:
 
     def __init__(self):
 
-        self.min_y = None
-        self.min_x = None
         self.width = 0
         self.height = 0
 
@@ -107,7 +105,7 @@ class Blueprint:
         # return Blueprint.from_bp_str(ans_bp_str)
 
 
-        partial_str = partialbp.to_bp_str(partialbp.min_x + partialbp.width - 2, partialbp.min_y + partialbp.height)
+        partial_str = partialbp.to_bp_str((0, partialbp.width - 2))
         # partial_str = partialbp.to_bp_str()
         # return Blueprint.from_bp_str(partial_str)
 
@@ -222,8 +220,8 @@ class Blueprint:
         raise RuntimeError('Invalid direction')
 
     def get_entity_idxs(self, entity: BPEntity) -> tuple[int, int]:
-        y = int(entity.pos_y - self.min_y + 0.5)
-        x = int(entity.pos_x - self.min_x + 0.5)
+        y = int(entity.pos_y + 0.5)
+        x = int(entity.pos_x + 0.5)
         return y, x
 
     def parse_bp_dict(self, blueprint: dict):
@@ -238,19 +236,19 @@ class Blueprint:
 
         entities = blueprint["entities"]
 
-        self.min_x = self.min_y = sys.maxsize
+        min_x = min_y = sys.maxsize
         max_x = max_y = -sys.maxsize
 
         bp_entities = [BPEntity(self.version, x) for x in entities]
 
         for entity in bp_entities:
-            self.min_x = min(self.min_x, entity.pos_x)
-            self.min_y = min(self.min_y, entity.pos_y)
+            min_x = min(min_x, entity.pos_x)
+            min_y = min(min_y, entity.pos_y)
             max_x = max(max_x, entity.pos_x)
             max_y = max(max_y, entity.pos_y)
 
-        self.height = round(max_y - self.min_y + 1)
-        self.width = round(max_x - self.min_x + 1)
+        self.height = round(max_y - min_y + 1)
+        self.width = round(max_x - min_x + 1)
 
         self.entity_grid = []
         for _ in range(self.height):
@@ -259,6 +257,9 @@ class Blueprint:
                 self.entity_grid[-1].append(BPEntity())
 
         for entity in bp_entities:
+
+            entity.pos_x -= min_x
+            entity.pos_y -= min_y
 
             y, x = self.get_entity_idxs(entity)
 
@@ -644,16 +645,10 @@ class Blueprint:
 
     def enumerate(self):
         # call after populating an entity grid
-        # also calculates new positions of entities, anchored on the current min_y and min_x
+        # also calculates new positions of entities
 
         self.net_mapping = None
         self.version = None
-
-        if self.min_x is None:
-            self.min_x = 0
-
-        if self.min_y is None:
-            self.min_y = 0
 
         e_num = 1
         entity_ids_seen = []
@@ -672,8 +667,8 @@ class Blueprint:
                 new_id = id(entity)
 
                 # assign positions to all entities
-                entity.pos_x = x + self.min_x
-                entity.pos_y = y + self.min_y
+                entity.pos_x = x
+                entity.pos_y = y
 
                 if entity.empty:
                     # skip min/max X calcs and enumeration for empty entities
