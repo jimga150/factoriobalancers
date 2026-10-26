@@ -109,7 +109,7 @@ class Blueprint:
         # partial_str = partialbp.to_bp_str()
         # return Blueprint.from_bp_str(partial_str)
 
-        sat_ans = ''
+        sat_ans = []
 
         ichange_min_width = 5
         ichange_max_width = 10
