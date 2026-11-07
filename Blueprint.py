@@ -257,6 +257,8 @@ class Blueprint:
             # return partialbp
             partial_str = partialbp.to_bp_str()
 
+            logger.debug(f"Trying inter-balancer spacing of {inter_spacing} (w={partialbp.width}, h={partialbp.height})")
+
             try:
                 sat_ans = sat.belt_balancer(
                     desired_sat_network,
@@ -272,8 +274,7 @@ class Blueprint:
                 )
                 break
             except NoSolutionsException:
-                # move on to higher grid space
-                pass
+                logger.debug(f"No Solutions Found for interchange width = {inter_spacing}")
 
         if len(sat_ans) == 0:
             raise RuntimeError(f"No solutions found for inter-balancer spacing <= {max_inter_spacing}")
