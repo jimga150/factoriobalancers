@@ -16,6 +16,7 @@ from BalancerNetwork import BalancerNetwork
 from Belt import Belt
 from Node import Node
 import factorio_sat_callable as sat
+from factorio_sat_callable.belt_balancer import NoSolutionsException
 
 logger = logging.getLogger(__name__)
 common.setup_logger(logger)
@@ -129,10 +130,9 @@ class Blueprint:
                     partial=partial_str
                 )
                 break
-            except RuntimeError as e:
-                if "No solutions found" not in str(e):
-                    raise e
-                # else, move on to higher grid space
+            except NoSolutionsException:
+                # move on to higher grid space
+                pass
 
         if len(sat_ans) == 0:
             raise RuntimeError(f"No Solutions Found for intechange width <= {ichange_max_width}")
@@ -227,10 +227,9 @@ class Blueprint:
                     partial=partial_str
                 )
                 break
-            except RuntimeError as e:
-                if "No solutions found" not in str(e):
-                    raise e
-                # else, move on to higher grid space
+            except NoSolutionsException:
+                # move on to higher grid space
+                pass
 
         if len(sat_ans) == 0:
             raise RuntimeError(f"No solutions found for inter-balancer spacing <= {max_inter_spacing}")

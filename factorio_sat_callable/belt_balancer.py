@@ -3,6 +3,9 @@ from typing import Optional
 from factorio_sat.belt_balancer import *
 from . import sat_common
 
+class NoSolutionsException(Exception):
+    pass
+
 def belt_balancer(
         network: str,
         width: int,
@@ -92,7 +95,7 @@ def belt_balancer(
             break
 
     if len(ans) == 0:
-        raise RuntimeError('No solutions found')
+        raise NoSolutionsException('No solutions found')
 
     return ans
 
