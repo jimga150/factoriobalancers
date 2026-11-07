@@ -3,17 +3,16 @@ import logging
 import sys
 
 from PySide6 import QtWidgets
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QPainter, QColor, QImage, QPixmap
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QSizePolicy
 
-import Blueprint_Book
+import BalancerProofs
 import common
 import BalancerNetwork_Book
-import BalancerProofs
 import BluePrintRenderer
 from BPEntity import Rotation
-import factorio_sat_callable as sat
+from BalancerBlueprint import BalancerBlueprint, BLExpress
 from PhotoViewer import PhotoViewer
 from QtAppInst import app
 
