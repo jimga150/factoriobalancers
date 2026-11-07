@@ -4,7 +4,7 @@ import sys
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QPainter, QColor
+from PySide6.QtGui import QPainter, QColor, QImage, QPixmap
 from PySide6.QtWidgets import QSizePolicy
 
 import Blueprint_Book
@@ -15,6 +15,7 @@ import BluePrintRenderer
 from BPEntity import Rotation
 from Blueprint import Blueprint, BLExpress
 import factorio_sat_callable as sat
+from PhotoViewer import PhotoViewer
 from QtAppInst import app
 
 logger = logging.getLogger(__name__)
@@ -25,16 +26,13 @@ class BPDrawArea(QtWidgets.QWidget):
         super().__init__()
         self.bp = bp
         self.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding)
-        self.setMinimumSize(QSize(bp.width*BluePrintRenderer.tile_size.width(), bp.height*BluePrintRenderer.tile_size.height()))
 
-    def paintEvent(self, event):
+        self.viewer = PhotoViewer(self)
+        self.img = BluePrintRenderer.renderToQImage(self.bp)
+        self.viewer.setPhoto(QPixmap.fromImage(self.img))
 
-        p = self.palette()
-        p.setColor(self.backgroundRole(), QColor(84, 84, 84))
-        self.setPalette(p)
-
-        with QPainter(self) as p:
-            BluePrintRenderer.paintBPTo(self.bp, p)
+        layout = QtWidgets.QGridLayout(self)
+        layout.addWidget(self.viewer, 0, 0)
 
 
 class GUI(QtWidgets.QWidget):
@@ -83,6 +81,8 @@ class GUI(QtWidgets.QWidget):
         layout.addWidget(BPDWidget3, 1, 1)
 
         layout.addWidget(QtWidgets.QLabel("Label"), 2, 0, Qt.AlignmentFlag.AlignCenter)
+
+        self.resize(600, 600)
 
     def paintEvent(self, event):
         pass
