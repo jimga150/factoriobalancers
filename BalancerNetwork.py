@@ -519,6 +519,9 @@ class BalancerNetwork:
     def get_num_inputs(self) -> int:
         return len(self.get_inputs())
 
+    def get_num_internal_nodes(self) -> int:
+        return len([x for x in self.belts if not (x.is_input() or x.is_output())])
+
     def render_all_methods(self, name: str = default_img_filename) -> None:
         for cs in ColorStrategy:
             self.render(f"{name} ({ColorStrategy(cs)})", cs)

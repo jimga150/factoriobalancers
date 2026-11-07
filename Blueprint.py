@@ -21,6 +21,17 @@ from factorio_sat_callable.belt_balancer import NoSolutionsException
 logger = logging.getLogger(__name__)
 common.setup_logger(logger)
 
+class BeltLevel:
+    def __init__(self, name: str, underground_length: int):
+        self.name = name
+        self.underground_length = underground_length
+
+BLBelt = BeltLevel("normal", 4)
+BLFast = BeltLevel("fast", 6)
+BLExpress = BeltLevel("express", 8)
+
+# name is express since currently SAT's TransportBeltLevel class doesn't account for turbo belts
+BLTurbo = BeltLevel("express", 10)
 
 class Blueprint:
 
@@ -51,6 +62,39 @@ class Blueprint:
         ans.entity_grid = copy.deepcopy(entity_grid)
         ans.enumerate()
         return ans
+
+    @staticmethod
+    def from_network(network: BalancerNetwork, bl: BeltLevel) -> Blueprint:
+        if network.get_num_internal_nodes() > 6:
+            raise RuntimeError(f"Too many nodes in network: {len(network.nodes)}")
+
+        sat_net_str = network.export_to_sat_network()
+        logger.debug(sat_net_str)
+
+        max_io_cnt = max(network.get_num_inputs(), network.get_num_outputs())
+        sat_bp = "<NONE>"
+
+        for test_height in range(max_io_cnt, max_io_cnt+2):
+            # bump height by one if width range doesnt work
+            for test_width in range(2*max_io_cnt, 4*max_io_cnt):
+                # but first try making it wide
+                try:
+                    sat_bp = sat.belt_balancer(
+                        sat_net_str,
+                        test_width,
+                        test_height,
+                        fast=True,
+                        underground_length=bl.underground_length
+                    )[0]
+                except NoSolutionsException:
+                    pass
+
+        if sat_bp == "<NONE>":
+            raise NoSolutionsException()
+
+        bp_str = sat.blueprint_encode(sat_bp, level=bl.name)[0]
+        logger.info(bp_str)
+        return Blueprint.from_bp_str(bp_str)
 
     @staticmethod
     def combine_sidebyside(sub_bp: Blueprint) -> Blueprint:

@@ -13,7 +13,7 @@ import BalancerNetwork_Book
 import BalancerProofs
 import BluePrintRenderer
 from BPEntity import Rotation
-from Blueprint import Blueprint
+from Blueprint import Blueprint, BLExpress
 import factorio_sat_callable as sat
 from QtAppInst import app
 
@@ -50,18 +50,9 @@ class GUI(QtWidgets.QWidget):
 
         # bp = Blueprint.from_bp_str(sat.blueprint(sat.interchange(6, 4, 8, True)[0], True, level="express")[0])
         balancer = BalancerNetwork_Book.make_NxN(3)
-        # balancer.render("temp")
-        sat_net_str = balancer.export_to_sat_network()
-        logger.debug(sat_net_str)
-        sat_bp = sat.belt_balancer(sat_net_str, 10, 4, fast=True, underground_length=8)[0]
-        bp_str = sat.blueprint_encode(sat_bp, level="express")[0]
-        # bp_str = Blueprint_Book.blueprint_strs["2x2"]
-        logger.info(bp_str)
-        bp = Blueprint.from_bp_str(bp_str)
-        # bp.rotate(Rotation.CCW)
-        self.bp = bp
+        self.bp = Blueprint.from_network(balancer, BLExpress)
 
-        BPDWidget = BPDrawArea(bp)
+        BPDWidget = BPDrawArea(self.bp)
         # layout.addWidget(BPDWidget, 0, 0)
         layout.addWidget(BPDWidget, 0, 0, 1, 2)
 
