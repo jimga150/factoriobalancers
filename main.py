@@ -24,9 +24,7 @@ common.setup_logger(logger)
 #   TODO: handle belt weaving
 #   TODO: handle lane interactions
 # TODO: make actual UI
-#   TODO: why wont background work on sub-widget?
 #   TODO: make buttons to start proofs
-#   TODO: make blueprint area zoomable and scrollable
 
 
 if __name__ == '__main__':
