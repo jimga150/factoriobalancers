@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 common.setup_logger(logger)
 
 # TODO: generate balancer networks
+#   TODO: track orientation of BalancerBlueprint to help processing and remove assumptions
 #   TODO: add SAT support for turbo belts
 #   TODO: use correct tiers in generated layouts so we can address TODO in find_connected_entity
 #   TODO: add generic generator and tests
