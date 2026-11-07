@@ -266,7 +266,6 @@ class Blueprint:
                     partialbp.height,
                     edge_splitters=True,
                     glue_splitters=True,
-                    prevent_mergeable_underground=True,
                     prevent_bad_patterns=True,
                     ungroup_ios=True,
                     underground_length=10,
