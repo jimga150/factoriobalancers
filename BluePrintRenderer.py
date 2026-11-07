@@ -391,7 +391,7 @@ def paintBPTo(bp: Blueprint, p: QPainter):
 def renderToQImage(bp: Blueprint) -> QImage:
     width = bp.width * tile_size.width()
     height = bp.height * tile_size.height()
-    img = QImage(width, height, QImage.Format.Format_RGB888)
+    img = QImage(width, height, QImage.Format.Format_ARGB32)
     img.fill(QColor(0, 0, 0, 0))
 
     if common.debug and bp.net_mapping is None:
