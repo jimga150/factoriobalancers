@@ -159,7 +159,7 @@ class CustomBalancerNetworkTests(BalancerNetworkTests):
                 if common.debug:
                     bp_net.render(bp_name + "_derived")
                     balancer_net_ref.render(bp_name + "_ref")
-                    BluePrintRenderer.render(bp, bp_name + "_bp")
+                    BluePrintRenderer.renderToFile(bp, bp_name + "_bp")
 
                 self.assertEqual(True, bp_net.equivalent_to(balancer_net_ref))
 
@@ -332,7 +332,7 @@ class BlueprintTests(unittest.TestCase):
                 sat_bp = sat.belt_balancer(sat_net_str, 6 + 2*n, int(float(n)/2 + 1)*2, underground_length=8)[0]
                 bp_str = sat.blueprint_encode(sat_bp, level="express")[0]
                 bp = Blueprint.from_bp_str(bp_str)
-                BluePrintRenderer.render(bp, f"{n}_bp.png")
+                BluePrintRenderer.renderToFile(bp, f"{n}_bp.png")
                 bn2, _ = bp.get_network()
                 self.assertEqual(True, bn.equivalent_to(bn2))
 

@@ -106,7 +106,7 @@ class Blueprint:
         network, _ = sub_bp.get_network()
 
         if common.debug:
-            BluePrintRenderer.render(sub_bp, "sub_bp")
+            BluePrintRenderer.renderToFile(sub_bp, "sub_bp")
             network.render("sub_bp_network")
 
         desired_network = BalancerNetwork.combine_sidebyside(network)

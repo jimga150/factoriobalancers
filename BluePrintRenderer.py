@@ -388,7 +388,7 @@ def paintBPTo(bp: Blueprint, p: QPainter):
 
     p.restore()
 
-def render(bp: Blueprint, filename: str):
+def renderToQImage(bp: Blueprint) -> QImage:
     width = bp.width * tile_size.width()
     height = bp.height * tile_size.height()
     img = QImage(width, height, QImage.Format.Format_RGB888)
@@ -400,6 +400,12 @@ def render(bp: Blueprint, filename: str):
 
     with QPainter(img) as painter:
         paintBPTo(bp, painter)
+
+    return img
+
+def renderToFile(bp: Blueprint, filename: str):
+
+    img = renderToQImage(bp)
 
     filepath = str(Path(common.output_folder) / filename)
     if not filepath.endswith(".png"):
