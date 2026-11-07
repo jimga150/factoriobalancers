@@ -78,8 +78,7 @@ class GUI(QtWidgets.QWidget):
         BPDWidget3 = BPDrawArea(bp3)
         layout.addWidget(BPDWidget3, 1, 1)
 
-        bp4 = copy.deepcopy(bp3)
-        bp4 = BalancerBlueprint.combine_endtoend(bp4)
+        bp4 = BalancerBlueprint.combine_endtoend(bp3)
         BPDWidget4 = BPDrawArea(bp4)
         layout.addWidget(BPDWidget4, 2, 0)
 
