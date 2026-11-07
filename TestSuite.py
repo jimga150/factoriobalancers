@@ -12,7 +12,7 @@ from BalancerNetwork import BalancerNetwork
 import BalancerNetwork_Book
 import BalancerProofs
 from Belt import ColorStrategy
-from Blueprint import Blueprint
+from BalancerBlueprint import BalancerBlueprint
 from Node import Node
 import UniqueIDObj
 import factorio_sat_callable as sat
@@ -153,7 +153,7 @@ class CustomBalancerNetworkTests(BalancerNetworkTests):
 
         for bp_name, balancer_net_ref in bp_net_pairs:
             with self.subTest(msg=bp_name):
-                bp = Blueprint.from_bp_str(Blueprint_Book.blueprint_strs[bp_name])
+                bp = BalancerBlueprint.from_bp_str(Blueprint_Book.blueprint_strs[bp_name])
                 bp_net, net_map = bp.get_network()
 
                 if common.debug:
@@ -311,11 +311,11 @@ class BlueprintTests(unittest.TestCase):
 
     def import_export_same(self, bp_str: str):
         # imports a blueprint string, export it, and test if the blueprint strings decode identically
-        bp = Blueprint.from_bp_str(bp_str)
+        bp = BalancerBlueprint.from_bp_str(bp_str)
         export_str = bp.to_bp_str()
 
-        bp_dict_1 = Blueprint.decode_blueprint_str(bp_str)
-        bp_dict_2 = Blueprint.decode_blueprint_str(export_str)
+        bp_dict_1 = BalancerBlueprint.decode_blueprint_str(bp_str)
+        bp_dict_2 = BalancerBlueprint.decode_blueprint_str(export_str)
 
         logger.info(export_str)
 
@@ -331,7 +331,7 @@ class BlueprintTests(unittest.TestCase):
                     sat.network_render(sat_net_str, f"{n}_sat_net.png")
                 sat_bp = sat.belt_balancer(sat_net_str, 6 + 2*n, int(float(n)/2 + 1)*2, underground_length=8)[0]
                 bp_str = sat.blueprint_encode(sat_bp, level="express")[0]
-                bp = Blueprint.from_bp_str(bp_str)
+                bp = BalancerBlueprint.from_bp_str(bp_str)
                 BluePrintRenderer.renderToFile(bp, f"{n}_bp.png")
                 bn2, _ = bp.get_network()
                 self.assertEqual(True, bn.equivalent_to(bn2))

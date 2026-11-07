@@ -13,7 +13,6 @@ import BalancerNetwork_Book
 import BalancerProofs
 import BluePrintRenderer
 from BPEntity import Rotation
-from Blueprint import Blueprint, BLExpress
 import factorio_sat_callable as sat
 from PhotoViewer import PhotoViewer
 from QtAppInst import app
@@ -22,7 +21,7 @@ logger = logging.getLogger(__name__)
 common.setup_logger(logger)
 
 class BPDrawArea(QtWidgets.QWidget):
-    def __init__(self, bp: Blueprint):
+    def __init__(self, bp: BalancerBlueprint):
         super().__init__()
         self.bp = bp
         self.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding)
@@ -48,7 +47,7 @@ class GUI(QtWidgets.QWidget):
 
         # bp = Blueprint.from_bp_str(sat.blueprint(sat.interchange(6, 4, 8, True)[0], True, level="express")[0])
         balancer = BalancerNetwork_Book.make_NxN(3)
-        self.bp = Blueprint.from_network(balancer, BLExpress)
+        self.bp = BalancerBlueprint.from_network(balancer, BLExpress)
 
         BPDWidget = BPDrawArea(self.bp)
         # layout.addWidget(BPDWidget, 0, 0)

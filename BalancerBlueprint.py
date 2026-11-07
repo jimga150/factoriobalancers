@@ -33,7 +33,7 @@ BLExpress = BeltLevel("express", 8)
 # name is express since currently SAT's TransportBeltLevel class doesn't account for turbo belts
 BLTurbo = BeltLevel("express", 10)
 
-class Blueprint:
+class BalancerBlueprint:
 
     def __init__(self):
 
@@ -51,20 +51,20 @@ class Blueprint:
         self.entity_grid = []
 
     @staticmethod
-    def from_bp_str(bp_str: str) -> Blueprint:
-        ans = Blueprint()
-        ans.parse_bp_dict(Blueprint.decode_blueprint_str(bp_str))
+    def from_bp_str(bp_str: str) -> BalancerBlueprint:
+        ans = BalancerBlueprint()
+        ans.parse_bp_dict(BalancerBlueprint.decode_blueprint_str(bp_str))
         return ans
 
     @staticmethod
-    def from_entity_grid(entity_grid: list[list[BPEntity]]) -> Blueprint:
-        ans = Blueprint()
+    def from_entity_grid(entity_grid: list[list[BPEntity]]) -> BalancerBlueprint:
+        ans = BalancerBlueprint()
         ans.entity_grid = copy.deepcopy(entity_grid)
         ans.enumerate()
         return ans
 
     @staticmethod
-    def from_network(network: BalancerNetwork, bl: BeltLevel) -> Blueprint:
+    def from_network(network: BalancerNetwork, bl: BeltLevel) -> BalancerBlueprint:
         if network.get_num_internal_nodes() > 6:
             raise RuntimeError(f"Too many nodes in network: {len(network.nodes)}")
 
@@ -94,10 +94,10 @@ class Blueprint:
 
         bp_str = sat.blueprint_encode(sat_bp, level=bl.name)[0]
         logger.info(bp_str)
-        return Blueprint.from_bp_str(bp_str)
+        return BalancerBlueprint.from_bp_str(bp_str)
 
     @staticmethod
-    def combine_sidebyside(sub_bp: Blueprint) -> Blueprint:
+    def combine_sidebyside(sub_bp: BalancerBlueprint) -> BalancerBlueprint:
         # stamp down two right next to each other
         # calculate distance needed ahead for belts to become all adjacent
         # at that distance - 1, stamp down an interchange
@@ -127,7 +127,7 @@ class Blueprint:
                 entity = sub_bp.entity_grid[y][x % sub_bp.width]
                 new_entity_grid[-1].append(entity)
 
-        partialbp = Blueprint.from_entity_grid(new_entity_grid)
+        partialbp = BalancerBlueprint.from_entity_grid(new_entity_grid)
 
         # prep for usage in SAT: needs to go W->E
         partialbp.rotate(Rotation.CW)
@@ -183,13 +183,13 @@ class Blueprint:
 
         ans_bp_str = sat.blueprint_encode(sat_ans)[0]
 
-        ans = Blueprint.from_bp_str(ans_bp_str)
+        ans = BalancerBlueprint.from_bp_str(ans_bp_str)
         ans.rotate(Rotation.CCW)
 
         return ans
 
     @staticmethod
-    def combine_endtoend(upstream: Blueprint, downstream: Optional[Blueprint] = None) -> Blueprint:
+    def combine_endtoend(upstream: BalancerBlueprint, downstream: Optional[BalancerBlueprint] = None) -> BalancerBlueprint:
         # stamp down one
         # stamp down the other, overlapping I/Os
         # trim nodes
@@ -214,11 +214,11 @@ class Blueprint:
 
         # get downstream BP without input belts
         d_str = downstream.to_bp_str((1, downstream.width), (0, downstream.height))
-        downstream = Blueprint.from_bp_str(d_str)
+        downstream = BalancerBlueprint.from_bp_str(d_str)
 
         # get upstream BP without output belts
         u_str = upstream.to_bp_str((0, downstream.width-1), (0, downstream.height))
-        upstream = Blueprint.from_bp_str(u_str)
+        upstream = BalancerBlueprint.from_bp_str(u_str)
 
         new_height = max(upstream.height, downstream.height)
 
@@ -252,7 +252,7 @@ class Blueprint:
                 for x in range(downstream.width):
                     new_entity_grid[y + downstream_y_offset][x + downstream_x_offset] = downstream.entity_grid[y][x]
 
-            partialbp = Blueprint.from_entity_grid(new_entity_grid)
+            partialbp = BalancerBlueprint.from_entity_grid(new_entity_grid)
             # partialbp.rotate(Rotation.CCW)
             # return partialbp
             partial_str = partialbp.to_bp_str()
@@ -280,7 +280,7 @@ class Blueprint:
 
         ans_bp_str = sat.blueprint_encode(sat_ans)[0]
 
-        ans = Blueprint.from_bp_str(ans_bp_str)
+        ans = BalancerBlueprint.from_bp_str(ans_bp_str)
         ans.rotate(Rotation.CCW)
 
         return ans
@@ -709,8 +709,9 @@ class Blueprint:
                     candidate_x, candidate_y = self.get_coord_in_direction(candidate_x, candidate_y,
                                                                            dir_to_try)
                     dist_from_start += 1
-                    if dist_from_start > from_entity.get_underground_len() + 1:
-                        raise ValueError
+                    # TODO: use correct entity tiers so this call can be added back in
+                    # if dist_from_start > from_entity.get_underground_len() + 1:
+                    #     raise ValueError
                 except ValueError:
                     # out of bounds (or out of range), no partner
                     raise RuntimeError(f"Underground in balancer ({str(from_entity)}) has no corresponding underground")

@@ -4,7 +4,7 @@ import sys
 import BalancerProofs
 import BalancerNetwork_Book
 import BluePrintRenderer
-from Blueprint import Blueprint
+from BalancerBlueprint import BalancerBlueprint
 import common
 from BalancerNetwork import BalancerNetwork
 
