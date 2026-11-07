@@ -5,7 +5,7 @@ from typing import Optional
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-SCALE_FACTOR = 1.25
+SCALE_FACTOR = 1.03
 
 
 class PhotoViewer(QtWidgets.QGraphicsView):
