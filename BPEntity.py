@@ -111,6 +111,32 @@ class Priority(enum.Enum):
     def __ne__(self, other):
         return not (self == other)
 
+class BeltLevel:
+    def __init__(self, name: str, underground_length: int):
+        self.name = name
+        self.underground_length = underground_length
+
+    def __gt__(self, other):
+        return self.underground_length > other.underground_length
+
+    def __lt__(self, other):
+        return self.underground_length < other.underground_length
+
+    def __eq__(self, other):
+        return self.underground_length == other.underground_length
+
+    def __ne__(self, other):
+        return not (self == other)
+
+BLBelt = BeltLevel("normal", 4)
+BLFast = BeltLevel("fast", 6)
+BLExpress = BeltLevel("express", 8)
+
+# name is express since currently SAT's TransportBeltLevel class doesn't account for turbo belts
+BLTurbo = BeltLevel("turbo", 10)
+
+belt_levels = [BLBelt, BLFast, BLExpress, BLTurbo]
+
 major_version_offset_bits = 6*8
 
 class BPEntity:
@@ -122,7 +148,7 @@ class BPEntity:
     NAME_BELT = "transport-belt"
     NAME_UNDERGROUND = "underground-belt"
 
-    belt_prefixes = ["fast", "express", "turbo"]
+    belt_prefixes = [x.name for x in belt_levels[1:]]
 
     default_version = 1
 
@@ -268,9 +294,6 @@ class BPEntity:
 
     def get_underground_len(self) -> int:
 
-        default_underground_length = 4
-        prefix_underground_lengths = [6, 8, 10]
-
         if self.empty:
             raise ValueError("This BPEntity is empty")
 
@@ -278,15 +301,21 @@ class BPEntity:
             prefix = BPEntity.belt_prefixes[i]
             if prefix not in self.name:
                 continue
-            return prefix_underground_lengths[i]
+            return belt_levels[i+1].underground_length
 
-        return default_underground_length
+        return belt_levels[0].underground_length
 
     def prefix(self) -> str:
         for p in BPEntity.belt_prefixes:
             if p in self.name:
                 return f"{p}-"
         return ""
+
+    def level(self) -> BeltLevel:
+        for bl in belt_levels:
+            if bl.name in self.name:
+                return bl
+        return BLBelt
 
     def is_real(self):
         return (not self.empty) and (not self.is_phantom)

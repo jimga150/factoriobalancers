@@ -11,7 +11,7 @@ from typing import Optional
 
 import BluePrintRenderer
 import common
-from BPEntity import BPEntity, Direction, Rotation, IOType
+from BPEntity import BPEntity, Direction, Rotation, IOType, BeltLevel
 from BalancerNetwork import BalancerNetwork
 from Belt import Belt
 from Node import Node
@@ -21,18 +21,6 @@ from factorio_sat_callable.belt_balancer import NoSolutionsException
 logger = logging.getLogger(__name__)
 common.setup_logger(logger)
 
-class BeltLevel:
-    def __init__(self, name: str, underground_length: int):
-        self.name = name
-        self.underground_length = underground_length
-
-BLBelt = BeltLevel("normal", 4)
-BLFast = BeltLevel("fast", 6)
-BLExpress = BeltLevel("express", 8)
-
-# name is express since currently SAT's TransportBeltLevel class doesn't account for turbo belts
-BLTurbo = BeltLevel("express", 10)
-
 class BalancerBlueprint:
 
     def __init__(self):
@@ -40,6 +28,7 @@ class BalancerBlueprint:
         self.width = 0
         self.height = 0
         self.orientation = None
+        self.beltlevel = None
 
         self.version = BPEntity.default_version
         self.description = None
@@ -172,7 +161,7 @@ class BalancerBlueprint:
                     prevent_mergeable_underground=True,
                     prevent_bad_patterns=True,
                     ungroup_ios=True,
-                    underground_length=10,
+                    underground_length=sub_bp.beltlevel.underground_length,
                     partial=partial_str
                 )
                 break
@@ -183,7 +172,7 @@ class BalancerBlueprint:
         if len(sat_ans) == 0:
             raise RuntimeError(f"No Solutions Found for intechange width <= {ichange_max_width}")
 
-        ans_bp_str = sat.blueprint_encode(sat_ans)[0]
+        ans_bp_str = sat.blueprint_encode(sat_ans, level=sub_bp.beltlevel.name)[0]
 
         ans = BalancerBlueprint.from_bp_str(ans_bp_str)
 
@@ -202,6 +191,10 @@ class BalancerBlueprint:
             downstream = upstream
         elif downstream != upstream:
             downstream.rotate_to(Direction.RIGHT)
+
+        beltlevel = upstream.beltlevel
+        if downstream.beltlevel > beltlevel:
+            beltlevel = downstream.beltlevel
 
         u_net, _ = upstream.get_network()
         d_net, _ = downstream.get_network()
@@ -269,7 +262,7 @@ class BalancerBlueprint:
                     glue_splitters=True,
                     prevent_bad_patterns=True,
                     ungroup_ios=True,
-                    underground_length=10,
+                    underground_length=beltlevel.underground_length,
                     partial=partial_str
                 )
                 break
@@ -279,7 +272,7 @@ class BalancerBlueprint:
         if len(sat_ans) == 0:
             raise RuntimeError(f"No solutions found for inter-balancer spacing <= {max_inter_spacing}")
 
-        ans_bp_str = sat.blueprint_encode(sat_ans)[0]
+        ans_bp_str = sat.blueprint_encode(sat_ans, level=beltlevel.name)[0]
 
         ans = BalancerBlueprint.from_bp_str(ans_bp_str)
 
@@ -637,9 +630,8 @@ class BalancerBlueprint:
                     candidate_x, candidate_y = self.get_coord_in_direction(candidate_x, candidate_y,
                                                                            dir_to_try)
                     dist_from_start += 1
-                    # TODO: use correct entity tiers so this call can be added back in
-                    # if dist_from_start > from_entity.get_underground_len() + 1:
-                    #     raise ValueError
+                    if dist_from_start > from_entity.get_underground_len() + 1:
+                        raise ValueError
                 except ValueError:
                     # out of bounds (or out of range), no partner
                     raise RuntimeError(f"Underground in balancer ({str(from_entity)}) has no corresponding underground")
@@ -823,9 +815,15 @@ class BalancerBlueprint:
         self.height = max_y + 1
 
         # seek belts that can orient us (belts outputting to an edge)
+        # also detect max belt level
         for y in range(len(self.entity_grid)):
             for x in range(len(self.entity_grid[0])):
+
                 entity: BPEntity = self.entity_grid[y][x]
+
+                if entity.empty:
+                    continue
+
                 if entity.is_belt() and self.orientation is None:
                     if y == 0 and entity.direction == Direction.UP:
                         self.orientation = Direction.UP
@@ -835,6 +833,10 @@ class BalancerBlueprint:
                         self.orientation = Direction.RIGHT
                     elif x == 0 and entity.direction == Direction.LEFT:
                         self.orientation = Direction.LEFT
+
+                bl = entity.level()
+                if self.beltlevel is None or bl > self.beltlevel:
+                    self.beltlevel = bl
 
         # find belts that should bend when rendered
         for y in range(self.height):

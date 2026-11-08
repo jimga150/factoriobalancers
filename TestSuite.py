@@ -8,6 +8,7 @@ import z3
 import BluePrintRenderer
 import Blueprint_Book
 import common
+from BPEntity import BLExpress
 from BalancerNetwork import BalancerNetwork
 import BalancerNetwork_Book
 import BalancerProofs
@@ -330,7 +331,7 @@ class BlueprintTests(unittest.TestCase):
                 if common.debug:
                     sat.network_render(sat_net_str, f"{n}_sat_net.png")
                 sat_bp = sat.belt_balancer(sat_net_str, 6 + 2*n, int(float(n)/2 + 1)*2, underground_length=8)[0]
-                bp_str = sat.blueprint_encode(sat_bp, level="express")[0]
+                bp_str = sat.blueprint_encode(sat_bp, level=BLExpress.name)[0]
                 bp = BalancerBlueprint.from_bp_str(bp_str)
                 BluePrintRenderer.renderToFile(bp, f"{n}_bp.png")
                 bn2, _ = bp.get_network()

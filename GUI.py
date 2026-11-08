@@ -11,8 +11,8 @@ import BalancerProofs
 import common
 import BalancerNetwork_Book
 import BluePrintRenderer
-from BPEntity import Rotation
-from BalancerBlueprint import BalancerBlueprint, BLExpress
+from BPEntity import Rotation, BLExpress
+from BalancerBlueprint import BalancerBlueprint
 from PhotoViewer import PhotoViewer
 from QtAppInst import app
 
