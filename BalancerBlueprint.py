@@ -428,79 +428,7 @@ class BalancerBlueprint:
 
                 splitter_cap_entity.is_phantom = True
 
-        # find belts that should bend when rendered
-        for y in range(self.height):
-            for x in range(self.width):
-
-                entity = self.entity_grid[y][x]
-
-                if entity.empty:
-                    continue
-
-                if not entity.is_belt():
-                    continue
-
-                b_dir = entity.direction
-
-                connected_from_behind = False
-                try:
-                    x1, y1 = self.get_coord_in_direction(x, y, Direction.reverse(b_dir))
-                    candidate_entity = self.entity_grid[y1][x1]
-                    if candidate_entity.is_underground():
-                        if candidate_entity.opening_dir() != b_dir:
-                            # closed end, ignore
-                            raise ValueError
-                    connected_from_behind = candidate_entity.direction == b_dir
-                except ValueError:
-                    pass
-                except AttributeError:
-                    pass
-
-                if connected_from_behind:
-                    # will never be bent
-                    continue
-
-                dir_cw = Direction.turn(b_dir, Rotation.CW)
-                dir_ccw = Direction.turn(b_dir, Rotation.CCW)
-
-                connected_from_left = False
-                try:
-                    x1, y1 = self.get_coord_in_direction(x, y, dir_ccw)
-                    candidate_entity = self.entity_grid[y1][x1]
-                    if candidate_entity.is_underground():
-                        if candidate_entity.opening_dir() != dir_cw:
-                            # closed end, ignore
-                            raise ValueError
-                    connected_from_left = candidate_entity.direction == dir_cw
-                except ValueError:
-                    pass
-                except AttributeError:
-                    pass
-
-                connected_from_right = False
-                try:
-                    x1, y1 = self.get_coord_in_direction(x, y, dir_cw)
-                    candidate_entity = self.entity_grid[y1][x1]
-                    if candidate_entity.is_underground():
-                        if candidate_entity.opening_dir() != dir_ccw:
-                            # closed end, ignore
-                            raise ValueError
-                    connected_from_right = candidate_entity.direction == dir_ccw
-                except ValueError:
-                    pass
-                except AttributeError:
-                    pass
-
-                if connected_from_left == connected_from_right:
-                    # if both or neither, no bend
-                    continue
-
-                if connected_from_left:
-                    # implies not connected from right so the input of the belt bends left (so it bends clockwise)
-                    entity.bend = Rotation.CCW
-                else:
-                    # implies not connected from left so the input of the belt bends right (so it bends counterclockwise)
-                    entity.bend = Rotation.CW
+        self.enumerate()
 
 #  ROFL:ROFL:ROFL:ROFL
 #          _^___
@@ -805,8 +733,16 @@ class BalancerBlueprint:
         return candidate_entity
 
     def enumerate(self):
+
         # call after populating an entity grid
-        # also calculates new positions of entities
+
+        # ensures unique entity instances
+        # ensures unique entity numbers
+        # recalculates height and width
+        # sets version of self
+        # ensures splitter siblings are linked
+        # calculates orientation of baalncer
+        # sets "bend" of belt entities to ensure correct rendering
 
         self.net_mapping = None
         self.version = None
@@ -899,6 +835,83 @@ class BalancerBlueprint:
                         self.orientation = Direction.RIGHT
                     elif x == 0 and entity.direction == Direction.LEFT:
                         self.orientation = Direction.LEFT
+
+        # find belts that should bend when rendered
+        for y in range(self.height):
+            for x in range(self.width):
+
+                entity = self.entity_grid[y][x]
+
+                if entity.empty:
+                    continue
+
+                if not entity.is_belt():
+                    continue
+
+                # set default
+                entity.bend = Rotation.NONE
+
+                b_dir = entity.direction
+
+                connected_from_behind = False
+                try:
+                    x1, y1 = self.get_coord_in_direction(x, y, Direction.reverse(b_dir))
+                    candidate_entity = self.entity_grid[y1][x1]
+                    if candidate_entity.is_underground():
+                        if candidate_entity.opening_dir() != b_dir:
+                            # closed end, ignore
+                            raise ValueError
+                    connected_from_behind = candidate_entity.direction == b_dir
+                except ValueError:
+                    pass
+                except AttributeError:
+                    pass
+
+                if connected_from_behind:
+                    # will never be bent
+                    continue
+
+                dir_cw = Direction.turn(b_dir, Rotation.CW)
+                dir_ccw = Direction.turn(b_dir, Rotation.CCW)
+
+                connected_from_left = False
+                try:
+                    x1, y1 = self.get_coord_in_direction(x, y, dir_ccw)
+                    candidate_entity = self.entity_grid[y1][x1]
+                    if candidate_entity.is_underground():
+                        if candidate_entity.opening_dir() != dir_cw:
+                            # closed end, ignore
+                            raise ValueError
+                    connected_from_left = candidate_entity.direction == dir_cw
+                except ValueError:
+                    pass
+                except AttributeError:
+                    pass
+
+                connected_from_right = False
+                try:
+                    x1, y1 = self.get_coord_in_direction(x, y, dir_cw)
+                    candidate_entity = self.entity_grid[y1][x1]
+                    if candidate_entity.is_underground():
+                        if candidate_entity.opening_dir() != dir_ccw:
+                            # closed end, ignore
+                            raise ValueError
+                    connected_from_right = candidate_entity.direction == dir_ccw
+                except ValueError:
+                    pass
+                except AttributeError:
+                    pass
+
+                if connected_from_left == connected_from_right:
+                    # if both or neither, no bend
+                    continue
+
+                if connected_from_left:
+                    # implies not connected from right so the input of the belt bends left (so it bends clockwise)
+                    entity.bend = Rotation.CCW
+                else:
+                    # implies not connected from left so the input of the belt bends right (so it bends counterclockwise)
+                    entity.bend = Rotation.CW
 
     def rotate(self, rot: Rotation):
 
