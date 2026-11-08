@@ -39,6 +39,7 @@ class BalancerBlueprint:
 
         self.width = 0
         self.height = 0
+        self.orientation = None
 
         self.version = BPEntity.default_version
         self.description = None
@@ -130,7 +131,8 @@ class BalancerBlueprint:
         partialbp = BalancerBlueprint.from_entity_grid(new_entity_grid)
 
         # prep for usage in SAT: needs to go W->E
-        partialbp.rotate(Rotation.CW)
+        partialbp.rotate_to(Direction.RIGHT)
+
         # return partialbp
 
 
@@ -184,7 +186,6 @@ class BalancerBlueprint:
         ans_bp_str = sat.blueprint_encode(sat_ans)[0]
 
         ans = BalancerBlueprint.from_bp_str(ans_bp_str)
-        ans.rotate(Rotation.CCW)
 
         return ans
 
@@ -195,12 +196,12 @@ class BalancerBlueprint:
         # trim nodes
 
         # turn to face L->R
-        upstream.rotate(Rotation.CW)
+        upstream.rotate_to(Direction.RIGHT)
 
         if downstream is None:
             downstream = upstream
         elif downstream != upstream:
-            downstream.rotate(Rotation.CW)
+            downstream.rotate_to(Direction.RIGHT)
 
         u_net, _ = upstream.get_network()
         d_net, _ = downstream.get_network()
@@ -281,7 +282,6 @@ class BalancerBlueprint:
         ans_bp_str = sat.blueprint_encode(sat_ans)[0]
 
         ans = BalancerBlueprint.from_bp_str(ans_bp_str)
-        ans.rotate(Rotation.CCW)
 
         return ans
 
@@ -810,6 +810,7 @@ class BalancerBlueprint:
 
         self.net_mapping = None
         self.version = None
+        self.orientation = None
 
         max_x = max_y = 0
 
@@ -885,6 +886,20 @@ class BalancerBlueprint:
         self.width = max_x + 1
         self.height = max_y + 1
 
+        # seek belts that can orient us (belts outputting to an edge)
+        for y in range(len(self.entity_grid)):
+            for x in range(len(self.entity_grid[0])):
+                entity: BPEntity = self.entity_grid[y][x]
+                if entity.is_belt() and self.orientation is None:
+                    if y == 0 and entity.direction == Direction.UP:
+                        self.orientation = Direction.UP
+                    elif y == self.height - 1 and entity.direction == Direction.DOWN:
+                        self.orientation = Direction.DOWN
+                    elif x == self.width - 1 and entity.direction == Direction.RIGHT:
+                        self.orientation = Direction.RIGHT
+                    elif x == 0 and entity.direction == Direction.LEFT:
+                        self.orientation = Direction.LEFT
+
     def rotate(self, rot: Rotation):
 
         new_entity_grid = []
@@ -931,3 +946,24 @@ class BalancerBlueprint:
 
         self.entity_grid = new_entity_grid
         self.enumerate()
+
+    def rotate_to(self, direction: Direction):
+
+        test_dir = self.orientation
+        num_cw_turns = 0
+        while test_dir != direction:
+            test_dir = Direction.turn(test_dir, Rotation.CW)
+            num_cw_turns += 1
+
+        test_dir = self.orientation
+        num_ccw_turns = 0
+        while test_dir != direction:
+            test_dir = Direction.turn(test_dir, Rotation.CCW)
+            num_ccw_turns += 1
+
+        if num_cw_turns < num_ccw_turns:
+            for i in range(num_cw_turns):
+                self.rotate(Rotation.CW)
+        else:
+            for i in range(num_ccw_turns):
+                self.rotate(Rotation.CCW)
