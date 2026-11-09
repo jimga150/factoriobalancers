@@ -66,7 +66,7 @@ class BalancerBlueprint:
 
         for test_height in range(max_io_cnt, max_io_cnt+2):
             # bump height by one if width range doesnt work
-            for test_width in range(2*max_io_cnt, 4*max_io_cnt):
+            for test_width in range(max_io_cnt+1, 4*max_io_cnt):
                 # but first try making it wide
                 try:
                     sat_bp = sat.belt_balancer(
