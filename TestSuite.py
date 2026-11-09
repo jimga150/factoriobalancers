@@ -332,12 +332,13 @@ class BlueprintTests(unittest.TestCase):
                 logger.debug(sat_net_str)
                 if common.debug:
                     sat.network_render(sat_net_str, f"{n}_sat_net.png")
-                sat_bp = sat.belt_balancer(sat_net_str, 6 + 2*n, int(float(n)/2 + 1)*2, underground_length=8)[0]
+                sat_bp = sat.belt_balancer(sat_net_str, 6 + 2*n, int(float(n)/2 + 1)*2, underground_length=BLExpress.underground_length)[0]
                 bp_str = sat.blueprint_encode(sat_bp, level=BLExpress.name)[0]
                 bp = BalancerBlueprint.from_bp_str(bp_str)
                 BluePrintRenderer.renderToFile(bp, f"{n}_bp.png")
                 bn2, _ = bp.get_network()
                 self.assertEqual(True, bn.equivalent_to(bn2))
+
 
 
 if __name__ == '__main__':
