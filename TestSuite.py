@@ -323,6 +323,8 @@ class BlueprintTests(unittest.TestCase):
         self.assertEqual(True, common.dicts_eq(bp_dict_1, bp_dict_2, debug=common.debug))
 
     def test_network_sat_network(self):
+        # BalancerNetwork -> SAT network -> blueprint string -> BalancerBlueprint -> BalancerNetwork
+        # test equivalency
         for n in range(2, 5+1):
             with self.subTest(n=n):
                 bn = BalancerNetwork_Book.make_NxN(n)
