@@ -131,8 +131,6 @@ class BeltLevel:
 BLBelt = BeltLevel("normal", 4)
 BLFast = BeltLevel("fast", 6)
 BLExpress = BeltLevel("express", 8)
-
-# name is express since currently SAT's TransportBeltLevel class doesn't account for turbo belts
 BLTurbo = BeltLevel("turbo", 10)
 
 belt_levels = [BLBelt, BLFast, BLExpress, BLTurbo]

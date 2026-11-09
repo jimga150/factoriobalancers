@@ -38,7 +38,8 @@ def make_NxN(num_ios: int) -> BalancerNetwork:
     elif num_ios == 2:
         ans = make_2x2()
     else:
-        # find the next lowest even number A, use that balancer as a baseline
+        # find the lowest even number A that is greater than or equal to num_ios
+        # Make an AxA balancer, use that as a baseline
         # this will consist of two A/2 size balancers combined side by side
         A = num_ios
         if num_ios % 2:
