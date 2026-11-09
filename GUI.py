@@ -82,6 +82,11 @@ class GUI(QtWidgets.QWidget):
         BPDWidget4 = BPDrawArea(bp4)
         layout.addWidget(BPDWidget4, 2, 0)
 
+        bp5 = copy.deepcopy(bp4)
+        bp5.loopback_ios(2)
+        BPDWidget5 = BPDrawArea(bp5)
+        layout.addWidget(BPDWidget5, 2, 1)
+
         layout.addWidget(QtWidgets.QLabel("Label"), 3, 0, Qt.AlignmentFlag.AlignCenter)
 
         self.resize(600, 600)

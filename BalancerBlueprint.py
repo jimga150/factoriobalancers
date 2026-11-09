@@ -982,3 +982,129 @@ class BalancerBlueprint:
         else:
             for i in range(num_ccw_turns):
                 self.rotate(Rotation.CCW)
+
+    def loopback_ios(self, num_ios: int):
+
+        if num_ios > 1:
+            for i in range(num_ios):
+                self.loopback_ios(1)
+            return
+
+        self.rotate_to(Direction.RIGHT)
+
+        # 1. ensure there is space on the bottom side for a loopback
+
+        #   a. check if all tiles on bottom row are empty
+        bot_row_empty = True
+        for x in range(self.width):
+            if not self.entity_grid[self.height-1][x].empty:
+                bot_row_empty = False
+                break
+
+        #   b. if not, add a row at the bottom
+        if not bot_row_empty:
+            self.entity_grid.append([])
+            for x in range(self.width):
+                self.entity_grid[-1].append(BPEntity())
+
+            # need to place a belt in this new row so that future calls to enumerate wont ignore it and cut the height down
+            self.height += 1
+
+            dummy_belt = None
+            for y in range(self.height):
+                for x in range(self.width):
+                    entity = self.entity_grid[y][x]
+                    if entity.is_belt():
+                        dummy_belt = entity
+                        break
+            self.entity_grid[self.height-1][self.width // 2] = dummy_belt
+
+            # no need to fully enumerate, save a bit of time
+
+
+        # 2. find bottommost input
+        bot_inp_x = 0
+        bot_inp_y = None
+        for y in range(self.height-1, -1, -1):
+            # bottom to top
+            entity = self.entity_grid[y][0]
+            if entity.is_input(self.width, self.height):
+                bot_inp_y = y
+                break
+
+        # 3. ensure there is space below the input for a loopback
+
+        #   a. check if all tiles on input column below the input are empty
+        below_input_empty = True
+        for y in range(bot_inp_y+1, self.height):
+            if not self.entity_grid[y][0].empty:
+                below_input_empty = False
+                break
+
+        #   b. if not, add a new column before the input, and extend all inputs to the new column
+        if not below_input_empty:
+            for y in range(self.height):
+                input_was_here = self.entity_grid[y][0].is_input(self.width, self.height)
+                self.entity_grid[y].insert(0, BPEntity())
+                if input_was_here:
+                    self.entity_grid[y][0] = self.entity_grid[y][1]
+
+            self.enumerate()
+
+        # 4. find bottommost output
+        bot_out_x = self.width-1
+        bot_out_y = None
+        for y in range(self.height - 1, -1, -1):
+            # bottom to top
+            logger.info(f"checking entity at ({self.width-1}, {y})")
+            entity = self.entity_grid[y][self.width-1]
+            if entity.is_output(self.width, self.height):
+                bot_out_y = y
+                break
+
+        # 5. ensure there is space below the output for a loopback
+
+        #   a. check if all tiles on output column below the output are empty
+        below_output_empty = True
+        for y in range(bot_out_y+1, self.height):
+            if not self.entity_grid[y][self.width-1].empty:
+                below_output_empty = False
+                break
+
+        #   b. if not, add a new column after the output, and extend all outputs to the new column (update bottommost output ref)
+        if not below_output_empty:
+            for y in range(self.height):
+                output_was_here = self.entity_grid[y][self.width-1].is_output(self.width, self.height)
+                self.entity_grid[y].append(BPEntity())
+                if output_was_here:
+                    self.entity_grid[y][-1] = self.entity_grid[y][self.width-1]
+
+            self.enumerate()
+            bot_out_x += 1
+
+        # 6. turn output from 4. south
+        bot_out = self.entity_grid[bot_out_y][bot_out_x]
+        bot_out.direction = Direction.DOWN
+
+        # 7. add belts to complete loopback path
+
+        #   a. south to (one before) bottom
+        for y in range(bot_out_y+1, self.height-1):
+            self.entity_grid[y][self.width-1] = bot_out
+
+        #   b. west to (one before) input column
+        reverse_belt = copy.deepcopy(bot_out)
+        reverse_belt.direction = Direction.LEFT
+
+        for x in range(1, self.width):
+            self.entity_grid[self.height-1][x] = reverse_belt
+
+        up_belt = copy.deepcopy(bot_out)
+        up_belt.direction = Direction.UP
+
+        #   c. up to (one before) input
+        for y in range(bot_inp_y+1, self.height):
+            self.entity_grid[y][0] = up_belt
+
+        # 8. enumerate
+        self.enumerate()

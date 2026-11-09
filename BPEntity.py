@@ -13,6 +13,11 @@ class Rotation(enum.Enum):
     CW = 0
     CCW = 1
 
+    @staticmethod
+    def reverse(arg: Rotation) -> Rotation:
+        if arg == Rotation.NONE:
+            return arg
+        return Rotation.CW if arg == Rotation.CCW else Rotation.CCW
 
 class Direction(enum.Enum):
     NONE = -1
@@ -35,6 +40,8 @@ class Direction(enum.Enum):
 
     @staticmethod
     def turn(direc: Direction, rot: Rotation) -> Direction:
+        if rot == Rotation.NONE:
+            return direc
         if direc == Direction.UP:
             return Direction.RIGHT if rot == Rotation.CW else Direction.LEFT
         elif direc == Direction.DOWN:
@@ -348,3 +355,44 @@ class BPEntity:
         if port == IOType.INPUT:
             return self.input_priority == splitter_side
         return False
+
+    def is_input(self, width: int, height: int) -> bool:
+
+        if not self.is_belt():
+            return False
+
+        input_dir = Direction.reverse(self.direction)
+        input_dir = Direction.turn(input_dir, Rotation.reverse(self.bend))
+
+        if input_dir == Direction.LEFT:
+            return self.pos_x == 0
+
+        if input_dir == Direction.RIGHT:
+            return self.pos_x == width-1
+
+        if input_dir == Direction.UP:
+            return self.pos_y == 0
+
+        if input_dir == Direction.DOWN:
+            return self.pos_y == height-1
+
+        raise Exception(f"Invalid direction: {input_dir}")
+
+    def is_output(self, width: int, height: int) -> bool:
+
+        if not self.is_belt():
+            return False
+
+        if self.direction == Direction.LEFT:
+            return self.pos_x == 0
+
+        if self.direction == Direction.RIGHT:
+            return self.pos_x == width - 1
+
+        if self.direction == Direction.UP:
+            return self.pos_y == 0
+
+        if self.direction == Direction.DOWN:
+            return self.pos_y == height - 1
+
+        raise Exception(f"Invalid direction: {self.direction }")
