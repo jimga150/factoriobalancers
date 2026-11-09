@@ -31,7 +31,7 @@ class Direction(enum.Enum):
             return Direction.LEFT
         elif arg == Direction.LEFT:
             return Direction.RIGHT
-        raise RuntimeError('Invalid direction')
+        raise RuntimeError(f'Invalid direction: {arg}')
 
     @staticmethod
     def turn(direc: Direction, rot: Rotation) -> Direction:
