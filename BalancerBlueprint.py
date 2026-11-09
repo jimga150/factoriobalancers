@@ -38,7 +38,7 @@ class BalancerBlueprint:
         self.network = None
         self.net_mapping = None
 
-        self.entity_grid = []
+        self.entity_grid: list[list[BPEntity]] = []
 
     @staticmethod
     def from_bp_str(bp_str: str) -> BalancerBlueprint:
