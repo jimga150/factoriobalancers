@@ -480,7 +480,7 @@ class BalancerBlueprint:
     def entites_as_flat_list(self) -> list[BPEntity]:
         return list(chain.from_iterable(self.entity_grid))
 
-    def get_network(self) -> tuple[BalancerNetwork, dict]:
+    def get_network(self) -> tuple[BalancerNetwork, dict[BPEntity, Belt | Node]]:
 
         logger.debug(f"get_network called")
 
