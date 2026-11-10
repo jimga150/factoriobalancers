@@ -7,10 +7,10 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QSizePolicy
 
-import BalancerProofs
-import common
 import BalancerNetwork_Book
+import BalancerProofs
 import BluePrintRenderer
+import common
 from BPEntity import Rotation, BLExpress
 from BalancerBlueprint import BalancerBlueprint
 from PhotoViewer import PhotoViewer
