@@ -154,6 +154,7 @@ class BalancerBlueprint:
                 sat_ans = sat.belt_balancer(
                     desired_sat_network,
                     partialbp.width + interchange_width,
+                    ##im in
                     partialbp.height,
                     edge_splitters=True,
                     glue_splitters=True,
