@@ -396,7 +396,7 @@ def renderToQImage(bp: BalancerBlueprint.BalancerBlueprint) -> QImage:
     img = QImage(width, height, QImage.Format.Format_ARGB32)
     img.fill(QColor(0, 0, 0, 0))
 
-    if common.debug and bp.net_mapping is None:
+    if common.debug and draw_entity_ids and bp.net_mapping is None:
         # make network map to reference in render
         bp.get_network()
 
