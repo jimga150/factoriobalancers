@@ -101,6 +101,8 @@ class BalancerBlueprint:
 
         network, _ = sub_bp.get_network()
 
+        logger.debug(f"Combining sidebyside: {network.get_num_inputs()}x{network.get_num_outputs()}")
+
         if common.debug:
             BluePrintRenderer.renderToFile(sub_bp, "sub_bp")
             network.render("sub_bp_network")
@@ -148,6 +150,12 @@ class BalancerBlueprint:
         # partial_str = partialbp.to_bp_str()
         # return Blueprint.from_bp_str(partial_str)
 
+        partial_bp_name = f"sbs_partial"
+        logger.debug(f"partial BP str rendering to {partial_bp_name}")
+        if common.debug:
+            to_render = BalancerBlueprint.from_bp_str(partial_str)
+            BluePrintRenderer.renderToFile(to_render, partial_bp_name)
+
         sat_ans = []
 
         ichange_min_width = 5
@@ -169,8 +177,7 @@ class BalancerBlueprint:
                 )
                 break
             except NoSolutionsException:
-                # move on to higher grid space
-                pass
+                logger.debug(f"No Solutions Found for interchange width = {interchange_width}")
 
         if len(sat_ans) == 0:
             raise RuntimeError(f"No Solutions Found for interchange width <= {ichange_max_width}")
@@ -283,7 +290,7 @@ class BalancerBlueprint:
                 break
             except NoSolutionsException:
                 logger.debug(f"No Solutions Found for interchange width = {inter_spacing}")
-                partial_bp_name = f"failed_partial_{inter_spacing}"
+                partial_bp_name = f"e2e_failed_partial_{inter_spacing}"
                 logger.debug(f"partial BP str rendering to {partial_bp_name}")
                 if common.debug:
                     to_render = BalancerBlueprint.from_bp_str(partial_str)
