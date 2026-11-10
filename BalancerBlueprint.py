@@ -91,9 +91,7 @@ class BalancerBlueprint:
     @staticmethod
     def combine_sidebyside(sub_bp: BalancerBlueprint) -> BalancerBlueprint:
         # stamp down two right next to each other
-        # calculate distance needed ahead for belts to become all adjacent
-        # at that distance - 1, stamp down an interchange
-        # use as partial solution for Factorio-SAT
+        # use as partial solution for Factorio-SAT, solving for the complete network
 
         sub_bp.rotate_to(Direction.RIGHT)
 
@@ -125,28 +123,7 @@ class BalancerBlueprint:
 
         partialbp = BalancerBlueprint.from_entity_grid(new_entity_grid)
 
-        # return partialbp
-
-
-        # subbp_rot = copy.deepcopy(sub_bp)
-        # subbp_rot.rotate(Rotation.CW)
-        # partial_str = subbp_rot.to_bp_str()
-        #
-        # sat_ans = sat.belt_balancer(
-        #     network.export_to_sat_network(),
-        #     subbp_rot.width+1,
-        #     subbp_rot.height+1,
-        #     # fast=True,
-        #     underground_length=10,
-        #     partial=partial_str
-        # )
-        # ans_bp_str = sat.blueprint_encode(sat_ans)[0]
-        # return Blueprint.from_bp_str(ans_bp_str)
-
-
         partial_str = partialbp.to_bp_str((0, partialbp.width - 2))
-        # partial_str = partialbp.to_bp_str()
-        # return Blueprint.from_bp_str(partial_str)
 
         partial_bp_name = f"sbs_partial"
         logger.debug(f"SBS: partial BP str rendering to {partial_bp_name}")
@@ -189,8 +166,7 @@ class BalancerBlueprint:
     @staticmethod
     def combine_endtoend(upstream: BalancerBlueprint, downstream: Optional[BalancerBlueprint] = None) -> BalancerBlueprint:
         # stamp down one
-        # stamp down the other, overlapping I/Os
-        # trim nodes
+        # stamp down the other downstream, separating until Factorio-SAT can connect them end to end
 
         # turn to face L->R
         upstream.rotate_to(Direction.RIGHT)
