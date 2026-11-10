@@ -6,6 +6,10 @@ from Belt import ColorStrategy
 
 logger = common.setup_logger(__name__)
 
+# TODO: make balancer blueprints
+#   TODO: make NxM balancers
+#   TODO: generate TU balancers
+#   TODO: generate universal NxM balancers by applying universal method to NxM balancers
 # TODO: generate balancer networks
 #   TODO: generate TU balancers
 #   TODO: generate universal NxM balancers by applying universal method to NxM balancers
