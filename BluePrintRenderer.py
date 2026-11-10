@@ -8,8 +8,8 @@ from PySide6.QtCore import QPoint, QRect, QSize
 from PySide6.QtGui import QColor, QImage, QPainter, QStaticText, QPen
 from vdfparse import VDFParse
 
-from BPEntity import *
 import BalancerBlueprint
+from BPEntity import *
 
 logger = logging.getLogger(__name__)
 common.setup_logger()
