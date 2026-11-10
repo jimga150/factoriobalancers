@@ -14,6 +14,8 @@ import BalancerBlueprint
 logger = logging.getLogger(__name__)
 common.setup_logger(logger)
 
+draw_entity_ids = False
+
 ss_populated = False
 asset_dir = "assets"
 
@@ -358,7 +360,7 @@ def drawEntity(bp: BalancerBlueprint.BalancerBlueprint, p: QPainter, entity: BPE
     sprite = get_sprite_by_entity(entity)
     p.drawImage(sprite_pos + sprite.offset, sprite.img)
 
-    if common.debug and bp.net_mapping is not None and entity in bp.net_mapping:
+    if common.debug and draw_entity_ids and bp.net_mapping is not None and entity in bp.net_mapping:
         node = bp.net_mapping[entity]
         p.drawStaticText(sprite_pos, QStaticText(str(node) + f" ({hex(node.id)[2:]})"))
 
