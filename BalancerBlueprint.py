@@ -4,18 +4,18 @@ import copy
 import json
 import logging
 import sys
-
-import zlib
 from itertools import chain
 from typing import Optional
 
+import zlib
+
 import BluePrintRenderer
 import common
+import factorio_sat_callable as sat
 from BPEntity import BPEntity, Direction, Rotation, IOType, BeltLevel
 from BalancerNetwork import BalancerNetwork
 from Belt import Belt
 from Node import Node
-import factorio_sat_callable as sat
 from factorio_sat_callable.belt_balancer import NoSolutionsException
 
 logger = logging.getLogger(__name__)
@@ -169,7 +169,6 @@ class BalancerBlueprint:
                     ##im in
                     partialbp.height,
                     edge_splitters=True,
-                    prevent_mergeable_underground=True,
                     prevent_bad_patterns=True,
                     ungroup_ios=True,
                     underground_length=sub_bp.beltlevel.underground_length,
@@ -281,7 +280,6 @@ class BalancerBlueprint:
                     partialbp.width,
                     partialbp.height,
                     edge_splitters=True,
-                    glue_splitters=True,
                     prevent_bad_patterns=True,
                     ungroup_ios=True,
                     underground_length=beltlevel.underground_length,
