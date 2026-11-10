@@ -218,7 +218,7 @@ class BalancerBlueprint:
         downstream = BalancerBlueprint.from_bp_str(d_str)
 
         # get upstream BP without output belts
-        u_str = upstream.to_bp_str((0, downstream.width-1), (0, downstream.height))
+        u_str = upstream.to_bp_str((0, upstream.width-2), (0, upstream.height))
         upstream = BalancerBlueprint.from_bp_str(u_str)
 
         new_height = max(upstream.height, downstream.height)
