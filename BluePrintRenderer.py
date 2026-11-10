@@ -22,7 +22,9 @@ asset_dir = "assets"
 ss_imgs = {}
 sprites = {}
 
-from QtAppInst import app
+# This used to be necessary but it seems like it isnt anymore.
+# Keeping around just in case we get any PyQt errors in this module.
+# from QtAppInst import app
 
 def fetch_assets():
     logger.debug("Fetching assets from Factorio")
