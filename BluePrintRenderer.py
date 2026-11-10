@@ -372,9 +372,6 @@ def paintBPTo(bp: BalancerBlueprint.BalancerBlueprint, p: QPainter):
 
     p.save()
 
-    p.scale(0.8, 0.8)
-    p.translate(0, 16)
-    p.setPen(QPen(QColor(255, 255, 255)))
     logger.debug(f"Dimensions: {bp.width=}, {bp.height=}")
     for y in range(bp.height):
         for x in range(bp.width):
@@ -392,17 +389,28 @@ def paintBPTo(bp: BalancerBlueprint.BalancerBlueprint, p: QPainter):
     p.restore()
 
 def renderToQImage(bp: BalancerBlueprint.BalancerBlueprint) -> QImage:
+
+    sprite_overhead_px = 16
+
     width = bp.width * tile_size.width()
-    height = bp.height * tile_size.height()
+    height = (bp.height * tile_size.height()) + sprite_overhead_px
     img = QImage(width, height, QImage.Format.Format_ARGB32)
-    img.fill(QColor(0, 0, 0, 0))
+    img.fill(QColor(0, 0, 0, 0))  # transparency
 
     if common.debug and draw_entity_ids and bp.net_mapping is None:
         # make network map to reference in render
         bp.get_network()
 
     with QPainter(img) as painter:
+
+        painter.save()
+
+        painter.translate(0, sprite_overhead_px)
+        painter.setPen(QPen(QColor(255, 255, 255)))
+
         paintBPTo(bp, painter)
+
+        painter.restore()
 
     return img
 
