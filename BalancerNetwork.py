@@ -9,6 +9,7 @@ from typing import Optional
 import z3
 import networkx
 
+import BPEntity
 import common
 from Belt import Belt, ColorStrategy
 from Node import Node
@@ -290,7 +291,13 @@ class BalancerNetwork:
             self.belts.remove(belt)
 
     @staticmethod
-    def combine_endtoend(upstream: BalancerNetwork, downstream: Optional[BalancerNetwork] = None, optimize: bool = True) -> BalancerNetwork:
+    def combine_endtoend(
+            upstream: BalancerNetwork,
+            downstream: Optional[BalancerNetwork] = None,
+            optimize: bool = True,
+            upstream_net_map: Optional[dict[BPEntity.BPEntity, Belt | Node]] = None,
+            downstream_net_map: Optional[dict[BPEntity.BPEntity, Belt | Node]] = None
+    ) -> BalancerNetwork:
 
         if downstream is None:
             downstream = upstream
@@ -298,8 +305,36 @@ class BalancerNetwork:
         ans = copy.deepcopy(upstream)
         downstream_copy = copy.deepcopy(downstream)
 
-        upstream_output_belts = ans.get_outputs()
-        downstream_input_belts = downstream_copy.get_inputs()
+        return BalancerNetwork.combine_endtoend_inplace(
+            ans,
+            downstream_copy,
+            optimize=optimize,
+            upstream_net_map=upstream_net_map,
+            downstream_net_map=downstream_net_map
+        )
+
+    @staticmethod
+    def combine_endtoend_inplace(
+            upstream: BalancerNetwork,
+            downstream: Optional[BalancerNetwork] = None,
+            optimize: bool = True,
+            upstream_net_map: Optional[dict[BPEntity.BPEntity, Belt | Node]] = None,
+            downstream_net_map: Optional[dict[BPEntity.BPEntity, Belt | Node]] = None
+    ) -> BalancerNetwork:
+
+        assert downstream != upstream
+
+        upstream_output_belts = upstream.get_outputs()
+        downstream_input_belts = downstream.get_inputs()
+
+        def rank_bpe(arg: BPEntity.BPEntity) -> int:
+            return arg.pos_x + arg.pos_y
+
+        if upstream_net_map is not None:
+            upstream_output_belts.sort(key=lambda x: rank_bpe([k for k, v in upstream_net_map.items() if v == x.dest][0]))
+
+        if downstream_net_map is not None:
+            downstream_input_belts.sort(key=lambda x: rank_bpe([k for k, v in downstream_net_map.items() if v == x.source][0]))
 
         # unmark I/Os in stitching layer, will be trimmed if not connected
         for belt in upstream_output_belts:
@@ -318,16 +353,23 @@ class BalancerNetwork:
             output_belt = upstream_output_belts[belt_idx]
             input_belt = downstream_input_belts[belt_idx]
 
+            logger.info(f"Connecting {input_belt} to {output_belt}")
+
+            if upstream_net_map is not None and downstream_net_map is not None:
+                in_ent = [k for k, v in upstream_net_map.items() if v == output_belt.dest][0]
+                out_ent = [k for k, v in downstream_net_map.items() if v == input_belt.source][0]
+                logger.info(f"{in_ent.pos_x}, {in_ent.pos_y} <- {out_ent.pos_x}, {out_ent.pos_y}")
+
             output_belt.dest = input_belt.dest
             output_belt.dest_priority = input_belt.dest_priority
 
-        for belt in downstream_copy.belts:
+        for belt in downstream.belts:
             if belt.is_input():
                 continue
-            ans.belts.append(belt)
+            upstream.belts.append(belt)
 
-        ans.postprocess_nodes(optimize)
-        return ans
+        upstream.postprocess_nodes(optimize)
+        return upstream
 
     @staticmethod
     def make_tap_loop(simple_balancer: BalancerNetwork, rebalancer: Optional[BalancerNetwork] = None) -> BalancerNetwork:

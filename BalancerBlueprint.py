@@ -188,7 +188,8 @@ class BalancerBlueprint:
         upstream.rotate_to(Direction.RIGHT)
 
         if downstream is None:
-            downstream = upstream
+            # we can't just reference shallowly, later network operations require these pointers be distinct
+            downstream = copy.deepcopy(upstream)
         elif downstream != upstream:
             downstream.rotate_to(Direction.RIGHT)
 
@@ -196,10 +197,16 @@ class BalancerBlueprint:
         if downstream.beltlevel > beltlevel:
             beltlevel = downstream.beltlevel
 
-        u_net, _ = upstream.get_network()
-        d_net, _ = downstream.get_network()
+        u_net, u_map = upstream.get_network()
+        d_net, d_map = downstream.get_network()
 
-        desired_network = BalancerNetwork.combine_endtoend(u_net, d_net, False)
+        desired_network = BalancerNetwork.combine_endtoend_inplace(
+            u_net,
+            d_net,
+            optimize=False,
+            upstream_net_map=u_map,
+            downstream_net_map=d_map
+        )
 
         if common.debug:
             desired_network.render("desired_network")
