@@ -7,9 +7,8 @@ import common
 from BalancerNetwork import BalancerNetwork
 from Belt import ColorStrategy
 
-
 logger = logging.getLogger(__name__)
-common.setup_logger(logger)
+common.setup_logger()
 
 
 def debug_proof(balancer: BalancerNetwork, z3solver: z3.Solver, check_result: z3.CheckSatResult, condition_name: str):

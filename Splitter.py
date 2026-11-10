@@ -5,9 +5,8 @@ import z3
 import common
 from Belt import Belt
 
-
 logger = logging.getLogger(__name__)
-common.setup_logger(logger)
+common.setup_logger()
 
 
 class Splitter:

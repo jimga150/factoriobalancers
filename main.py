@@ -1,20 +1,13 @@
 import logging
-import sys
 
-import BalancerProofs
 import BalancerNetwork_Book
-import BluePrintRenderer
-from BalancerBlueprint import BalancerBlueprint
+import BalancerProofs
 import common
 from BalancerNetwork import BalancerNetwork
-
-import z3
-
 from Belt import ColorStrategy
-import factorio_sat_callable as sat
 
 logger = logging.getLogger(__name__)
-common.setup_logger(logger)
+common.setup_logger()
 
 # TODO: generate balancer networks
 #   TODO: add generic generator and tests

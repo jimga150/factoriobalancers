@@ -5,7 +5,7 @@ from typing import Optional
 import common
 
 logger = logging.getLogger(__name__)
-common.setup_logger(logger)
+common.setup_logger()
 
 
 class Rotation(enum.Enum):

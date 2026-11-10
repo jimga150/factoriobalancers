@@ -6,8 +6,8 @@ from argparse import ArgumentError
 from pathlib import Path
 from typing import Optional
 
-import z3
 import networkx
+import z3
 
 import BPEntity
 import common
@@ -16,7 +16,7 @@ from Node import Node
 from Splitter import Splitter
 
 logger = logging.getLogger(__name__)
-common.setup_logger(logger)
+common.setup_logger()
 
 try:
     from graphviz import Digraph

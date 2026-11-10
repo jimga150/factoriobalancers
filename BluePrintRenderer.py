@@ -12,7 +12,7 @@ from BPEntity import *
 import BalancerBlueprint
 
 logger = logging.getLogger(__name__)
-common.setup_logger(logger)
+common.setup_logger()
 
 draw_entity_ids = False
 

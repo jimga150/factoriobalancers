@@ -17,7 +17,7 @@ from PhotoViewer import PhotoViewer
 from QtAppInst import app
 
 logger = logging.getLogger(__name__)
-common.setup_logger(logger)
+common.setup_logger()
 
 class BPDrawArea(QtWidgets.QWidget):
     def __init__(self, bp: BalancerBlueprint):

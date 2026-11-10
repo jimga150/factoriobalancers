@@ -19,7 +19,7 @@ from Node import Node
 from factorio_sat_callable.belt_balancer import NoSolutionsException
 
 logger = logging.getLogger(__name__)
-common.setup_logger(logger)
+common.setup_logger()
 
 class BalancerBlueprint:
 

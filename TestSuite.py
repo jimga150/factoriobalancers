@@ -6,22 +6,21 @@ from multiprocessing.dummy import Pool
 import z3
 
 import BalancerBlueprint_Book
-import BluePrintRenderer
-import Blueprint_Book
-import common
-from BPEntity import BLExpress
-from BalancerNetwork import BalancerNetwork
 import BalancerNetwork_Book
 import BalancerProofs
-from Belt import ColorStrategy
-from BalancerBlueprint import BalancerBlueprint
-from Node import Node
+import BluePrintRenderer
+import Blueprint_Book
 import UniqueIDObj
+import common
 import factorio_sat_callable as sat
-
+from BPEntity import BLExpress
+from BalancerBlueprint import BalancerBlueprint
+from BalancerNetwork import BalancerNetwork
+from Belt import ColorStrategy
+from Node import Node
 
 logger = logging.getLogger(__name__)
-common.setup_logger(logger)
+common.setup_logger()
 
 
 class NodeTests(unittest.TestCase):

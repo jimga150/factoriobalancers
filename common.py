@@ -4,7 +4,6 @@ import sys
 
 import z3
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -25,14 +24,16 @@ use_quant_ext_vars = False
 ext_var_quant_denom = 4
 
 
-def setup_logger(logger: logging.Logger):
+def setup_logger():
+
+    root_logger = logging.getLogger()
     
     if debug:
-        logger.setLevel(logging.DEBUG)
+        root_logger.setLevel(logging.DEBUG)
     else:
-        logger.setLevel(logging.INFO)
+        root_logger.setLevel(logging.INFO)
     
-    if not logger.hasHandlers():
+    if not root_logger.hasHandlers():
         fmt = logging.Formatter("%(asctime)s: %(name)s: %(levelname)s: %(message)s")
 
         stream_handler = logging.StreamHandler(sys.stdout)
@@ -41,10 +42,10 @@ def setup_logger(logger: logging.Logger):
         fh = logging.FileHandler("main_out.txt", mode='w+')
         fh.setFormatter(fmt)
 
-        logger.addHandler(stream_handler)
-        logger.addHandler(fh)
+        root_logger.addHandler(stream_handler)
+        root_logger.addHandler(fh)
     
-setup_logger(logger)
+setup_logger()
 
 def clear_output_folder():
     for item in os.listdir(output_folder):

@@ -7,9 +7,8 @@ import common
 from Node import Node
 from UniqueIDObj import UniqueIDObj
 
-
 logger = logging.getLogger(__name__)
-common.setup_logger(logger)
+common.setup_logger()
 
 
 class ColorStrategy(Enum):
