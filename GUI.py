@@ -52,6 +52,7 @@ class GUI(QtWidgets.QWidget):
         # layout.addWidget(BPDWidget, 0, 0)
         layout.addWidget(BPDWidget, 0, 0, 1, 2)
 
+        # rotation test
         # bp_temp = copy.deepcopy(BPDWidget.bp)
         # for i in range(3):
         #     bp_temp = copy.deepcopy(bp_temp)
