@@ -12,6 +12,9 @@ def network_create(network_filename: str, size: int):
     save_network(network_filename, network)
 
 def network_render(network: str, output_filename: Optional[str] = None, engine: str = 'dot'):
+    output_filename_parts = output_filename.split('.')
+    if len(output_filename_parts) == 1:
+        output_filename = output_filename + '.png'
     network = sat_common.parse_network_str(network)
     plot(network, output_filename, engine)
 
