@@ -151,7 +151,7 @@ class BalancerBlueprint:
         # return Blueprint.from_bp_str(partial_str)
 
         partial_bp_name = f"sbs_partial"
-        logger.debug(f"partial BP str rendering to {partial_bp_name}")
+        logger.debug(f"SBS: partial BP str rendering to {partial_bp_name}")
         if common.debug:
             to_render = BalancerBlueprint.from_bp_str(partial_str)
             BluePrintRenderer.renderToFile(to_render, partial_bp_name)
@@ -174,12 +174,13 @@ class BalancerBlueprint:
                     underground_length=sub_bp.beltlevel.underground_length,
                     partial=partial_str
                 )
+                logger.debug(f"SBS: Solution Found for interchange width = {interchange_width}")
                 break
             except NoSolutionsException:
-                logger.debug(f"No Solutions Found for interchange width = {interchange_width}")
+                logger.debug(f"SBS: No Solutions Found for interchange width = {interchange_width}")
 
         if len(sat_ans) == 0:
-            raise RuntimeError(f"No Solutions Found for interchange width <= {ichange_max_width}")
+            raise RuntimeError(f"SBS: No Solutions Found for interchange width <= {ichange_max_width}")
 
         ans_bp_str = sat.blueprint_encode(sat_ans, level=sub_bp.beltlevel.name)[0]
 
@@ -285,9 +286,10 @@ class BalancerBlueprint:
                     underground_length=beltlevel.underground_length,
                     partial=partial_str
                 )
+                logger.debug(f"E2E: Solution found: interchange width = {inter_spacing}")
                 break
             except NoSolutionsException:
-                logger.debug(f"No Solutions Found for interchange width = {inter_spacing}")
+                logger.debug(f"E2E: No Solutions Found for interchange width = {inter_spacing}")
                 partial_bp_name = f"e2e_failed_partial_{inter_spacing}"
                 logger.debug(f"partial BP str rendering to {partial_bp_name}")
                 if common.debug:
@@ -295,7 +297,7 @@ class BalancerBlueprint:
                     BluePrintRenderer.renderToFile(to_render, partial_bp_name)
 
         if len(sat_ans) == 0:
-            raise RuntimeError(f"No solutions found for inter-balancer spacing <= {max_inter_spacing}")
+            raise RuntimeError(f"E2E: No solutions found for inter-balancer spacing <= {max_inter_spacing}")
 
         ans_bp_str = sat.blueprint_encode(sat_ans, level=beltlevel.name)[0]
 
