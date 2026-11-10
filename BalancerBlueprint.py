@@ -1001,6 +1001,11 @@ class BalancerBlueprint:
 
     def loopback_ios(self, num_ios: int):
 
+        assert num_ios >= 0
+
+        if num_ios == 0:
+            return
+
         if num_ios > 1:
             for i in range(num_ios):
                 self.loopback_ios(1)
