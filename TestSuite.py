@@ -5,6 +5,7 @@ from multiprocessing.dummy import Pool
 
 import z3
 
+import BalancerBlueprint_Book
 import BluePrintRenderer
 import Blueprint_Book
 import common
@@ -339,6 +340,17 @@ class BlueprintTests(unittest.TestCase):
                 bn2, _ = bp.get_network()
                 self.assertEqual(True, bn.equivalent_to(bn2))
 
+    def test_balancer_gen_scratch(self):
+        n = 7
+        bp = BalancerBlueprint_Book.make_NxN(n)
+        BluePrintRenderer.renderToFile(bp, f"{n}t_bp.png")
+
+    def test_balancer_gen_nxn(self):
+        for n in range(2, 10+1):
+            with self.subTest(n=n):
+                logger.info(f"Generating {n}x{n}...")
+                bp = BalancerBlueprint_Book.make_NxN(n)
+                BluePrintRenderer.renderToFile(bp, f"{n}_bp.png")
 
 
 if __name__ == '__main__':
