@@ -8,6 +8,7 @@ from typing import Optional
 
 import zlib
 
+import BalancerBlueprint_Book
 import BluePrintRenderer
 import common
 import factorio_sat_callable as sat
@@ -60,6 +61,10 @@ class BalancerBlueprint:
         logger.debug(sat_net_str)
 
         max_io_cnt = max(network.get_num_inputs(), network.get_num_outputs())
+
+        if max_io_cnt == 1:
+            return BalancerBlueprint_Book.make_1x1(BPEntity.default_version, bl)
+
         sat_bp_tuples = []
 
         for test_height in range(max_io_cnt, max_io_cnt+3):

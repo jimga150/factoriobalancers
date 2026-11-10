@@ -1,6 +1,6 @@
 import BalancerNetwork_Book
 import common
-from BPEntity import BeltLevel, BLExpress
+from BPEntity import BeltLevel, BLExpress, BPEntity, Direction
 from BalancerBlueprint import BalancerBlueprint
 
 logger = common.setup_logger(__name__)
@@ -24,3 +24,21 @@ def make_NxN(num_ios: int, level: BeltLevel = BLExpress) -> BalancerBlueprint:
     ans.loopback_ios(A - num_ios)
 
     return ans
+
+def make_1x1(version: int, level: BeltLevel = BLExpress) -> BalancerBlueprint:
+
+    belt_dict = {
+        "direction": Direction.RIGHT.to_int(version),
+        "entity_number": 1,
+        "name": f"{level.prefix()}transport-belt",
+        "position": {
+            "x": 0.5,
+            "y": 0.5
+        }
+    }
+
+    belt_entity = BPEntity(version=version, entity=belt_dict)
+
+    entity_grid = [[belt_entity, belt_entity]]
+
+    return BalancerBlueprint.from_entity_grid(entity_grid)
