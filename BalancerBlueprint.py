@@ -158,7 +158,7 @@ class BalancerBlueprint:
 
         sat_ans = []
 
-        ichange_min_width = 5
+        ichange_min_width = 4
         ichange_max_width = 10
 
         for interchange_width in range(ichange_min_width, ichange_max_width+1):
