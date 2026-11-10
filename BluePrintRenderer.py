@@ -9,7 +9,7 @@ from PySide6.QtGui import QColor, QImage, QPainter, QStaticText, QPen
 from vdfparse import VDFParse
 
 from BPEntity import *
-from BalancerBlueprint import BalancerBlueprint
+import BalancerBlueprint
 
 logger = logging.getLogger(__name__)
 common.setup_logger(logger)
@@ -343,7 +343,7 @@ def get_sprite_by_entity(entity: BPEntity) -> Sprite:
 
     return sprites[entity_key]
 
-def drawEntity(bp: BalancerBlueprint, p: QPainter, entity: BPEntity):
+def drawEntity(bp: BalancerBlueprint.BalancerBlueprint, p: QPainter, entity: BPEntity):
 
     if not entity.is_real():
         logger.debug(f"Not real...")
@@ -362,7 +362,7 @@ def drawEntity(bp: BalancerBlueprint, p: QPainter, entity: BPEntity):
         node = bp.net_mapping[entity]
         p.drawStaticText(sprite_pos, QStaticText(str(node) + f" ({hex(node.id)[2:]})"))
 
-def paintBPTo(bp: BalancerBlueprint, p: QPainter):
+def paintBPTo(bp: BalancerBlueprint.BalancerBlueprint, p: QPainter):
 
     if not ss_populated:
         populate_spritesheets()
@@ -388,7 +388,7 @@ def paintBPTo(bp: BalancerBlueprint, p: QPainter):
 
     p.restore()
 
-def renderToQImage(bp: BalancerBlueprint) -> QImage:
+def renderToQImage(bp: BalancerBlueprint.BalancerBlueprint) -> QImage:
     width = bp.width * tile_size.width()
     height = bp.height * tile_size.height()
     img = QImage(width, height, QImage.Format.Format_ARGB32)
@@ -403,7 +403,7 @@ def renderToQImage(bp: BalancerBlueprint) -> QImage:
 
     return img
 
-def renderToFile(bp: BalancerBlueprint, filename: str):
+def renderToFile(bp: BalancerBlueprint.BalancerBlueprint, filename: str):
 
     img = renderToQImage(bp)
 
