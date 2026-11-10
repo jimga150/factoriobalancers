@@ -93,6 +93,8 @@ class BalancerBlueprint:
         # at that distance - 1, stamp down an interchange
         # use as partial solution for Factorio-SAT
 
+        sub_bp.rotate_to(Direction.RIGHT)
+
         network, _ = sub_bp.get_network()
 
         if common.debug:
@@ -107,20 +109,17 @@ class BalancerBlueprint:
         if common.debug:
             sat.network_render(desired_sat_network)
 
-        new_width = sub_bp.width * 2
+        new_width = sub_bp.width
+        new_height = sub_bp.height * 2
 
         new_entity_grid = []
-        new_height = sub_bp.height
         for y in range(new_height):
             new_entity_grid.append([])
             for x in range(new_width):
-                entity = sub_bp.entity_grid[y][x % sub_bp.width]
+                entity = sub_bp.entity_grid[y % sub_bp.height][x]
                 new_entity_grid[-1].append(entity)
 
         partialbp = BalancerBlueprint.from_entity_grid(new_entity_grid)
-
-        # prep for usage in SAT: needs to go W->E
-        partialbp.rotate_to(Direction.RIGHT)
 
         # return partialbp
 
