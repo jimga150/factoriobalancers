@@ -169,7 +169,7 @@ class BalancerBlueprint:
                 pass
 
         if len(sat_ans) == 0:
-            raise RuntimeError(f"No Solutions Found for intechange width <= {ichange_max_width}")
+            raise RuntimeError(f"No Solutions Found for interchange width <= {ichange_max_width}")
 
         ans_bp_str = sat.blueprint_encode(sat_ans, level=sub_bp.beltlevel.name)[0]
 
