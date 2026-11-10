@@ -32,8 +32,8 @@ class BalancerNetwork:
     oversupply_amt = common.diff_threshold_iter
 
     def __init__(self):
-        self.belts = list()
-        self.nodes = list()
+        self.belts: list[Belt] = list()
+        self.nodes: list[Node] = list()
 
         self.z3solver = None
         self.total_throughput_var = None
