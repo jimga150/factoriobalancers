@@ -192,6 +192,10 @@ class BalancerBlueprint:
         elif downstream != upstream:
             downstream.rotate_to(Direction.RIGHT)
 
+        if common.debug:
+            BluePrintRenderer.renderToFile(upstream, f"ce2e_upstream")
+            BluePrintRenderer.renderToFile(downstream, f"ce2e_downstream")
+
         beltlevel = upstream.beltlevel
         if downstream.beltlevel > beltlevel:
             beltlevel = downstream.beltlevel
@@ -211,6 +215,9 @@ class BalancerBlueprint:
             desired_network.render("desired_network")
 
         desired_sat_network = desired_network.export_to_sat_network()
+
+        if common.debug:
+            sat.network_render(desired_sat_network, output_filename="desired_sat_network")
 
         # get downstream BP without input belts
         d_str = downstream.to_bp_str((1, downstream.width), (0, downstream.height))
@@ -272,6 +279,11 @@ class BalancerBlueprint:
                 break
             except NoSolutionsException:
                 logger.debug(f"No Solutions Found for interchange width = {inter_spacing}")
+                partial_bp_name = f"failed_partial_{inter_spacing}"
+                logger.debug(f"partial BP str rendering to {partial_bp_name}")
+                if common.debug:
+                    to_render = BalancerBlueprint.from_bp_str(partial_str)
+                    BluePrintRenderer.renderToFile(to_render, partial_bp_name)
 
         if len(sat_ans) == 0:
             raise RuntimeError(f"No solutions found for inter-balancer spacing <= {max_inter_spacing}")
