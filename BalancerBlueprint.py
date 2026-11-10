@@ -835,7 +835,7 @@ class BalancerBlueprint:
                     elif x == 0 and entity.direction == Direction.LEFT:
                         self.orientation = Direction.LEFT
 
-                bl = entity.level()
+                bl = entity.level
                 if self.beltlevel is None or bl > self.beltlevel:
                     self.beltlevel = bl
 

@@ -6,6 +6,9 @@ import common
 logger = common.setup_logger(__name__)
 
 
+major_version_offset_bits = 6*8
+
+
 class Rotation(enum.Enum):
     NONE = -1
     CW = 0
@@ -58,6 +61,10 @@ class Direction(enum.Enum):
 
     def is_perpendicular(self, other: Direction) -> bool:
         return self.is_vertical() != other.is_vertical()
+
+    def to_int(self, version: int) -> int:
+        mul = 2 if version >> major_version_offset_bits == 1 else 4
+        return int(self.value) * mul
 
 class IOType(enum.Enum):
     NONE = -1
@@ -133,14 +140,17 @@ class BeltLevel:
     def __ne__(self, other):
         return not (self == other)
 
+    def prefix(self) -> str:
+        if self.name == "normal":
+            return ""
+        return self.name + "-"
+
 BLBelt = BeltLevel("normal", 4)
 BLFast = BeltLevel("fast", 6)
 BLExpress = BeltLevel("express", 8)
 BLTurbo = BeltLevel("turbo", 10)
 
 belt_levels = [BLBelt, BLFast, BLExpress, BLTurbo]
-
-major_version_offset_bits = 6*8
 
 class BPEntity:
     entity_keys_to_ensure = {
@@ -150,8 +160,6 @@ class BPEntity:
     NAME_SPLITTER = "splitter"
     NAME_BELT = "transport-belt"
     NAME_UNDERGROUND = "underground-belt"
-
-    belt_prefixes = [x.name for x in belt_levels[1:]]
 
     default_version = 1
 
@@ -179,6 +187,12 @@ class BPEntity:
                 entity[k] = dv
 
         self.name = entity["name"]
+
+        self.level = BLBelt
+        for level in belt_levels:
+            if level.name in self.name:
+                self.level = level
+
         self.version = version
         self.entity_number = entity["entity_number"]
 
@@ -242,8 +256,7 @@ class BPEntity:
 
         ans = {"name": self.name}
 
-        mul = 2 if self.version >> major_version_offset_bits == 1 else 4
-        ans["direction"] = int(self.direction.value) * mul
+        ans["direction"] = self.direction.to_int(self.version)
 
         if self.type != IOType.NONE:
             ans["type"] = str(self.type)
@@ -300,25 +313,10 @@ class BPEntity:
         if self.empty:
             raise ValueError("This BPEntity is empty")
 
-        for i in range(len(BPEntity.belt_prefixes)):
-            prefix = BPEntity.belt_prefixes[i]
-            if prefix not in self.name:
-                continue
-            return belt_levels[i+1].underground_length
-
-        return belt_levels[0].underground_length
+        return self.level.underground_length
 
     def prefix(self) -> str:
-        for p in BPEntity.belt_prefixes:
-            if p in self.name:
-                return f"{p}-"
-        return ""
-
-    def level(self) -> BeltLevel:
-        for bl in belt_levels:
-            if bl.name in self.name:
-                return bl
-        return BLBelt
+        return self.level.prefix()
 
     def is_real(self):
         return (not self.empty) and (not self.is_phantom)

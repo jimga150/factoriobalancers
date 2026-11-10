@@ -98,10 +98,13 @@ def fetch_assets():
     spritesheet_paths = copy.deepcopy(spritesheet_paths_base)
 
     anchors = [BPEntity.NAME_BELT, BPEntity.NAME_SPLITTER, BPEntity.NAME_UNDERGROUND]
-    for prefix in BPEntity.belt_prefixes:
+    for level in belt_levels:
+        if level == BLBelt:
+            continue
+        prefix = level.prefix()
         prefixed_ss_paths = copy.deepcopy(spritesheet_paths_base)
         for anchor in anchors:
-            prefixed_ss_paths = [Path(str(x).replace(anchor, f"{prefix}-{anchor}")) for x in prefixed_ss_paths]
+            prefixed_ss_paths = [Path(str(x).replace(anchor, f"{prefix}{anchor}")) for x in prefixed_ss_paths]
         spritesheet_paths.extend(prefixed_ss_paths)
 
     for ss_path in spritesheet_paths:
