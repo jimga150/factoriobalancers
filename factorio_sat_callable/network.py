@@ -1,5 +1,7 @@
+from pathlib import Path
 from typing import Optional
 
+import common
 from factorio_sat.network import *
 from . import sat_common
 
@@ -12,9 +14,13 @@ def network_create(network_filename: str, size: int):
     save_network(network_filename, network)
 
 def network_render(network: str, output_filename: Optional[str] = None, engine: str = 'dot'):
-    output_filename_parts = output_filename.split('.')
-    if len(output_filename_parts) == 1:
-        output_filename = output_filename + '.png'
+    if output_filename is not None:
+        output_filename_parts = output_filename.split('.')
+        if len(output_filename_parts) == 1:
+            output_filename = output_filename + '.png'
+    else:
+        output_filename = "SAT_Network.png"
+    output_filename = str(Path(common.output_folder) / output_filename)
     network = sat_common.parse_network_str(network)
     plot(network, output_filename, engine)
 
