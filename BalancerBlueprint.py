@@ -254,8 +254,6 @@ class BalancerBlueprint:
                     new_entity_grid[y + downstream_y_offset][x + downstream_x_offset] = downstream.entity_grid[y][x]
 
             partialbp = BalancerBlueprint.from_entity_grid(new_entity_grid)
-            # partialbp.rotate(Rotation.CCW)
-            # return partialbp
             partial_str = partialbp.to_bp_str()
 
             logger.debug(f"Trying inter-balancer spacing of {inter_spacing} (w={partialbp.width}, h={partialbp.height})")
