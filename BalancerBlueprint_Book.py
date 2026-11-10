@@ -1,12 +1,9 @@
-import logging
-
 import BalancerNetwork_Book
 import common
 from BPEntity import BeltLevel, BLExpress
 from BalancerBlueprint import BalancerBlueprint
 
-logger = logging.getLogger(__name__)
-common.setup_logger()
+logger = common.setup_logger(__name__)
 
 def make_NxN(num_ios: int, level: BeltLevel = BLExpress) -> BalancerBlueprint:
     if num_ios < 5:

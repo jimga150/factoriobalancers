@@ -1,12 +1,9 @@
-import logging
-
 import common
 from BalancerNetwork import BalancerNetwork
 from Belt import Belt
 from Node import Node
 
-logger = logging.getLogger(__name__)
-common.setup_logger()
+logger = common.setup_logger(__name__)
 
 def make_NxM(num_inputs: int, num_outputs: int) -> BalancerNetwork:
 

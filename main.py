@@ -1,13 +1,10 @@
-import logging
-
 import BalancerNetwork_Book
 import BalancerProofs
 import common
 from BalancerNetwork import BalancerNetwork
 from Belt import ColorStrategy
 
-logger = logging.getLogger(__name__)
-common.setup_logger()
+logger = common.setup_logger(__name__)
 
 # TODO: generate balancer networks
 #   TODO: generate TU balancers

@@ -2,7 +2,6 @@
 import base64
 import copy
 import json
-import logging
 import sys
 from itertools import chain
 from typing import Optional
@@ -18,8 +17,7 @@ from Belt import Belt
 from Node import Node
 from factorio_sat_callable.belt_balancer import NoSolutionsException
 
-logger = logging.getLogger(__name__)
-common.setup_logger()
+logger = common.setup_logger(__name__)
 
 class BalancerBlueprint:
 

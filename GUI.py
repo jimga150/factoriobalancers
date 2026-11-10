@@ -1,5 +1,4 @@
 import copy
-import logging
 import sys
 
 from PySide6 import QtWidgets
@@ -16,8 +15,7 @@ from BalancerBlueprint import BalancerBlueprint
 from PhotoViewer import PhotoViewer
 from QtAppInst import app
 
-logger = logging.getLogger(__name__)
-common.setup_logger()
+logger = common.setup_logger(__name__)
 
 class BPDrawArea(QtWidgets.QWidget):
     def __init__(self, bp: BalancerBlueprint):

@@ -1,5 +1,4 @@
 import copy
-import logging
 import os
 import sys
 from argparse import ArgumentError
@@ -15,8 +14,7 @@ from Belt import Belt, ColorStrategy
 from Node import Node
 from Splitter import Splitter
 
-logger = logging.getLogger(__name__)
-common.setup_logger()
+logger = common.setup_logger(__name__)
 
 try:
     from graphviz import Digraph

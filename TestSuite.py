@@ -1,5 +1,4 @@
 import copy
-import logging
 import unittest
 from multiprocessing.dummy import Pool
 
@@ -19,8 +18,7 @@ from BalancerNetwork import BalancerNetwork
 from Belt import ColorStrategy
 from Node import Node
 
-logger = logging.getLogger(__name__)
-common.setup_logger()
+logger = common.setup_logger(__name__)
 
 
 class NodeTests(unittest.TestCase):
