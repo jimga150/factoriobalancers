@@ -62,11 +62,11 @@ class BalancerBlueprint:
         logger.debug(sat_net_str)
 
         max_io_cnt = max(network.get_num_inputs(), network.get_num_outputs())
-        sat_bp = "<NONE>"
+        sat_bp_tuples = []
 
-        for test_height in range(max_io_cnt, max_io_cnt+2):
+        for test_height in range(max_io_cnt, max_io_cnt+3):
             # bump height by one if width range doesnt work
-            for test_width in range(max_io_cnt+1, 4*max_io_cnt):
+            for test_width in range(max_io_cnt+1, 3*max_io_cnt):
                 # but first try making it wide
                 try:
                     sat_bp = sat.belt_balancer(
@@ -76,11 +76,15 @@ class BalancerBlueprint:
                         fast=True,
                         underground_length=bl.underground_length
                     )[0]
+                    sat_bp_tuples.append((sat_bp, test_width, test_height))
                 except NoSolutionsException:
                     pass
 
-        if sat_bp == "<NONE>":
-            raise NoSolutionsException()
+        if len(sat_bp_tuples) == 0:
+            raise NoSolutionsException("No Solutions Found")
+
+        sat_bp_tuples.sort(key=lambda x: x[1]*x[2])
+        sat_bp = sat_bp_tuples[0][0]
 
         bp_str = sat.blueprint_encode(sat_bp, level=bl.name)[0]
         logger.info(bp_str)
